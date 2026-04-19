@@ -5,16 +5,16 @@
 
 module CssParser.Test.Arbitrary where
 
-import CssParser.File ( CssFile(CssFile) )
+import CssParser.At
+import CssParser.File
+import CssParser.FixRule
 import CssParser.Rule
-import Data.Text (Text, pack, tails, inits)
+import Data.Text (pack, tails, inits)
 import Data.Text qualified as T
-import Prelude
+import CssParser.Prelude
 import Test.QuickCheck
-    ( Gen, Arbitrary(..), arbitraryBoundedEnum, elements, listOf )
 import Test.QuickCheck.Instances ()
 import Test.QuickCheck.Arbitrary.Generic
-    ( GenericArbitrary(GenericArbitrary), genericArbitrary, genericShrink )
 
 arbitraryIdent :: Gen Text
 arbitraryIdent = arbitraryText fl nl
@@ -26,9 +26,6 @@ arbitraryText :: String -> String -> Gen Text
 arbitraryText fl nl = do
   fc <- elements fl
   pack . (fc :) <$> listOf (elements nl)
-
-arbitraryLanguages :: [Text]
-arbitraryLanguages = ["af", "af-ZA", "ar", "ar-AE", "ar-BH", "ar-DZ", "ru"]
 
 shrinkText :: Text -> [Text]
 shrinkText = liftA2 (zipWith (<>)) inits (tails . T.drop 1)
@@ -55,9 +52,10 @@ instance Arbitrary Ident where
   shrink (Ident a) = Ident <$> shrinkIdent a
 
 instance Arbitrary Language where
-  arbitrary = Language <$> arbitraryText ['a'..'z'] ['a'..'z']
-  shrink (Language a) = Language <$> shrinkIdent a
+  arbitrary = Language <$> elements ["en", "af-ZA", "ar", "de", "ar-BH", "pl", "ru"]
 
+instance Arbitrary Charset where
+  arbitrary = Charset <$> elements ["UTF-8", "iso-8859-15"]
 
 deriving via (GenericArbitrary PropertyName) instance Arbitrary PropertyName
 deriving via (GenericArbitrary CssFile) instance Arbitrary CssFile

@@ -1,14 +1,17 @@
 module CssParser.File where
 
+import CssParser.At
+import CssParser.Prelude
 import CssParser.Rule
 import CssParser.Show
-import Data.List.NonEmpty ( NonEmpty )
-import GHC.Generics (Generic)
-import Prelude
 
-newtype CssFile
+data CssFile
   = CssFile
-    { rules :: NonEmpty CssRule
+    { charset :: Maybe Charset
+    , rules :: NonEmpty CssRule
     }
-  deriving newtype (Show, Eq, CssShow)
-  deriving (Generic)
+  deriving (Show, Eq, Generic)
+
+instance CssShow CssFile where
+  toCssText cf =
+    maybe "" ((<> "\n") . toCssText) cf.charset <> intercalate "\n" (toCssText <$> toList cf.rules)

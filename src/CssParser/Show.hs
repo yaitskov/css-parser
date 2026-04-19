@@ -1,17 +1,21 @@
-module CssParser.Show where
+module CssParser.Show
+  ( module X
+  , CssShow (..)
+  ) where
 
+import CssParser.TextMarshal as X
 import CssParser.Rule
 import CssParser.Pseudo ( pattern Odd, pattern Even )
-import CssParser.Utils ( encodeIdentifier, encodeText )
-import Data.List.NonEmpty (NonEmpty, toList)
-import Data.Text.Lazy (Text, snoc, cons, pack, fromStrict, concat, intercalate)
-import Prelude hiding (concat, null)
+import CssParser.Utils ( encodeIdentifier )
+import Data.Text.Lazy (pack)
+import CssParser.Prelude
 
 class CssShow a where
-  toCssText :: a -> Text
+  toCssText :: a -> LText
 
 instance CssShow a => CssShow [a] where
   toCssText = concat . fmap toCssText
+{- HLINT ignore "Use concatMap" -}
 
 instance CssShow a => CssShow (NonEmpty a) where
   toCssText = concat . toList . fmap toCssText
@@ -73,7 +77,7 @@ instance CssShow Attr where
   toCssText (Attr name op val) =
     "[" <> toCssText name <>
     toCssText op <>
-    encodeText '"' (fromStrict val) <>
+    encodeStringLiteral val <>
     "]"
 
 instance CssShow AttrName where
@@ -98,7 +102,7 @@ instance CssShow Selector where
     PeSelectorOnly pe -> toCssText pe
     where
       fold fts =
-        Prelude.foldl
+        foldl
           (\ s (tr, ts) -> s <> toCssText tr <> toCssText ts)
           (toCssText fts)
 
@@ -127,7 +131,7 @@ instance CssShow TagName where
 instance CssShow AtomicPseudoClass where
   toCssText = cons ':' . go
     where
-      go :: AtomicPseudoClass -> Text
+      go :: AtomicPseudoClass -> LText
       go = \case
         Active -> "active"
         Checked -> "checked"

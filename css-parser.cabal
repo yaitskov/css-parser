@@ -35,10 +35,14 @@ library
   hs-source-dirs: src
   exposed-modules:
     , CssParser
+    , CssParser.At
     , CssParser.File
+    , CssParser.FixRule
+    , CssParser.Prelude
     , CssParser.Pseudo
     , CssParser.Rule
     , CssParser.Show
+    , CssParser.TextMarshal
     , CssParser.Utils
   other-modules:
     , CssParser.Lexer

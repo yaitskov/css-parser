@@ -35,7 +35,6 @@ $pm       = [\-\+]
 @string2 = \"([^\n\r\f\\\"] | \\@nl | @nonaesc )*\"   -- strings with double quotes
 @string  = @string1 | @string2
 
-
 @a       = a|A|\\0{0,4}(41|61)(\r\n|[ \t\r\n\f])?
 @b       = b|B|\\0{0,4}(42|62)(\r\n|[ \t\r\n\f])?
 @c       = c|C|\\0{0,4}(43|63)(\r\n|[ \t\r\n\f])?
@@ -72,6 +71,7 @@ $pm       = [\-\+]
 @oftype  = @o@f@hyphen@t@y@p@e
 @lasth   = @l@a@s@t@hyphen
 
+@charset = @c@h@a@r@s@e@t
 @cmo     = \/\*
 @cmc     = \*\/
 @psc     = [:]
@@ -90,6 +90,7 @@ tokens :-
   @wo ","  @wo                            { constoken Comma }
   @psc @wo                                { constoken Colon }
   (@wo ";" @wo)+                          { constoken Semicolon }
+  @wo "@" @charset $w @wo                 { constoken CharsetT }
   "."                                     { constoken Dot }
   "*"                                     { constoken Asterisk }
   "&"                                     { constoken Ampersand }
@@ -196,6 +197,7 @@ data Token
     | Greater
     | Tilde
     | Dot
+    | CharsetT
     | Asterisk
     | Space
     | BOpen

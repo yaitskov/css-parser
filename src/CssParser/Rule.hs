@@ -1,10 +1,6 @@
 module CssParser.Rule where
 
-import Data.List.NonEmpty (NonEmpty ((:|)), (<|))
-import Data.String (IsString)
-import Data.Text qualified as TS
-import GHC.Generics (Generic)
-import Prelude
+import CssParser.Prelude
 
 data CssRule
   = CssRule (NonEmpty Selector) [CssRuleBodyItem]
@@ -32,7 +28,7 @@ data TagSelector
   , tagClasses :: [Class]
   } deriving (Show, Ord, Eq, Generic)
 
-newtype Ident = Ident TS.Text deriving newtype (Eq, Ord, Show, IsString)
+newtype Ident = Ident Text deriving newtype (Eq, Ord, Show, IsString)
 
 data TagName
   = TagName Ident
@@ -90,7 +86,7 @@ data AtomicPseudoClass
   | Visited  -- ^ The @:visited@ pseudo class.
   deriving (Eq, Bounded, Enum, Ord, Show, Generic)
 
-newtype Hash = Hash { unHash :: TS.Text } deriving newtype (Eq, Ord, Show, IsString)
+newtype Hash = Hash { unHash :: Text } deriving newtype (Eq, Ord, Show, IsString)
 
 data Attr
   = HasAttr AttrName
@@ -112,8 +108,8 @@ data CssRuleBodyItem
 
 newtype PropertyName = PropertyName Ident deriving newtype (Eq, Ord, Show, IsString) deriving (Generic)
 
-type AttrVal = TS.Text
-newtype Language = Language TS.Text deriving newtype (Eq, Ord, Show, IsString)
+type AttrVal = Text
+newtype Language = Language Text deriving newtype (Eq, Ord, Show, IsString)
 
 data AttrOp =
       Exact -- ^ exactly the value of the value, denoted with @=@
@@ -133,70 +129,3 @@ data PseudoElement
   | Placeholder
   | Selection
   deriving (Bounded, Enum, Eq, Ord, Show, Generic)
-
-tagSelectorOnly :: Ident -> TagSelector
-tagSelectorOnly tn =
-  TagSelector NoBar (TagName tn) [] Nothing []
-
-selectorByTag :: Ident -> Selector
-selectorByTag tn = Selector (tagSelectorOnly tn) []
-
-tagNameRule :: Ident -> [CssRuleBodyItem] -> CssRule
-tagNameRule tn = CssRule (pure $ selectorByTag tn)
-
-tagAndAttrRule :: Ident -> Attr -> [CssRuleBodyItem] -> CssRule
-tagAndAttrRule tn atr body =
-  prependAttr atr (CssRule (pure $ selectorByTag tn) body)
-
-prependIdent :: Ident -> TagRelation -> Selector -> Selector
-prependIdent tn tr = \case
-  Selector fts ots -> Selector (tagSelectorOnly tn) ((tr, fts) : ots)
-  PeSelector fts ots pe -> PeSelector (tagSelectorOnly tn) ((tr, fts) : ots) pe
-  PeSelectorOnly pe -> PeSelector (tagSelectorOnly tn) [] pe
-
-nullTagSelector :: TagSelector
-nullTagSelector = TagSelector NoBar NoTag [] Nothing []
-
-updateFirstTagSelector :: (TagSelector -> TagSelector) -> Selector -> Selector
-updateFirstTagSelector f = \case
-  Selector fts ots -> Selector (f fts) ots
-  PeSelector fts ots pe -> PeSelector (f fts) ots pe
-  PeSelectorOnly pe -> PeSelector (f nullTagSelector) [] pe
-
-updateTopTagSelector :: (TagSelector -> TagSelector) -> CssRule -> CssRule
-updateTopTagSelector tsF (CssRule (fts :| ots) body) =
-  CssRule (updateFirstTagSelector tsF fts :| ots) body
-
-setTsNs :: Ident -> TagSelector -> TagSelector
-setTsNs ns ts = ts { tagNs = Namespace ns }
-
-prependSelectorToRule :: Ident -> CssRule -> CssRule
-prependSelectorToRule iden (CssRule ss body) =
-  CssRule (selectorByTag iden <| ss) body
-
-tagNameIsClass :: Ident -> CssRule -> CssRule
-tagNameIsClass tn = updateTopTagSelector go
-  where
-    go ts = case ts.tagName of
-      TagName c ->
-        ts { tagName = TagName tn
-           , tagClasses = AtomicClass c : ts.tagClasses
-           }
-      _ -> ts
-
-prependIdentAttrSelector :: Ident -> Attr -> TagRelation -> CssRule -> CssRule
-prependIdentAttrSelector tn atr tr  = prependAttr atr . prependIdentToRule tn tr
-
-prependIdentToRule :: Ident -> TagRelation -> CssRule -> CssRule
-prependIdentToRule tn tr (CssRule (fts :| ots) body) =
-  CssRule (prependIdent tn tr fts :| ots) body
-
-prependAttr :: Attr -> CssRule -> CssRule
-prependAttr atr = updateTopTagSelector go
-  where
-    go ts = ts { tagAttrs = atr : ts.tagAttrs }
-
-setTopTagName :: Ident -> CssRule -> CssRule
-setTopTagName tn = updateTopTagSelector go
-  where
-    go ts = ts { tagName = TagName tn }

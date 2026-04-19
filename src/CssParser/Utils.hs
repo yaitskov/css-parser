@@ -89,17 +89,6 @@ encodeString c' = (c' :) . go
       | _notEncode c = c : go cs
       | otherwise = '\\' : _showHex (ord c) (go cs)
 
--- | Convert a string to a css selector string literal. This is done by putting
--- quotes around the content, and escaping certain characters.
-encodeText ::
-  -- | The type of quotes that should be put around the content (should be @'@ or @"@).
-  Char ->
-  -- | The string that should be converted to a css selector string literal.
-  LT.Text ->
-  -- | The corresponding css selector string literal.
-  LT.Text
-encodeText c' t = LT.cons c' (LT.snoc (LT.concatMap encodeCharacter t) c')
-
 encodeCharacter :: Char -> LT.Text
 encodeCharacter c
   | _notEncode c = LT.singleton c

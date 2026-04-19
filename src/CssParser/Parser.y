@@ -2,8 +2,10 @@
 {
 module CssParser.Parser where
 
+import CssParser.At
 import CssParser.Pseudo
 import CssParser.File
+import CssParser.FixRule
 import CssParser.Rule hiding (Ident)
 import CssParser.Rule qualified as R
 import CssParser.Lexer
@@ -13,6 +15,7 @@ import CssParser.Lexer
     , Integer, Comma, Plus, Greater, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TClose, TNot, TLang, Decimal, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
+    , CharsetT
     )
   )
 import Data.List.NonEmpty (NonEmpty((:|)), (<|))
@@ -25,48 +28,53 @@ import Prelude
 %error { happyError }
 
 %token
-    ','     { TokenLoc Comma _ _ }
-    ':'     { TokenLoc Colon _ _ }
-    ';'     { TokenLoc Semicolon _ _ }
-    '>'     { TokenLoc Greater _ _ }
-    '+'     { TokenLoc Plus _ _ }
-    '|'     { TokenLoc Pipe _ _ }
-    '~'     { TokenLoc Tilde _ _ }
-    '.'     { TokenLoc Dot _ _ }
-    ' '     { TokenLoc Space _ _ }
-    '*'     { TokenLoc Asterisk _ _ }
-    '&'     { TokenLoc Ampersand _ _ }
-    '['     { TokenLoc BOpen _ _ }
-    ']'     { TokenLoc BClose _ _ }
-    '{'     { TokenLoc COpen _ _ }
-    '}'     { TokenLoc CClose _ _ }
-    '='     { TokenLoc TEqual _ _ }
-    '^='    { TokenLoc TPrefixMatch _ _ }
-    '$='    { TokenLoc TSuffixMatch _ _ }
-    '*='    { TokenLoc TSubstringMatch _ _ }
-    '|='    { TokenLoc TDashMatch _ _ }
-    '~='    { TokenLoc TIncludes _ _ }
-    ident   { TokenLoc (Ident $$) _ _ }
-    string  { TokenLoc (String $$) _ _ }
-    hash    { TokenLoc (THash $$) _ _ }
-    pseude  { TokenLoc (PseudoElementT $$) _ _ }
-    pseudc  { TokenLoc (AtomicPseudoClassT $$) _ _ }
-    pseudf  { TokenLoc (PseudoFunction $$) _ _ }
-    pm      { TokenLoc (TPM $$) _ _ }
-    'n'     { TokenLoc TN _ _ }
-    int     { TokenLoc (TInt $$) _ _ }
-    integer { TokenLoc (Integer $$) _ _ }
-    var     { TokenLoc (Var $$) _ _ }
-    nth     { TokenLoc (TNth $$) _ _ }
-    'not('  { TokenLoc TNot _ _ }
-    'lang(' { TokenLoc TLang _ _ }
-    ')'     { TokenLoc TClose _ _ }
+    ','         { TokenLoc Comma _ _ }
+    ':'         { TokenLoc Colon _ _ }
+    ';'         { TokenLoc Semicolon _ _ }
+    '>'         { TokenLoc Greater _ _ }
+    '+'         { TokenLoc Plus _ _ }
+    '|'         { TokenLoc Pipe _ _ }
+    '~'         { TokenLoc Tilde _ _ }
+    '.'         { TokenLoc Dot _ _ }
+    ' '         { TokenLoc Space _ _ }
+    '*'         { TokenLoc Asterisk _ _ }
+    '&'         { TokenLoc Ampersand _ _ }
+    '['         { TokenLoc BOpen _ _ }
+    ']'         { TokenLoc BClose _ _ }
+    '{'         { TokenLoc COpen _ _ }
+    '}'         { TokenLoc CClose _ _ }
+    '='         { TokenLoc TEqual _ _ }
+    'charset'   { TokenLoc CharsetT _ _ }
+    '^='        { TokenLoc TPrefixMatch _ _ }
+    '$='        { TokenLoc TSuffixMatch _ _ }
+    '*='        { TokenLoc TSubstringMatch _ _ }
+    '|='        { TokenLoc TDashMatch _ _ }
+    '~='        { TokenLoc TIncludes _ _ }
+    ident       { TokenLoc (Ident $$) _ _ }
+    string      { TokenLoc (String $$) _ _ }
+    hash        { TokenLoc (THash $$) _ _ }
+    pseude      { TokenLoc (PseudoElementT $$) _ _ }
+    pseudc      { TokenLoc (AtomicPseudoClassT $$) _ _ }
+    pseudf      { TokenLoc (PseudoFunction $$) _ _ }
+    pm          { TokenLoc (TPM $$) _ _ }
+    'n'         { TokenLoc TN _ _ }
+    int         { TokenLoc (TInt $$) _ _ }
+    integer     { TokenLoc (Integer $$) _ _ }
+    var         { TokenLoc (Var $$) _ _ }
+    nth         { TokenLoc (TNth $$) _ _ }
+    'not('      { TokenLoc TNot _ _ }
+    'lang('     { TokenLoc TLang _ _ }
+    ')'         { TokenLoc TClose _ _ }
 
 %%
 
 CssFile
+    : 'charset' Str ';' CssFileBody               { CssFile (Just (Charset $2)) $4 }
+    | CssFileBody                                 { CssFile Nothing $1 }
+
+CssFileBody
     : CssRule                                     { $1 :| [] }
-    | CssRule CssFile                             { $1 <| $2 }
+    | CssRule CssFileBody                         { $1 <| $2 }
 
 CssRule
     : SelectorList '{' CssRuleBody '}'            { CssRule $1 $3 }
