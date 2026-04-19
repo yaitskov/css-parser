@@ -72,6 +72,10 @@ $pm       = [\-\+]
 @lasth   = @l@a@s@t@hyphen
 
 @charset = @c@h@a@r@s@e@t
+@import  = @i@m@p@o@r@t
+
+@url     = @u@r@l
+
 @cmo     = \/\*
 @cmc     = \*\/
 @psc     = [:]
@@ -91,6 +95,8 @@ tokens :-
   @psc @wo                                { constoken Colon }
   (@wo ";" @wo)+                          { constoken Semicolon }
   @wo "@" @charset $w @wo                 { constoken CharsetT }
+  @wo "@" @import $w @wo                  { constoken ImportT }
+  @wo @url @wo "("                        { constoken UrlT }
   "."                                     { constoken Dot }
   "*"                                     { constoken Asterisk }
   "&"                                     { constoken Ampersand }
@@ -198,6 +204,8 @@ data Token
     | Tilde
     | Dot
     | CharsetT
+    | ImportT
+    | UrlT
     | Asterisk
     | Space
     | BOpen

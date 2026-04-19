@@ -5,13 +5,13 @@ module CssParser.Prelude
   ) where
 
 import Data.Char as X
-import Data.List.NonEmpty as X ( NonEmpty ((:|)), (<|), toList )
+import Data.List.NonEmpty as X ( NonEmpty ((:|)), (<|), toList, nonEmpty)
 import Data.String as X (IsString (..))
 import Data.Text (Text)
 import Data.Text.Lazy qualified as L
-import Data.Text.Lazy as X (concat, intercalate, fromStrict, cons, snoc)
+import Data.Text.Lazy as X (concat, intercalate, fromStrict, cons, snoc, unlines)
 
 import GHC.Generics as X (Generic)
-import Prelude as X hiding (concat, null)
+import Prelude as X hiding (concat, null, unlines)
 
 type LText = L.Text

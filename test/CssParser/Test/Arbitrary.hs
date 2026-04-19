@@ -1,20 +1,24 @@
 {-# OPTIONS_GHC -fconstraint-solver-iterations=24 #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE StandaloneDeriving #-}
+module CssParser.Test.Arbitrary
+  ( module X
+  , pack
+  , module CssParser.Test.Arbitrary
+  )where
 
-module CssParser.Test.Arbitrary where
-
-import CssParser.At
-import CssParser.File
-import CssParser.FixRule
-import CssParser.Rule
 import Data.Text (pack, tails, inits)
 import Data.Text qualified as T
-import CssParser.Prelude
-import Test.QuickCheck
-import Test.QuickCheck.Instances ()
-import Test.QuickCheck.Arbitrary.Generic
+import CssParser.Prelude as X
+import Test.QuickCheck as X
+import Test.QuickCheck.Gen as X
+import Test.QuickCheck.Instances as X ()
+import Test.QuickCheck.Arbitrary.Generic as X
+
+arbitraryLetter :: Gen Char
+arbitraryLetter = elements $ [ 'a' .. 'z' ] <> [ 'A' .. 'Z' ]
+
+arbitraryWord :: Gen Text
+arbitraryWord = pack <$> listOf1 arbitraryLetter
 
 arbitraryIdent :: Gen Text
 arbitraryIdent = arbitraryText fl nl
@@ -34,43 +38,3 @@ shrinkIdent :: Text -> [Text]
 shrinkIdent t
     | T.length t < 2 = []
     | otherwise = shrinkText t
-
-instance Arbitrary Hash where
-    arbitrary = Hash <$> arbitraryIdent
-    shrink (Hash a) = Hash <$> shrinkIdent a
-
-instance Arbitrary TagSelector where
-  arbitrary = do
-    ts <- genericArbitrary
-    if ts == nullTagSelector
-      then pure ts { tagName = AsteriskTag }
-      else pure ts
-  shrink = filter (/= nullTagSelector) . genericShrink
-
-instance Arbitrary Ident where
-  arbitrary = Ident <$> arbitraryIdent
-  shrink (Ident a) = Ident <$> shrinkIdent a
-
-instance Arbitrary Language where
-  arbitrary = Language <$> elements ["en", "af-ZA", "ar", "de", "ar-BH", "pl", "ru"]
-
-instance Arbitrary Charset where
-  arbitrary = Charset <$> elements ["UTF-8", "iso-8859-15"]
-
-deriving via (GenericArbitrary PropertyName) instance Arbitrary PropertyName
-deriving via (GenericArbitrary CssFile) instance Arbitrary CssFile
-deriving via (GenericArbitrary Selector) instance Arbitrary Selector
-deriving via (GenericArbitrary TagRelation) instance Arbitrary TagRelation
-deriving via (GenericArbitrary TagName) instance Arbitrary TagName
-deriving via (GenericArbitrary Namespace) instance Arbitrary Namespace
-deriving via (GenericArbitrary Class) instance Arbitrary Class
-deriving via (GenericArbitrary Attr) instance Arbitrary Attr
-deriving via (GenericArbitrary AttrName) instance Arbitrary AttrName
-deriving via (GenericArbitrary CssRule) instance Arbitrary CssRule
-deriving via (GenericArbitrary CssRuleBodyItem) instance Arbitrary CssRuleBodyItem
-deriving via (GenericArbitrary Nth) instance Arbitrary Nth
-deriving via (GenericArbitrary AttrOp) instance Arbitrary AttrOp
-deriving via (GenericArbitrary PseudoElement) instance Arbitrary PseudoElement
-
-instance Arbitrary AtomicPseudoClass where
-  arbitrary = arbitraryBoundedEnum

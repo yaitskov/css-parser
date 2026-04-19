@@ -36,6 +36,7 @@ library
   exposed-modules:
     , CssParser
     , CssParser.At
+    , CssParser.At.Import
     , CssParser.File
     , CssParser.FixRule
     , CssParser.Prelude
@@ -60,8 +61,14 @@ test-suite test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
+  default-extensions:
+    DerivingVia
+    StandaloneDeriving
   other-modules:
     , CssParser.Test.Arbitrary
+    , CssParser.Test.Arbitrary.At
+    , CssParser.Test.Arbitrary.File
+    , CssParser.Test.Arbitrary.Rule
 
   build-depends:
     , css-parser

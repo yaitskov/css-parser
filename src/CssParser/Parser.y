@@ -3,6 +3,7 @@
 module CssParser.Parser where
 
 import CssParser.At
+import CssParser.At.Import
 import CssParser.Pseudo
 import CssParser.File
 import CssParser.FixRule
@@ -15,7 +16,7 @@ import CssParser.Lexer
     , Integer, Comma, Plus, Greater, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TClose, TNot, TLang, Decimal, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
-    , CharsetT
+    , CharsetT, UrlT, ImportT
     )
   )
 import Data.List.NonEmpty (NonEmpty((:|)), (<|))
@@ -45,6 +46,8 @@ import Prelude
     '}'         { TokenLoc CClose _ _ }
     '='         { TokenLoc TEqual _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
+    'import'    { TokenLoc ImportT _ _ }
+    'url('      { TokenLoc UrlT _ _ }
     '^='        { TokenLoc TPrefixMatch _ _ }
     '$='        { TokenLoc TSuffixMatch _ _ }
     '*='        { TokenLoc TSubstringMatch _ _ }
@@ -69,9 +72,14 @@ import Prelude
 %%
 
 CssFile
-    : 'charset' Str ';' CssFileBody               { CssFile (Just (Charset $2)) $4 }
-    | CssFileBody                                 { CssFile Nothing $1 }
-
+    : 'charset' Str ';' Imports CssFileBody       { CssFile (Just (Charset $2)) $4 $5 }
+    | Imports CssFileBody                         { CssFile Nothing $1 $2 }
+Imports
+    :                                             { [] }
+    | Import Imports                              { $1 : $2 }
+Import
+    : 'import' Str ';'                            { Import (ImportSourceStr $2) }
+    | 'import' 'url(' Str ')' ';'                 { Import (ImportSourceUrl (Url $3)) }
 CssFileBody
     : CssRule                                     { $1 :| [] }
     | CssRule CssFileBody                         { $1 <| $2 }

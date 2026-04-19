@@ -3,10 +3,10 @@
 -- cabal test --test-option=--maximum-test-size=50
 module Main where
 
-import CssParser ( parseCss )
-import CssParser.File ( CssFile )
+import CssParser (parseCss)
+import CssParser.File (CssFile)
 import CssParser.Show (CssShow(toCssText))
-import CssParser.Test.Arbitrary ()
+import CssParser.Test.Arbitrary.File ()
 import CssParser.Utils (encodeString, readCssString, encodeIdentifier, readIdentifier)
 import Data.Text (pack)
 import Data.Text.Lazy qualified as TL
