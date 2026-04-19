@@ -1,0 +1,77 @@
+cabal-version:       3.0
+name:                css-parser
+version:             0.0.1
+synopsis:            CSS parser and printer
+description:
+homepage:            https://github.com/yaitskov/css-parser
+license:             BSD-3-Clause
+license-file:        LICENSE
+author:              Daniil Iaitskov
+maintainer:          dyaitskov@gmail.com
+copyright:           2026
+category:            web
+build-type:          Simple
+extra-source-files:
+  , README.md
+  , CHANGELOG.md
+
+common base
+  default-language: GHC2024
+  ghc-options: -Wall
+  default-extensions:
+    DefaultSignatures
+    NoImplicitPrelude
+    OverloadedStrings
+    DuplicateRecordFields
+    OverloadedRecordDot
+    PatternSynonyms
+  build-depends:
+    , base >=4.7 && < 5
+    , QuickCheck >=2.8
+    , text >=2
+
+library
+  import: base
+  hs-source-dirs: src
+  exposed-modules:
+    , CssParser
+    , CssParser.File
+    , CssParser.Pseudo
+    , CssParser.Rule
+    , CssParser.Show
+    , CssParser.Utils
+  other-modules:
+    , CssParser.Lexer
+    , CssParser.Parser
+  build-depends:
+    , array >=0.5.2
+    , bytestring >=0.9
+    , Decimal >=0.4.2
+  build-tool-depends:
+    , alex:alex
+    , happy:happy
+
+test-suite test
+  import: base
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  other-modules:
+    , CssParser.Test.Arbitrary
+
+  build-depends:
+    , css-parser
+    , generic-arbitrary             >1 && <2
+    , QuickCheck
+    , quickcheck-instances
+    , tasty
+    , tasty-discover
+    , tasty-hunit
+    , tasty-quickcheck
+
+
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+
+source-repository head
+  type:     git
+  location: https://github.com/yaitskov/css-parser
