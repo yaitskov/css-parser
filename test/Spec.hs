@@ -1,5 +1,4 @@
--- cabal test with by default runs about a minute
---
+-- cabal test --test-show-details failures
 -- cabal test --test-option=--maximum-test-size=50
 module Main where
 
@@ -15,9 +14,6 @@ import Test.Tasty ( defaultMain, testGroup, TestTree )
 import Test.Tasty.HUnit ( testCase, (@=?) )
 import Test.Tasty.QuickCheck ( testProperty, withMaxSuccess, withMaxSize )
 
--- import Test.Framework ( Test, defaultMain, testGroup )
--- import Test.Framework.Providers.QuickCheck2 (testProperty)
-
 main :: IO ()
 main = defaultMain tests
 
@@ -30,19 +26,20 @@ tests = testGroup "CssParser"
     ]
   , testGroup "Examples"
     [ testGroup "Empty body"
-      (fmap (cpt . (<> " {}")) validSelectors)
+      (fmap (\x -> cpt x (x <> " {}")) validSelectors)
     , testGroup "Nested1"
-      (fmap (cpt . (\x -> x <> " {\n" <> x <> "{\t}\r}"))
+      (fmap (\x -> cpt x (x <> " {\n" <> x <> "{\t}\r}"))
         validSelectors)
     ]
   , testGroup "Arbitrary "
     [ testProperty "Encode-decode CSS identity"
+      -- cabal test with by default runs about a minute
       (withMaxSize 60
        (withMaxSuccess 41 encodeDecodeCss))
     ]
   ]
   where
-    cpt x = testCase x (True @=? checkParse (x <> " {}"))
+    cpt m x = testCase m (True @=? checkParse (x <> " {}"))
 
 encodeDecode :: Char -> String -> Bool
 encodeDecode c b = readCssString (encodeString c b) == b
