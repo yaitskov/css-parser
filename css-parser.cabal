@@ -40,10 +40,12 @@ library
     , CssParser.At.MediaQuery
     , CssParser.File
     , CssParser.FixRule
+    , CssParser.Fun
     , CssParser.Ident
     , CssParser.Prelude
-    , CssParser.Pseudo
     , CssParser.Rule
+    , CssParser.Rule.Pseudo
+    , CssParser.Rule.Show
     , CssParser.Show
     , CssParser.TextMarshal
     , CssParser.Utils

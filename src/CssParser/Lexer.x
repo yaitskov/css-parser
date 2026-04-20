@@ -2,8 +2,9 @@
 {
 module CssParser.Lexer where
 
-import CssParser.Pseudo
-import CssParser.Rule hiding (Ident)
+import CssParser.Fun
+import CssParser.Rule
+import CssParser.Rule.Pseudo
 import CssParser.Utils(readCssString, readIdentifier, readDecimalE, dropEnd)
 import Data.Decimal(Decimal)
 import Data.Text (pack)

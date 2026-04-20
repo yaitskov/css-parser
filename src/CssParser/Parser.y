@@ -4,7 +4,8 @@ module CssParser.Parser where
 
 import CssParser.At
 import CssParser.At.Import
-import CssParser.Pseudo
+import CssParser.Rule.Pseudo
+import CssParser.Fun
 import CssParser.File
 import CssParser.FixRule
 import CssParser.Ident hiding (Ident)

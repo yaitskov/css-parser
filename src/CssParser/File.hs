@@ -3,7 +3,8 @@ module CssParser.File where
 import CssParser.At
 import CssParser.At.Import
 import CssParser.Prelude
-import CssParser.Rule
+import CssParser.Rule ( CssRule )
+import CssParser.Rule.Show ()
 import CssParser.Show
 import Data.Maybe (maybeToList)
 

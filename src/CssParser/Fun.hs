@@ -1,18 +1,9 @@
-module CssParser.Pseudo where
+module CssParser.Fun where
 
+import CssParser.Prelude ( Eq, Num(negate), Show, id )
 import CssParser.Rule
-    ( Class(NthLastOfType, NthChild, NthOfType, NthLastChild),
-      Nth(Nth) )
-import Prelude
-
-pattern Even :: Nth
-pattern Even = Nth 2 0
-
-pattern Odd :: Nth
-pattern Odd = Nth 2 1
-
-pattern One :: Nth
-pattern One = Nth 0 1
+    ( Class(NthLastOfType, NthChild, NthOfType, NthLastChild) )
+import CssParser.Rule.Pseudo ( Nth, pattern One )
 
 data NthF
   = NthFChild
@@ -35,7 +26,6 @@ class Fun a f where
 instance Num a => Fun TpmF (a -> a) where
   call TpmIdF = id
   call TpmNegF = negate
-
 
 pattern FirstChildP :: Class
 pattern FirstChildP = NthChild One

@@ -1,10 +1,13 @@
 module CssParser.Rule where
 
+import CssParser.At.MediaQuery
 import CssParser.Ident
 import CssParser.Prelude
+import CssParser.Rule.Pseudo
 
 data CssRule
   = CssRule (NonEmpty Selector) [CssRuleBodyItem]
+  | MediaRule MediaQueryList [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector
@@ -40,37 +43,6 @@ data Class
   | NthOfType Nth -- :nth-of-type(<An+B> | even | odd)
   deriving (Eq, Ord, Show, Generic)
 
-data AtomicPseudoClass
-  = Active  -- ^ The @:active@ pseudo class.
-  | Checked  -- ^ The @:checked@ pseudo class.
-  | Default  -- ^ The @:default@ pseudo class.
-  | Disabled  -- ^ The @:disabled@ pseudo class.
-  | Empty         -- ^ The @:empty@ pseudo class.
-  | Enabled       -- ^ The @:enabled@ pseudo class.
-  | FirstChild
-  | FirstOfType
-  | Focus         -- ^ The @:focus@ pseudo class.
-  | Fullscreen    -- ^ The @:fullscreen@ pseudo class.
-  | Hover         -- ^ The @:hover@ pseudo class.
-  | Indeterminate -- ^ The @:indeterminate@ pseudo class.
-  | InRange     -- ^ The @:in-range@ pseudo class.
-  | Invalid     -- ^ The @:invalid@ pseudo class.
-  | LastChild
-  | LastOfType
-  | Link        -- ^ The @:link@ pseudo class.
-  | OnlyOfType  -- ^ The @:only-of-type@ pseudo class.
-  | OnlyChild  -- ^ The @:only-child@ pseudo class.
-  | Optional  -- ^ The @:optional@ pseudo class.
-  | OutOfRange  -- ^ The @:out-of-range@ pseudo class.
-  | ReadOnly  -- ^ The @:read-only@ pseudo class.
-  | ReadWrite  -- ^ The @:rad-write@ pseudo class.
-  | Required  -- ^ The @:required@ pseudo class.
-  | Root  -- ^ The @:root@ pseudo class.
-  | Target  -- ^ The @:target@ pseudo class.
-  | Valid  -- ^ The @:valid@ pseudo class.
-  | Visited  -- ^ The @:visited@ pseudo class.
-  deriving (Eq, Bounded, Enum, Ord, Show, Generic)
-
 newtype Hash = Hash { unHash :: Text } deriving newtype (Eq, Ord, Show, IsString)
 
 data Attr
@@ -78,15 +50,12 @@ data Attr
   | Attr AttrName AttrOp AttrVal
   deriving (Eq, Ord, Show, Generic)
 
-data Nth = Nth { linear :: Int, constant :: Int } deriving (Eq, Ord, Show, Generic)
-
 data CssRuleBodyItem
   = CssLeafRule PropertyName (NonEmpty ())
   | CssNestedRule CssRule
   deriving (Show, Ord, Eq, Generic)
 
 type AttrVal = Text
-newtype Language = Language Text deriving newtype (Eq, Ord, Show, IsString)
 
 data AttrOp =
       Exact -- ^ exactly the value of the value, denoted with @=@
@@ -96,13 +65,3 @@ data AttrOp =
     | SuffixMatch -- ^ suffix of the value in the attribute, denoted with @$=@
     | SubstringMatch -- ^ substring of the value in the attribute, denoted with @*=@
     deriving (Bounded, Enum, Eq, Ord, Show, Generic)
-
-data PseudoElement
-  = After
-  | Before
-  | FirstLetter
-  | FirstLine
-  | Marker
-  | Placeholder
-  | Selection
-  deriving (Bounded, Enum, Eq, Ord, Show, Generic)

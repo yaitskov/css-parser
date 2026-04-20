@@ -5,6 +5,7 @@ module CssParser.Test.Arbitrary.Rule where
 import CssParser.Ident ( TagName(AsteriskTag) )
 import CssParser.FixRule ( nullTagSelector )
 import CssParser.Rule
+import CssParser.Rule.Pseudo
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
 
