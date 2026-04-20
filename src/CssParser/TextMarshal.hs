@@ -2,6 +2,11 @@ module CssParser.TextMarshal where
 
 import CssParser.Prelude
 import Data.Text.Lazy qualified as L
+import Data.Text.Lazy.Builder (toLazyText )
+import Data.Text.Lazy.Builder.Int (decimal)
+
+numToText :: Integral a => a -> LText
+numToText = toLazyText . decimal
 
 showHex :: Int -> ShowS
 showHex = go (6 :: Int)

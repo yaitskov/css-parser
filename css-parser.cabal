@@ -37,8 +37,10 @@ library
     , CssParser
     , CssParser.At
     , CssParser.At.Import
+    , CssParser.At.MediaQuery
     , CssParser.File
     , CssParser.FixRule
+    , CssParser.Ident
     , CssParser.Prelude
     , CssParser.Pseudo
     , CssParser.Rule
