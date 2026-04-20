@@ -3,12 +3,18 @@ module CssParser.Show
   , CssShow (..)
   ) where
 
-import CssParser.TextMarshal as X
-import CssParser.Rule
+import CssParser.Ident
+    ( AttrName(AttrName),
+      Ident(Ident),
+      Namespace(..),
+      PropertyName(..),
+      TagName(..) )
+import CssParser.Prelude
 import CssParser.Pseudo ( pattern Odd, pattern Even )
+import CssParser.Rule
+import CssParser.TextMarshal as X
 import CssParser.Utils ( encodeIdentifier )
 import Data.Text.Lazy (pack)
-import CssParser.Prelude
 
 class CssShow a where
   toCssText :: a -> LText
@@ -31,6 +37,9 @@ instance CssShow CssRuleBodyItem where
 
 instance CssShow () where
   toCssText () = " 0 ";
+
+instance CssShow Ident where
+  toCssText (Ident i) = encodeIdentifier i
 
 instance CssShow PropertyName where
   toCssText (PropertyName (Ident pn)) = fromStrict pn

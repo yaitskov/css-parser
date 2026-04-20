@@ -7,8 +7,8 @@ import CssParser.At.Import
 import CssParser.Pseudo
 import CssParser.File
 import CssParser.FixRule
-import CssParser.Rule hiding (Ident)
-import CssParser.Rule qualified as R
+import CssParser.Ident hiding (Ident)
+import CssParser.Ident qualified as R
 import CssParser.Lexer
   ( AlexPosn(AlexPn), TokenLoc(TokenLoc)
   , Token
@@ -19,8 +19,10 @@ import CssParser.Lexer
     , CharsetT, UrlT, ImportT
     )
   )
+import CssParser.Rule
 import Data.List.NonEmpty (NonEmpty((:|)), (<|))
 import Data.Text (pack)
+
 import Prelude
 }
 

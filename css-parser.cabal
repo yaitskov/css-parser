@@ -69,6 +69,7 @@ test-suite test
   other-modules:
     , CssParser.Test.Arbitrary
     , CssParser.Test.Arbitrary.At
+    , CssParser.Test.Arbitrary.Ident
     , CssParser.Test.Arbitrary.File
     , CssParser.Test.Arbitrary.Rule
 

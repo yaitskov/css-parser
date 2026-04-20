@@ -1,5 +1,6 @@
 module CssParser.Rule where
 
+import CssParser.Ident
 import CssParser.Prelude
 
 data CssRule
@@ -27,22 +28,6 @@ data TagSelector
   , tagId :: Maybe Hash
   , tagClasses :: [Class]
   } deriving (Show, Ord, Eq, Generic)
-
-newtype Ident = Ident Text deriving newtype (Eq, Ord, Show, IsString)
-
-data TagName
-  = TagName Ident
-  | AmpersandTag
-  | AsteriskTag
-  | NoTag
-  deriving (Eq, Ord, Show, Generic)
-
-data Namespace
-  = NoBar
-  | NoNs
-  | AsteriskNs
-  | Namespace Ident
-  deriving (Eq, Ord, Show, Generic)
 
 data Class
   = AtomicClass { unClass :: Ident }
@@ -93,20 +78,12 @@ data Attr
   | Attr AttrName AttrOp AttrVal
   deriving (Eq, Ord, Show, Generic)
 
-data AttrName
-  = AttrName
-  { attrNs :: Namespace
-  , attrName :: Ident
-  } deriving (Eq, Ord, Show, Generic)
-
 data Nth = Nth { linear :: Int, constant :: Int } deriving (Eq, Ord, Show, Generic)
 
 data CssRuleBodyItem
   = CssLeafRule PropertyName (NonEmpty ())
   | CssNestedRule CssRule
   deriving (Show, Ord, Eq, Generic)
-
-newtype PropertyName = PropertyName Ident deriving newtype (Eq, Ord, Show, IsString) deriving (Generic)
 
 type AttrVal = Text
 newtype Language = Language Text deriving newtype (Eq, Ord, Show, IsString)

@@ -1,8 +1,17 @@
 -- | Functions for Rule types helping with Happy gramma disambiguation
 module CssParser.FixRule where
 
+import CssParser.Ident
+    ( Ident, Namespace(Namespace, NoBar), TagName(TagName, NoTag) )
 import CssParser.Prelude
 import CssParser.Rule
+    ( Attr,
+      Class(AtomicClass),
+      CssRule(..),
+      CssRuleBodyItem,
+      Selector(..),
+      TagRelation,
+      TagSelector(tagAttrs, TagSelector, tagNs, tagName, tagClasses) )
 
 tagSelectorOnly :: Ident -> TagSelector
 tagSelectorOnly tn =
