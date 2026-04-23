@@ -47,6 +47,7 @@ mapCssRule f  = \case
   CssRule s bis -> f s bis
   mr@MediaRule {} -> mr
   lb@LayerBlock {} -> lb
+  o -> o
 
 updateTopTagSelector :: (TagSelector -> TagSelector) -> CssRule -> CssRule
 updateTopTagSelector tsF =

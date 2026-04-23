@@ -7,6 +7,7 @@ import CssParser.At.Import
 import CssParser.At.Layer
 import CssParser.At.MediaQuery hiding (Mm, Cm, Dpi, Em)
 import CssParser.At.MediaQuery qualified as MQ
+import CssParser.At.Page
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Value
 import CssParser.Fun
@@ -28,6 +29,7 @@ import CssParser.Lexer
     , Greater, Less, LessEqual, GreaterEqual
     , RatioT, Percents, Pixels
     , UrlT
+    , PseudoPageT, PageT, PageMarginT
     )
   )
 import CssParser.Parser.Monad
@@ -69,6 +71,11 @@ import Prelude
     'charset'   { TokenLoc CharsetT _ _ }
     'import'    { TokenLoc ImportT _ _ }
     'layer'     { TokenLoc LayerT _ _ }
+    'page'      { TokenLoc PageT _ _ }
+
+    pageMargin  { TokenLoc (PageMarginT $$) _ _ }
+
+    pseudoPage  { TokenLoc (PseudoPageT $$) _ _ }
     'media'     { TokenLoc MediaT _ _ }
 -- media start
     'only'      { TokenLoc OnlyT _ _ }
@@ -129,6 +136,7 @@ Header :: { Either CssRule FileHeader }
     | 'import' 'url(' Str ')' ';'                 { Right (HeaderImport (Import ((ImportSourceUrl (Url $3))))) }
     | 'layer' LayerNames ';'                      { Right (HeaderLayers (LayerStmt $2)) }
     | 'layer' IdKwd '{' CssRuleBody '}'           { Left (LayerBlock (Just (LayerName $2)) $4) }
+    | 'layer' '{' CssRuleBody '}'                 { Left (LayerBlock Nothing $3) }
 LayerNames :: { NonEmpty LayerName }
     : IdKwd                                       { LayerName $1 :| [] }
     | IdKwd ',' LayerNames                        { LayerName $1 <| $3 }
@@ -140,6 +148,21 @@ CssRule :: { CssRule }
     | 'media' '{' CssRuleBody '}'                 { MediaRule (MediaQueryList []) $3 }
     | 'media' MediaQueryList '{' CssRuleBody '}'  { MediaRule (MediaQueryList $2) $4 }
     | 'layer' IdKwdMb '{' CssRuleBody '}'         { LayerBlock (fmap LayerName $2) $4 }
+    | 'page' '{' CssRuleBody '}'                  { Page (PageSelectorList []) $3 }
+    | 'page' PageSelectorList '{' CssRuleBody '}' { Page (PageSelectorList $2) $4 }
+    | pageMargin '{' CssRuleBody '}'              { PageMarginBlock $1 $3 }
+
+PageSelectorList
+    : PageSelector                                { [ $1 ] }
+    | PageSelector Os PageSelectorList            { $1 : $3 }
+PageSelector
+    : IdKwd PseudoPageList                        { PageSelector (Just (PageName $1)) $2 }
+    | IdKwd                                       { PageSelector (Just (PageName $1)) [] }
+    | PseudoPageList                              { PageSelector Nothing $1 }
+
+PseudoPageList
+    : pseudoPage                                  { [$1] }
+    | pseudoPage PseudoPageList                   { $1 : $2 }
 IdKwdMb
     :                                             { Nothing }
     | IdKwd                                       { Just $1 }

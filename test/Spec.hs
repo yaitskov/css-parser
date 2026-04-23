@@ -82,7 +82,16 @@ checkParse x = y == y
   where y = parseCss x
 
 examples :: [String]
-examples = media <> validSelectors <> layer
+examples = media <> validSelectors <> layer <> page
+
+page :: [String]
+page =
+  [ "@page"
+  , "@page one"
+  , "@page xxx:first"
+  , "@page :blank eee"
+  , "@top-left"
+  ]
 
 layerStmt :: [String]
 layerStmt =

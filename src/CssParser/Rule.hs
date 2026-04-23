@@ -2,6 +2,7 @@ module CssParser.Rule where
 
 import CssParser.At.Layer
 import CssParser.At.MediaQuery
+import CssParser.At.Page
 import CssParser.Ident
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
@@ -10,6 +11,8 @@ data CssRule
   = CssRule (NonEmpty Selector) [CssRuleBodyItem]
   | MediaRule MediaQueryList [CssRuleBodyItem]
   | LayerBlock (Maybe LayerName) [CssRuleBodyItem]
+  | Page PageSelectorList [CssRuleBodyItem]
+  | PageMarginBlock PageMargin [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

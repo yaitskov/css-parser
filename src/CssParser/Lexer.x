@@ -3,6 +3,7 @@
 module CssParser.Lexer where
 
 import Control.Monad ((<=<))
+import CssParser.At.Page
 import CssParser.Fun
 import CssParser.Rule
 import CssParser.Rule.Pseudo
@@ -80,6 +81,18 @@ $pm       = [\-\+]
 @layer   = @l@a@y@e@r
 @media   = @m@e@d@i@a
 
+@page    = @p@a@g@e
+@top     = @t@o@p
+@bottom  = @b@o@t@t@o@m
+@right   = @r@i@g@h@t
+@left    = @l@e@f@t
+@center  = @c@e@n@t@e@r
+@corner  = @c@o@r@n@e@r
+@middle  = @m@i@d@d@l@e
+
+@first   = @f@i@r@s@t
+@blank   = @b@l@a@n@k
+
 @not     = @n@o@t
 @and     = @a@n@d
 @or     =  @o@r
@@ -114,6 +127,28 @@ tokens :-
   @wo ","  @wo                            { constoken Comma }
   @psc @wo                                { constoken Colon }
   (@wo ";" @wo)+                          { constoken Semicolon }
+
+  @wo "@" @page $w @wo                    { constoken PageT }
+
+  @wo "@" @top "-" @left "-" @corner      { constoken (PageMarginT TopLeftCorner) }
+  @wo "@" @bottom "-" @right "-" @corner  { constoken (PageMarginT BottomRightCorner) }
+  @wo "@" @top "-" @right "-" @corner     { constoken (PageMarginT TopRightCorner) }
+  @wo "@" @bottom "-" @left "-" @corner   { constoken (PageMarginT BottomLeftCorner) }
+
+  @wo "@" @top "-" @left                  { constoken (PageMarginT TopLeft) }
+  @wo "@" @top "-" @center                { constoken (PageMarginT TopCenter) }
+  @wo "@" @top "-" @right                 { constoken (PageMarginT TopRight) }
+  @wo "@" @bottom "-" @left               { constoken (PageMarginT BottomLeft) }
+  @wo "@" @bottom "-" @center             { constoken (PageMarginT BottomCenter) }
+  @wo "@" @bottom "-" @right              { constoken (PageMarginT BottomRight) }
+
+  @wo "@" @left "-" @top                  { constoken (PageMarginT LeftTop) }
+  @wo "@" @left "-" @middle               { constoken (PageMarginT LeftMiddle) }
+  @wo "@" @left "-" @bottom               { constoken (PageMarginT LeftBottom) }
+  @wo "@" @right "-" @top                 { constoken (PageMarginT RightTop) }
+  @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
+  @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
+
   @wo "@" @charset $w @wo                 { constoken CharsetT }
   @wo "@" @import $w @wo                  { constoken ImportT }
   @wo "@" @layer $w @wo                   { constoken LayerT }
@@ -195,6 +230,10 @@ tokens :-
   @psc @t@a@r@g@e@t                       { constoken (AtomicPseudoClassT Target) }
   @psc @v@a@l@i@d                         { constoken (AtomicPseudoClassT Valid) }
   @psc @v@i@s@i@t@e@d                     { constoken (AtomicPseudoClassT Visited) }
+  @psc @left                              { constoken (PseudoPageT LeftPp) }
+  @psc @right                             { constoken (PseudoPageT RightPp) }
+  @psc @blank                             { constoken (PseudoPageT BlankPp) }
+  @psc @first                             { constoken (PseudoPageT FirstPp) }
   $w @wo                                  { constoken Space }
   @cmo $nostar* \*+ ($nostars $nostar* \*+)* @cmc;
  }
@@ -257,6 +296,10 @@ data Token
     | LessEqual
     | Tilde
     | Dot
+
+    | PageT
+    | PageMarginT PageMargin
+
     | CharsetT
     | ImportT
     | LayerT
@@ -273,6 +316,7 @@ data Token
     | COpen
     | CClose
     | AtomicPseudoClassT AtomicPseudoClass
+    | PseudoPageT PseudoPage
     | PseudoFunction NthF
     | PseudoElementT PseudoElement
     | TN

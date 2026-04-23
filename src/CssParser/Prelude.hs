@@ -10,10 +10,10 @@ import Data.List.NonEmpty as X ( NonEmpty ((:|)), (<|), toList, nonEmpty, append
 import Data.Maybe as X
 import Data.String as X (IsString (..))
 import Data.Text (Text)
-import Data.Text.Lazy as X (concat, intercalate, fromStrict, cons, snoc, unlines)
+import Data.Text.Lazy as X (concat, intercalate, fromStrict, cons, snoc, unlines, unwords)
 import Data.Text.Lazy qualified as L
 
 import GHC.Generics as X (Generic)
-import Prelude as X hiding (concat, null, unlines)
+import Prelude as X hiding (concat, null, unlines, unwords)
 
 type LText = L.Text

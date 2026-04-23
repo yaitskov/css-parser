@@ -17,6 +17,10 @@ instance CssShow CssRule where
     MediaRule mql body -> toCssText mql <> " {" <> toCssText body <> "}"
     LayerBlock mbn body ->
       "@layer " <> maybe "" ((<> " ") . toCssText) mbn <> "{" <> toCssText body <> "}"
+    Page psl body ->
+      toCssText psl <> " {" <> toCssText body <> "}"
+    PageMarginBlock pm body ->
+      toCssText pm <> " {" <> toCssText body <> "}"
 
 instance CssShow CssRuleBodyItem where
   toCssText = \case
