@@ -6,6 +6,7 @@ import CssParser.At.Page
 import CssParser.Ident
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
+import CssParser.Rule.Var
 
 data CssRule
   = CssRule (NonEmpty Selector) [CssRuleBodyItem]
@@ -14,6 +15,7 @@ data CssRule
   | Page PageSelectorList [CssRuleBodyItem]
   | PageMarginBlock PageMargin [CssRuleBodyItem]
   | CounterStyle Ident [CssRuleBodyItem]
+  | Property Var [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

@@ -6,6 +6,7 @@ import CssParser.Ident ( TagName(AsteriskTag) )
 import CssParser.FixRule ( nullTagSelector )
 import CssParser.Rule
 import CssParser.Rule.Pseudo
+import CssParser.Rule.Var
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.At ()
 import CssParser.Test.Arbitrary.Ident ()
@@ -27,6 +28,7 @@ instance Arbitrary TagSelector where
       else pure ts
   shrink = filter (/= nullTagSelector) . genericShrink
 
+deriving via (GenericArbitrary Var) instance Arbitrary Var
 deriving via (GenericArbitrary Selector) instance Arbitrary Selector
 deriving via (GenericArbitrary TagRelation) instance Arbitrary TagRelation
 deriving via (GenericArbitrary Class) instance Arbitrary Class

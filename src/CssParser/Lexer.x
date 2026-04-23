@@ -83,7 +83,7 @@ $pm       = [\-\+]
 @namespace = @n@a@m@e@s@p@a@c@e
 @layer   = @l@a@y@e@r
 @media   = @m@e@d@i@a
-
+@property = @p@r@o@p@e@r@t@y
 @page    = @p@a@g@e
 @top     = @t@o@p
 @bottom  = @b@o@t@t@o@m
@@ -152,6 +152,7 @@ tokens :-
   @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
+  @wo "@" @property $w @wo                { constoken PropertyT }
   @wo "@" @counter "-" @style $w @wo      { constoken CounterStyleT }
   @wo "@" @charset $w @wo                 { constoken CharsetT }
   @wo "@" @namespace $w @wo               { constoken NamespaceT }
@@ -306,6 +307,7 @@ data Token
     | PageMarginT PageMargin
 
     | NamespaceT
+    | PropertyT
     | CounterStyleT
     | CharsetT
     | ImportT

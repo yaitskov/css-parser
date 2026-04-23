@@ -23,6 +23,8 @@ instance CssShow CssRule where
       toCssText pm <> " {" <> toCssText body <> "}"
     CounterStyle cn body ->
       "@counter-style " <> toCssText cn <> " {" <> toCssText body <> "}"
+    Property pn body ->
+      "@property " <> toCssText pn <> " {" <> toCssText body <> "}"
 
 instance CssShow CssRuleBodyItem where
   toCssText = \case

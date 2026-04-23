@@ -11,6 +11,7 @@ import CssParser.At.Namespace
 import CssParser.At.Page
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Value
+import CssParser.Rule.Var qualified as V
 import CssParser.Fun
 import CssParser.File
 import CssParser.FixRule
@@ -24,7 +25,7 @@ import CssParser.Lexer
     , Integer, Comma, Plus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, Decimal, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
-    , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT
+    , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
     , NotT, OrT, AndT, OnlyT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
@@ -70,6 +71,7 @@ import Prelude
     '}'         { TokenLoc CClose _ _ }
     '='         { TokenLoc TEqual _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
+    property    { TokenLoc PropertyT _ _ }
     namespace   { TokenLoc NamespaceT _ _ }
     counterStyle
                 { TokenLoc CounterStyleT _ _ }
@@ -165,6 +167,7 @@ CssRule :: { CssRule }
     | 'page' PageSelectorList '{' CssRuleBody '}' { Page (PageSelectorList $2) $4 }
     | pageMargin '{' CssRuleBody '}'              { PageMarginBlock $1 $3 }
     | counterStyle IdKwd '{' CssRuleBody '}'      { CounterStyle $2 $4 }
+    | property Var '{' CssRuleBody '}'            { Property (V.Var $2) $4 }
 
 PageSelectorList
     : PageSelector                                { [ $1 ] }
