@@ -2,9 +2,11 @@
 {
 module CssParser.Lexer where
 
+import Control.Monad ((<=<))
 import CssParser.Fun
 import CssParser.Rule
 import CssParser.Rule.Pseudo
+import CssParser.Rule.Value
 import CssParser.Utils(readCssString, readIdentifier, readDecimalE, dropEnd)
 import Data.Decimal(Decimal)
 import Data.Text (pack)
@@ -31,6 +33,7 @@ $pm       = [\-\+]
 @ident   = [\-]? @nmstart @nmchar*
 @name    = @nmchar+
 @int     = [0-9]+
+@uint    = [0-9]+
 @float   = [0-9]*[\.][0-9]+
 @string1 = \'([^\n\r\f\\\'] | \\@nl | @nonaesc )*\'   -- strings with single quote
 @string2 = \"([^\n\r\f\\\"] | \\@nl | @nonaesc )*\"   -- strings with double quotes
@@ -74,6 +77,12 @@ $pm       = [\-\+]
 
 @charset = @c@h@a@r@s@e@t
 @import  = @i@m@p@o@r@t
+@media   = @m@e@d@i@a
+
+@not     = @n@o@t
+@and     = @a@n@d
+@or     =  @o@r
+@only   = @o@n@l@y
 
 @url     = @u@r@l
 
@@ -84,9 +93,18 @@ $pm       = [\-\+]
 @psb     = [:][:]?
 @lang    = [A-Za-z\-]+
 
+@mm      = @m@m
+@px      = @p@x
+@cm      = @c@m
+@em      = @e@m
+@vh      = @v@h
+@vw      = @v@w
+@dpi     = @d@p@i
+@percent = \%
+
 tokens :-
  <0> {
-  @wo "="  @wo                            { constoken TEqual }
+  @wo "=" @wo                             { constoken TEqual }
   @wo "~=" @wo                            { constoken TIncludes }
   @wo "|=" @wo                            { constoken TDashMatch }
   @wo "^=" @wo                            { constoken TPrefixMatch }
@@ -97,6 +115,11 @@ tokens :-
   (@wo ";" @wo)+                          { constoken Semicolon }
   @wo "@" @charset $w @wo                 { constoken CharsetT }
   @wo "@" @import $w @wo                  { constoken ImportT }
+  @wo "@" @media $w @wo                   { constoken MediaT }
+  @only @wo                               { constoken OnlyT }
+  @not @wo                                { constoken NotT }
+  @or @wo                                 { constoken OrT }
+  @and @wo                                { constoken AndT }
   @wo @url @wo "("                        { constoken UrlT }
   "."                                     { constoken Dot }
   "*"                                     { constoken Asterisk }
@@ -107,9 +130,21 @@ tokens :-
   @var @name                              { tokenize (Var . readIdentifier . drop 2) }
   "#" @name                               { tokenize (THash . readIdentifier . drop 1) }
   @float                                  { tokenizeE Decimal readDecimalE }
+  @wo @uint @px                           { tokenize (Pixels . read . dropEnd 2) }
+  @wo @uint @mm                           { tokenize (Mm . read . dropEnd 2) }
+  @wo @uint @cm                           { tokenize (Cm . read . dropEnd 2) }
+  @wo @uint @em                           { tokenize (Em . read . dropEnd 2) }
+  @wo @uint @vh                           { tokenize (Vh . read . dropEnd 2) }
+  @wo @uint @vw                           { tokenize (Vw . read . dropEnd 2) }
+  @wo @uint @dpi                          { tokenize (Dpi . read . dropEnd 3) }
+  @wo @uint "/" @uint                     { tokenize2 ((pure . RatioT) <=< readRatio) }
+  @wo @uint @percent                      { tokenize (Percents . read . dropEnd 1) }
   @int                                    { tokenize (Integer . read) }
-  @wo "+" @wo                             { constoken Plus }
+  @wo "+"                                 { constoken Plus }
   @wo ">" @wo                             { constoken Greater }
+  @wo ">=" @wo                            { constoken GreaterEqual }
+  @wo "<" @wo                             { constoken Less }
+  @wo "<=" @wo                            { constoken LessEqual }
   @wo $tl @wo                             { constoken Tilde }
   "[" @wo                                 { constoken BOpen }
   @wo "]"                                 { constoken BClose }
@@ -146,6 +181,7 @@ tokens :-
   @psc @nthh@oftype "("                   { constAndBegin (PseudoFunction NthFOfType) nth_state }
   @psc @n@o@t "(" @wo                     { constoken TNot }
   @wo ")"                                 { constoken TClose }
+  @wo "(" @wo                             { constoken TOpen }
   @psc @onlyh@oftype                      { constoken (AtomicPseudoClassT OnlyOfType) }
   @psc @onlyh@child                       { constoken (AtomicPseudoClassT OnlyChild) }
   @psc @o@p@t@i@o@n@a@l                   { constoken (AtomicPseudoClassT Optional) }
@@ -178,7 +214,10 @@ tokens :-
 
 {
 
-data TokenLoc = TokenLoc Token String (Maybe AlexPosn) deriving Show
+data TokenLoc = TokenLoc Token String (Maybe AlexPosn) deriving (Show, Eq)
+
+getToken :: TokenLoc -> Token
+getToken (TokenLoc t _ _) = t
 
 type AlexUserState = ()
 
@@ -195,6 +234,15 @@ data Token
     | THash String
     | Decimal Decimal
     | Integer Integer
+    | Pixels Integer
+    | Mm Integer
+    | Cm Integer
+    | Em Integer
+    | Vh Integer
+    | Vw Integer
+    | Dpi Integer
+    | RatioT Ratio
+    | Percents Integer
     | Comma
     | Ampersand
     | Colon
@@ -202,10 +250,18 @@ data Token
     | Pipe
     | Plus
     | Greater
+    | GreaterEqual
+    | Less
+    | LessEqual
     | Tilde
     | Dot
     | CharsetT
     | ImportT
+    | MediaT
+    | OnlyT
+    | NotT
+    | AndT
+    | OrT
     | UrlT
     | Asterisk
     | Space
@@ -220,10 +276,13 @@ data Token
     | TNth Nth
     | TPM TpmF
     | TInt Int
+    | TOpen
     | TClose
     | TNot
     | TLang
     deriving (Show, Eq)
+
+
 
 tokenizeE :: (a -> Token) -> (String -> Either String a) -> AlexInput -> Int -> Alex TokenLoc
 tokenizeE f fe (p, _, _, str) len =
@@ -237,6 +296,16 @@ tokenizeE f fe (p, _, _, str) len =
 tokenize :: (String -> Token) -> AlexInput -> Int -> Alex TokenLoc
 tokenize f (p, _, _, str) len = pure (TokenLoc (f str') str' (Just p))
   where str' = take len str
+
+tokenize2 :: (String -> Either String Token) -> AlexInput -> Int -> Alex TokenLoc
+tokenize2 f (p, _, _, str) len =
+  case f str' of
+    Left err ->
+      alexError ("FAILED " <> err <> "; len: " <> show len <> "; str = [" <> str <> "]")
+    Right v ->
+      pure (TokenLoc v str' (Just p))
+  where
+    str' = take len str
 
 constoken :: Token -> AlexInput -> Int -> Alex TokenLoc
 constoken = tokenize . const

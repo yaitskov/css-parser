@@ -42,10 +42,13 @@ library
     , CssParser.FixRule
     , CssParser.Fun
     , CssParser.Ident
+    , CssParser.Norm
+    , CssParser.Parser.Monad
     , CssParser.Prelude
     , CssParser.Rule
     , CssParser.Rule.Pseudo
     , CssParser.Rule.Show
+    , CssParser.Rule.Value
     , CssParser.Show
     , CssParser.TextMarshal
     , CssParser.Utils
@@ -73,10 +76,13 @@ test-suite test
     , CssParser.Test.Arbitrary.At
     , CssParser.Test.Arbitrary.Ident
     , CssParser.Test.Arbitrary.File
+    , CssParser.Test.Arbitrary.Media
     , CssParser.Test.Arbitrary.Rule
+    , CssParser.Test.Arbitrary.Value
 
   build-depends:
     , css-parser
+    , containers
     , generic-arbitrary             >1 && <2
     , QuickCheck
     , quickcheck-instances

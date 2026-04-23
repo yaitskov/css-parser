@@ -3,17 +3,16 @@
 -- cabal test --test-option=--maximum-test-size=50
 module Main where
 
-import CssParser (parseCss)
-import CssParser.File (CssFile)
-import CssParser.Show (CssShow(toCssText))
+import CssParser
 import CssParser.Test.Arbitrary.File ()
+import CssParser.Test.Arbitrary.Media ()
 import CssParser.Utils (encodeString, readCssString, encodeIdentifier, readIdentifier)
 import Data.Text (pack)
 import Data.Text.Lazy qualified as TL
 import Prelude
 import Test.Tasty ( defaultMain, testGroup, TestTree )
 import Test.Tasty.HUnit ( testCase, (@=?) )
-import Test.Tasty.QuickCheck ( testProperty, withMaxSuccess, withMaxSize )
+import Test.Tasty.QuickCheck -- ( testProperty, withMaxSuccess, withMaxSize, label, (===) )
 
 main :: IO ()
 main = defaultMain tests
@@ -33,10 +32,12 @@ tests = testGroup "CssParser"
         validSelectors)
     ]
   , testGroup "Arbitrary "
-    [ testProperty "Encode-decode CSS identity"
+    [ testProperty "Alex"
+      (withMaxSuccess 410 encodeDecodeAlex)
+    , testProperty "Encode-decode CSS identity"
       -- cabal test with by default runs about a minute
-      (withMaxSize 60
-       (withMaxSuccess 41 encodeDecodeCss))
+      -- (withMaxSize 60 (withMaxSuccess 61
+        encodeDecodeCss -- ) )
     ]
   ]
   where
@@ -48,8 +49,31 @@ encodeDecode c b = readCssString (encodeString c b) == b
 encodeDecodeId :: String -> Bool
 encodeDecodeId b = readIdentifier (TL.unpack (encodeIdentifier (pack b))) == b
 
+encodeDecodeAlex :: CssFile -> Property
+encodeDecodeAlex cf =
+  label cfCss $
+    case alex cfCss of
+      Left e -> error $ "Alex failed: " <> e <> "After:\n" <> cfCss
+      Right v -> v === v
+  where
+   cfCss = TL.unpack $ toCssText cf
+
+
 encodeDecodeCss :: CssFile -> Bool
-encodeDecodeCss sg = sg == (parseCss . TL.unpack . toCssText) sg
+encodeDecodeCss sg =
+  case parseCssP sgTxt of
+    Failed e ->
+      error $ "Failed to parse:\n" <> sgTxt <>
+      "\nTokens:\n" <>  show (fmap getToken <$> alex sgTxt) <>
+      "\nError: " <> e
+    Ok parsedSg
+      | sg == parsedSg -> True
+      | otherwise ->
+        error $ "Parsed value differs:\n" <> show parsedSg <>
+          "\nCSS Input:\n" <> sgTxt <>
+          "\nCSS Print:\n" <> TL.unpack (toCssText parsedSg)
+  where
+    sgTxt = TL.unpack $ toCssText sg
 
 checkParse :: String -> Bool
 checkParse x = y == y

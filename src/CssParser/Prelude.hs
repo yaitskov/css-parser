@@ -5,7 +5,7 @@ module CssParser.Prelude
   ) where
 
 import Data.Char as X
-import Data.List.NonEmpty as X ( NonEmpty ((:|)), (<|), toList, nonEmpty)
+import Data.List.NonEmpty as X ( NonEmpty ((:|)), (<|), toList, nonEmpty, appendList)
 import Data.String as X (IsString (..))
 import Data.Text (Text)
 import Data.Text.Lazy qualified as L

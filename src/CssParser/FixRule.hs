@@ -43,15 +43,18 @@ updateFirstTagSelector f = \case
   PeSelectorOnly pe -> PeSelector (f nullTagSelector) [] pe
 
 updateTopTagSelector :: (TagSelector -> TagSelector) -> CssRule -> CssRule
-updateTopTagSelector tsF (CssRule (fts :| ots) body) =
-  CssRule (updateFirstTagSelector tsF fts :| ots) body
+updateTopTagSelector tsF = \case
+  CssRule (fts :| ots) body -> CssRule (updateFirstTagSelector tsF fts :| ots) body
+  mr@MediaRule {} -> mr
 
 setTsNs :: Ident -> TagSelector -> TagSelector
 setTsNs ns ts = ts { tagNs = Namespace ns }
 
 prependSelectorToRule :: Ident -> CssRule -> CssRule
-prependSelectorToRule iden (CssRule ss body) =
-  CssRule (selectorByTag iden <| ss) body
+prependSelectorToRule iden = \case
+  CssRule ss body ->
+    CssRule (selectorByTag iden <| ss) body
+  mr@MediaRule {} -> mr
 
 tagNameIsClass :: Ident -> CssRule -> CssRule
 tagNameIsClass tn = updateTopTagSelector go
@@ -67,8 +70,10 @@ prependIdentAttrSelector :: Ident -> Attr -> TagRelation -> CssRule -> CssRule
 prependIdentAttrSelector tn atr tr  = prependAttr atr . prependIdentToRule tn tr
 
 prependIdentToRule :: Ident -> TagRelation -> CssRule -> CssRule
-prependIdentToRule tn tr (CssRule (fts :| ots) body) =
-  CssRule (prependIdent tn tr fts :| ots) body
+prependIdentToRule tn tr = \case
+  CssRule (fts :| ots) body ->
+    CssRule (prependIdent tn tr fts :| ots) body
+  mr@MediaRule {} -> mr
 
 prependAttr :: Attr -> CssRule -> CssRule
 prependAttr atr = updateTopTagSelector go

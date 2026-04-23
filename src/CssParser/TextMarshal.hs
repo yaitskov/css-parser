@@ -1,9 +1,13 @@
-module CssParser.TextMarshal where
+module CssParser.TextMarshal
+  ( module CssParser.TextMarshal
+  , readEither
+  ) where
 
 import CssParser.Prelude
 import Data.Text.Lazy qualified as L
-import Data.Text.Lazy.Builder (toLazyText )
+import Data.Text.Lazy.Builder (toLazyText)
 import Data.Text.Lazy.Builder.Int (decimal)
+import Text.Read (readEither)
 
 numToText :: Integral a => a -> LText
 numToText = toLazyText . decimal

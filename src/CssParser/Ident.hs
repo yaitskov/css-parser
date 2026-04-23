@@ -43,7 +43,6 @@ instance CssShow Namespace where
     AsteriskNs -> "*|"
     Namespace (Ident t) -> encodeIdentifier t <> "|"
 
-
 instance CssShow TagName where
   toCssText = \case
     NoTag -> ""

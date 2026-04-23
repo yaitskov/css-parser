@@ -4,29 +4,39 @@ module CssParser.Parser where
 
 import CssParser.At
 import CssParser.At.Import
+import CssParser.At.MediaQuery hiding (Mm, Cm, Dpi, Em)
+import CssParser.At.MediaQuery qualified as MQ
 import CssParser.Rule.Pseudo
+import CssParser.Rule.Value
 import CssParser.Fun
 import CssParser.File
 import CssParser.FixRule
 import CssParser.Ident hiding (Ident)
 import CssParser.Ident qualified as R
+import CssParser.Lexer qualified as L
 import CssParser.Lexer
   ( AlexPosn(AlexPn), TokenLoc(TokenLoc)
   , Token
     ( TIncludes, TEqual, TDashMatch, TPrefixMatch, TSuffixMatch, TSubstringMatch, Ident
-    , Integer, Comma, Plus, Greater, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
-    , PseudoElementT, TN, TNth, TPM, TInt, TClose, TNot, TLang, Decimal, String, THash
+    , Integer, Comma, Plus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
+    , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, Decimal, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
-    , CharsetT, UrlT, ImportT
+    , CharsetT, UrlT, ImportT, MediaT, NotT, OrT, AndT, OnlyT
+    , TOpen, TClose
+    , Greater, Less, LessEqual, GreaterEqual
+    , RatioT, Percents, Pixels
     )
   )
+import CssParser.Parser.Monad
 import CssParser.Rule
 import Data.List.NonEmpty (NonEmpty((:|)), (<|))
 import Data.Text (pack)
 
 import Prelude
+
 }
 
+%monad { P } { thenP } { returnP }
 %name cssParser
 %tokentype { TokenLoc }
 %error { happyError }
@@ -36,6 +46,9 @@ import Prelude
     ':'         { TokenLoc Colon _ _ }
     ';'         { TokenLoc Semicolon _ _ }
     '>'         { TokenLoc Greater _ _ }
+    '>='        { TokenLoc GreaterEqual _ _ }
+    '<'         { TokenLoc Less _ _ }
+    '<='        { TokenLoc LessEqual _ _ }
     '+'         { TokenLoc Plus _ _ }
     '|'         { TokenLoc Pipe _ _ }
     '~'         { TokenLoc Tilde _ _ }
@@ -50,6 +63,13 @@ import Prelude
     '='         { TokenLoc TEqual _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
     'import'    { TokenLoc ImportT _ _ }
+    'media'     { TokenLoc MediaT _ _ }
+-- media start
+    'only'      { TokenLoc OnlyT _ _ }
+    'not'       { TokenLoc NotT _ _ }
+    'or'        { TokenLoc OrT _ _ }
+    'and'       { TokenLoc AndT _ _ }
+-- media end
     'url('      { TokenLoc UrlT _ _ }
     '^='        { TokenLoc TPrefixMatch _ _ }
     '$='        { TokenLoc TSuffixMatch _ _ }
@@ -66,12 +86,24 @@ import Prelude
     'n'         { TokenLoc TN _ _ }
     int         { TokenLoc (TInt $$) _ _ }
     integer     { TokenLoc (Integer $$) _ _ }
+    'ratio'     { TokenLoc (RatioT $$) _ _ }
+    'mm'        { TokenLoc (L.Mm $$) _ _ }
+    'em'        { TokenLoc (L.Em $$) _ _ }
+    'cm'        { TokenLoc (L.Cm $$) _ _ }
+    'vw'        { TokenLoc (L.Vw $$) _ _ }
+    'vh'        { TokenLoc (L.Vh $$) _ _ }
+    'dpi'       { TokenLoc (L.Dpi $$) _ _ }
+    'percents'  { TokenLoc (Percents $$) _ _ }
+    'px'        { TokenLoc (Pixels $$) _ _ }
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
     'not('      { TokenLoc TNot _ _ }
     'lang('     { TokenLoc TLang _ _ }
+    '('         { TokenLoc TOpen _ _ }
     ')'         { TokenLoc TClose _ _ }
 
+%left 'or' 'and'
+%right 'not'
 %%
 
 CssFile
@@ -87,30 +119,103 @@ CssFileBody
     : CssRule                                     { $1 :| [] }
     | CssRule CssFileBody                         { $1 <| $2 }
 
-CssRule
+CssRule :: { CssRule }
     : SelectorList '{' CssRuleBody '}'            { CssRule $1 $3 }
+    | 'media' '{' CssRuleBody '}'                 { MediaRule (MediaQueryList []) $3 }
+    | 'media' MediaQueryList '{' CssRuleBody '}'  { MediaRule (MediaQueryList $2) $4 }
+
+MediaQueryList :: { [ MediaQuery ] }
+    : MediaQuery                                  { [ $1 ] }
+    | MediaQuery ',' MediaQueryList               { $1 : $3 }
+
+MediaQuery :: { MediaQuery }
+    : 'not' Os '(' MediaFeature ')'               { MediaQueryConditionOnly (MediaNot $4) }
+    | MtModifier MediaType Os 'and' Os MediaCondition
+                                                  { MediaQueryWithMt
+                                                      $1
+                                                      $2
+                                                      (Just $6)
+                                                  }
+    | MtModifier MediaType                        { MediaQueryWithMt $1 $2 Nothing }
+    | MediaCondition                              { MediaQueryConditionOnly $1 }
+MediaType
+    : Ident                                       { MediaType $1 }
+MtModifier :: { Maybe MtModifier }
+    :                                             { Nothing }
+    | 'not'                                       { Just MtNot }
+    | 'only'                                      { Just MtOnly }
+
+MediaCondition :: { MediaBoolExpr }
+    : 'not' '(' MediaFeature ')' Os 'and' MediaCondition
+                                                  { MediaBin And $3 $7 }
+    | 'not' '(' MediaFeature ')' Os 'or' MediaCondition
+                                                  { MediaBin Or $3 $7 }
+    | 'not' '(' MediaFeature ')'                  { MediaNot $3 }
+    | '(' MediaFeature ')' Os 'and' MediaCondition
+                                                  { MediaBin And $2 $6 }
+    | '(' MediaFeature ')' Os 'or' MediaCondition
+                                                  { MediaBin Or $2 $6 }
+    | '(' MediaFeature ')'                        { MediaFeature $2 }
+
+MediaFeature :: { MediaFeature }
+    : Ident ':' PropVal                           { PlainMf $1 $3 }
+    | Ident '=' PropVal                           { OpenRangeFeature $1 MfEq $3 }
+    | Ident '<' Ident MfRel PropVal               { MfClosedRange (IdentRef $1) MfLt $3 $4 $5 }
+    | Ident '<' PropVal                           { OpenRangeFeature $1 MfLt $3 }
+    | Ident '>' Ident MfRel PropVal               { MfClosedRange (IdentRef $1) MfGt $3 $4 $5 }
+    | Ident '>' PropVal                           { OpenRangeFeature $1 MfGt $3 }
+    | Ident '<=' Ident MfRel PropVal              { MfClosedRange (IdentRef $1) MfLe $3 $4 $5 }
+    | Ident '<=' PropVal                          { OpenRangeFeature $1 MfLe $3 }
+    | Ident '>=' Ident MfRel PropVal              { MfClosedRange (IdentRef $1) MfGe $3 $4 $5 }
+    | Ident '>=' PropVal                          { OpenRangeFeature $1 MfGe $3 }
+    | Ident                                       { BooleanMf $1 }
+    | PropVal MfRel Ident                         { OpenRangeFeatureFlipped $1 $2 $3 }
+    | PropVal MfRel Ident MfRel PropVal           { MfClosedRange $1 $2 $3 $4 $5 }
+
+MfRel :: { MfRelation }
+    : '<'                                         { MfLt }
+    | '>'                                         { MfGt }
+    | '<='                                        { MfLe }
+    | '>='                                        { MfGe }
+    | '='                                         { MfEq }
+
+PropVal :: { PropVal }
+    : 'mm'                                        { IntVal (Unsigned $1) MQ.Mm }
+    | 'em'                                        { IntVal (Unsigned $1) MQ.Em }
+    | 'cm'                                        { IntVal (Unsigned $1) MQ.Cm }
+    | 'vw'                                        { IntVal (Unsigned $1) MQ.Vw }
+    | 'vh'                                        { IntVal (Unsigned $1) MQ.Vh }
+    | 'dpi'                                       { IntVal (Unsigned $1) MQ.Dpi }
+    | 'percents'                                  { IntVal (Unsigned $1) MQ.Percent }
+    | 'px'                                        { IntVal (Unsigned $1) MQ.Px }
+    | Unsigned                                    { IntVal $1 MQ.K }
+    | 'ratio'                                     { RatioVal $1 }
+    | Ident                                       { IdentRef $1 }
+
+Unsigned
+    : integer                                     { Unsigned $1 }
 
 CssRuleBody :: { [ CssRuleBodyItem ] }
     :                                             { [] }
     | Var   ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (PropertyName $1) $3 : $5 }
-    | Ident ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (PropertyName $1) $3 : $5 }
+    | IdKwd ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (PropertyName $1) $3 : $5 }
     | Var   ':' CssPropertyVals                   { [ CssLeafRule (PropertyName $1) $3 ] }
-    | Ident ':' CssPropertyVals                   { [ CssLeafRule (PropertyName $1) $3 ] }
-    | Ident '{' CssRuleBody '}' CssRuleBody       { CssNestedRule (tagNameRule $1 $3) : $5 }
-    | Ident '>' CssRule CssRuleBody               { CssNestedRule (prependIdentToRule $1 Child $3) : $4 }
-    | Ident ' ' CssRule CssRuleBody               { CssNestedRule (prependIdentToRule $1 Descendant $3) : $4 }
-    | Ident '|' CssRule CssRuleBody               { CssNestedRule
+    | IdKwd ':' CssPropertyVals                   { [ CssLeafRule (PropertyName $1) $3 ] }
+    | IdKwd '{' CssRuleBody '}' CssRuleBody       { CssNestedRule (tagNameRule $1 $3) : $5 }
+    | IdKwd '>' OptSpace CssRule CssRuleBody      { CssNestedRule (prependIdentToRule $1 Child $4) : $5 }
+    | IdKwd ' ' CssRule CssRuleBody               { CssNestedRule (prependIdentToRule $1 Descendant $3) : $4 }
+    | IdKwd '|' CssRule CssRuleBody               { CssNestedRule
                                                      (updateTopTagSelector (setTsNs $1) $3) : $4
                                                   }
-    | Ident '+' CssRule CssRuleBody               { CssNestedRule (prependIdentToRule $1 NextSibling $3) : $4 }
-    | Ident '~' CssRule CssRuleBody               { CssNestedRule (prependIdentToRule $1 GeneralSibling $3) : $4 }
-    | Ident '[' Attr '{' CssRuleBody '}' CssRuleBody
+    | IdKwd '+' OptSpace CssRule CssRuleBody      { CssNestedRule (prependIdentToRule $1 NextSibling $4) : $5 }
+    | IdKwd '~' OptSpace CssRule CssRuleBody      { CssNestedRule (prependIdentToRule $1 GeneralSibling $4) : $5 }
+    | IdKwd '[' Attr '{' CssRuleBody '}' CssRuleBody
                                                   { CssNestedRule (tagAndAttrRule $1 $3 $5) : $7 }
-    | Ident '[' Attr TagRelation CssRule CssRuleBody
+    | IdKwd '[' Attr TagRelation CssRule CssRuleBody
                                                   { CssNestedRule (prependIdentAttrSelector $1 $3 $4 $5) : $6 }
-    | Ident '[' Attr CssRule CssRuleBody          { CssNestedRule (setTopTagName $1 (prependAttr $3 $4)) : $5 }
-    | Ident ',' CssRule CssRuleBody               { CssNestedRule (prependSelectorToRule $1 $3) : $4 }
-    | Ident '.' CssRule CssRuleBody               { CssNestedRule (tagNameIsClass $1 $3) : $4 }
+    | IdKwd '[' Attr CssRule CssRuleBody          { CssNestedRule (setTopTagName $1 (prependAttr $3 $4)) : $5 }
+    | IdKwd ',' CssRule CssRuleBody               { CssNestedRule (prependSelectorToRule $1 $3) : $4 }
+    | IdKwd '.' CssRule CssRuleBody               { CssNestedRule (tagNameIsClass $1 $3) : $4 }
     | CssRule CssRuleBody                         { CssNestedRule $1 : $2 }
 
 CssPropertyVals :: { NonEmpty () }
@@ -178,10 +283,10 @@ ZipTagRelationAndTagSelector :: { [ (TagRelation, TagSelector) ] }
                                                       { ($1, $2) : $3 }
 
 TagRelation :: { TagRelation }
-    : '+'          { NextSibling }
-    | '>'          { Child }
-    | '~'          { GeneralSibling }
-    | ' '          { Descendant }
+    : '+' OptSpace { NextSibling }
+    | '>' OptSpace { Child }
+    | '~' OptSpace { GeneralSibling }
+    | ' ' OptSpace { Descendant }
     ;
 
 Nth
@@ -205,6 +310,11 @@ OptSpace
     :                             { () }
     | ' '                         { () }
     ;
+
+Os
+    :                             { () }
+    | ' '                         { () }
+
 
 AttrBox
     : '[' Attr                        { $2 }
@@ -234,6 +344,16 @@ AttrOp ::  { AttrOp }
     | '*='                        { SubstringMatch }
     ;
 
+IdKwd
+    : Ident        { $1 }
+    | MediaKeywordAsIdent { $1 }
+
+MediaKeywordAsIdent
+    : 'not'      { R.Ident "not" }
+    | 'or'       { R.Ident "or" }
+    | 'and'      { R.Ident "and" }
+    | 'only'     { R.Ident "only" }
+
 Ident
     : ident        { R.Ident (pack $1) }
 
@@ -248,10 +368,10 @@ Var
     ;
 
 {
-happyError :: [TokenLoc] -> a
+happyError :: [TokenLoc] -> P a
 happyError (~(TokenLoc t s ~(Just (AlexPn _ l c))):_) =
-  error $ "Can not parse CSS: unpexected token \"" <>
+  failP $ "Can not parse CSS: unpexected token \"" <>
     s <> "\" at (" <> show l <> ", " <> show c <> ")"
 happyError _ =
-  error "Unexpected end of a CSS string"
+  failP "Unexpected end of a CSS string"
 }
