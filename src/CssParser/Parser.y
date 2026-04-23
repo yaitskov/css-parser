@@ -24,7 +24,7 @@ import CssParser.Lexer
     , Integer, Comma, Plus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, Decimal, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
-    , CharsetT, ImportT, MediaT, LayerT, NamespaceT
+    , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT
     , NotT, OrT, AndT, OnlyT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
@@ -71,6 +71,8 @@ import Prelude
     '='         { TokenLoc TEqual _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
     namespace   { TokenLoc NamespaceT _ _ }
+    counterStyle
+                { TokenLoc CounterStyleT _ _ }
     'import'    { TokenLoc ImportT _ _ }
     'layer'     { TokenLoc LayerT _ _ }
     'page'      { TokenLoc PageT _ _ }
@@ -162,6 +164,7 @@ CssRule :: { CssRule }
     | 'page' '{' CssRuleBody '}'                  { Page (PageSelectorList []) $3 }
     | 'page' PageSelectorList '{' CssRuleBody '}' { Page (PageSelectorList $2) $4 }
     | pageMargin '{' CssRuleBody '}'              { PageMarginBlock $1 $3 }
+    | counterStyle IdKwd '{' CssRuleBody '}'      { CounterStyle $2 $4 }
 
 PageSelectorList
     : PageSelector                                { [ $1 ] }

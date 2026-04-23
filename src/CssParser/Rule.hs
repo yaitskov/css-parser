@@ -13,6 +13,7 @@ data CssRule
   | LayerBlock (Maybe LayerName) [CssRuleBodyItem]
   | Page PageSelectorList [CssRuleBodyItem]
   | PageMarginBlock PageMargin [CssRuleBodyItem]
+  | CounterStyle Ident [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

@@ -21,6 +21,8 @@ instance CssShow CssRule where
       toCssText psl <> " {" <> toCssText body <> "}"
     PageMarginBlock pm body ->
       toCssText pm <> " {" <> toCssText body <> "}"
+    CounterStyle cn body ->
+      "@counter-style " <> toCssText cn <> " {" <> toCssText body <> "}"
 
 instance CssShow CssRuleBodyItem where
   toCssText = \case

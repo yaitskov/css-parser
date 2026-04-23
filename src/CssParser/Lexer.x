@@ -78,6 +78,8 @@ $pm       = [\-\+]
 
 @charset = @c@h@a@r@s@e@t
 @import  = @i@m@p@o@r@t
+@style   = @s@t@y@l@e
+@counter = @c@o@u@n@t@e@r
 @namespace = @n@a@m@e@s@p@a@c@e
 @layer   = @l@a@y@e@r
 @media   = @m@e@d@i@a
@@ -150,6 +152,7 @@ tokens :-
   @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
+  @wo "@" @counter "-" @style $w @wo      { constoken CounterStyleT }
   @wo "@" @charset $w @wo                 { constoken CharsetT }
   @wo "@" @namespace $w @wo               { constoken NamespaceT }
   @wo "@" @import $w @wo                  { constoken ImportT }
@@ -303,6 +306,7 @@ data Token
     | PageMarginT PageMargin
 
     | NamespaceT
+    | CounterStyleT
     | CharsetT
     | ImportT
     | LayerT
