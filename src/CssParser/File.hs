@@ -1,17 +1,27 @@
 module CssParser.File where
 
-import CssParser.At
-import CssParser.At.Import
+import CssParser.At ( Charset )
+import CssParser.At.Import ( Import )
 import CssParser.Prelude
 import CssParser.Rule ( CssRule )
 import CssParser.Rule.Show ()
 import CssParser.Show
-import Data.Maybe (maybeToList)
+import CssParser.At.Layer (LayerStmt)
+
+data FileHeader
+  = HeaderImport Import
+  | HeaderLayers LayerStmt
+  deriving (Show, Eq, Generic)
+
+instance CssShow FileHeader where
+  toCssText = \case
+    HeaderImport i -> toCssText i
+    HeaderLayers ls -> toCssText ls
 
 data CssFile
   = CssFile
     { charset :: Maybe Charset
-    , imports :: [ Import ]
+    , headers :: [ FileHeader  ]
     , rules :: NonEmpty CssRule
     }
   deriving (Show, Eq, Generic)
@@ -19,5 +29,5 @@ data CssFile
 instance CssShow CssFile where
   toCssText cf = unlines $
     maybeToList (toCssText <$> cf.charset) <>
-    (toCssText <$> cf.imports) <>
+    (toCssText <$> cf.headers) <>
     (toCssText <$> toList cf.rules)

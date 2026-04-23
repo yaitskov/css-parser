@@ -7,8 +7,10 @@ import CssParser.FixRule ( nullTagSelector )
 import CssParser.Rule
 import CssParser.Rule.Pseudo
 import CssParser.Test.Arbitrary
+import CssParser.Test.Arbitrary.At ()
 import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Media ()
+
 
 instance Arbitrary Hash where
     arbitrary = Hash <$> arbitraryIdent

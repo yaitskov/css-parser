@@ -4,7 +4,10 @@ module CssParser.Test.Arbitrary.At where
 
 import CssParser.At
 import CssParser.At.Import
+import CssParser.At.Layer
 import CssParser.Test.Arbitrary
+import CssParser.Test.Arbitrary.Ident ()
+
 
 instance Arbitrary Charset where
   arbitrary = Charset <$> elements ["UTF-8", "iso-8859-15"]
@@ -19,4 +22,6 @@ instance Arbitrary ImportSource where
     , ImportSourceStr <$> arbitraryWord
     ]
 
+deriving via (GenericArbitrary LayerName) instance Arbitrary LayerName
+deriving via (GenericArbitrary LayerStmt) instance Arbitrary LayerStmt
 deriving via (GenericArbitrary Import) instance Arbitrary Import

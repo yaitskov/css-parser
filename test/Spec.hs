@@ -1,6 +1,4 @@
-
--- cabal test --test-show-details failures
--- cabal test --test-option=--maximum-test-size=50
+-- cabal test   --test-option=--quickcheck-tests=10 --test-option=--quickcheck-max-size=22 --test-option=--hide-successes
 module Main where
 
 import CssParser
@@ -30,6 +28,10 @@ tests = testGroup "CssParser"
     , testGroup "Nested1"
       (fmap (\x -> cpt x (x <> " {\n" <> x <> "{\t}\r}"))
         validSelectors)
+    , testGroup "Layer"
+      [ testGroup "Stmt"
+        (fmap (\x -> cpt x (x <> ";")) layerStmt)
+      ]
     ]
   , testGroup "Arbitrary "
     [ testProperty "Alex"
@@ -80,7 +82,20 @@ checkParse x = y == y
   where y = parseCss x
 
 examples :: [String]
-examples = media <> validSelectors
+examples = media <> validSelectors <> layer
+
+layerStmt :: [String]
+layerStmt =
+  [ "@layer ao-euth"
+  , "@layer l1"
+  , "@layer l1, and, oo "
+  ]
+
+layer :: [String]
+layer =
+  [ "@layer"
+  , "@layer l1"
+  ]
 
 media :: [String]
 media =
@@ -90,6 +105,7 @@ media =
   , "@media all "
   , "@media  "
   , "@media (max-width: 320px)"
+  , "@media (-webkit-transform-3d) "
   , "@media (400px < width < 1000px) or (a)"
   ]
 

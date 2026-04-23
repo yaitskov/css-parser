@@ -4,6 +4,7 @@ module CssParser.Parser where
 
 import CssParser.At
 import CssParser.At.Import
+import CssParser.At.Layer
 import CssParser.At.MediaQuery hiding (Mm, Cm, Dpi, Em)
 import CssParser.At.MediaQuery qualified as MQ
 import CssParser.Rule.Pseudo
@@ -21,15 +22,19 @@ import CssParser.Lexer
     , Integer, Comma, Plus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, Decimal, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
-    , CharsetT, UrlT, ImportT, MediaT, NotT, OrT, AndT, OnlyT
+    , CharsetT, ImportT, MediaT, LayerT
+    , NotT, OrT, AndT, OnlyT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
     , RatioT, Percents, Pixels
+    , UrlT
     )
   )
 import CssParser.Parser.Monad
+import CssParser.Prelude
+  ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe, rightToMaybe
+  )
 import CssParser.Rule
-import Data.List.NonEmpty (NonEmpty((:|)), (<|))
 import Data.Text (pack)
 
 import Prelude
@@ -63,6 +68,7 @@ import Prelude
     '='         { TokenLoc TEqual _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
     'import'    { TokenLoc ImportT _ _ }
+    'layer'     { TokenLoc LayerT _ _ }
     'media'     { TokenLoc MediaT _ _ }
 -- media start
     'only'      { TokenLoc OnlyT _ _ }
@@ -107,23 +113,36 @@ import Prelude
 %%
 
 CssFile
-    : 'charset' Str ';' Imports CssFileBody       { CssFile (Just (Charset $2)) $4 $5 }
-    | Imports CssFileBody                         { CssFile Nothing $1 $2 }
-Imports
+    : Charset Headers CssFileBody                 { CssFile
+                                                      $1
+                                                      (mapMaybe rightToMaybe $2)
+                                                      (prependList (mapMaybe leftToMaybe $2) $3)
+                                                  }
+Charset
+    :                                             { Nothing }
+    | 'charset' Str ';'                           { Just (Charset $2) }
+Headers :: { [ Either CssRule FileHeader ] }
     :                                             { [] }
-    | Import Imports                              { $1 : $2 }
-Import
-    : 'import' Str ';'                            { Import (ImportSourceStr $2) }
-    | 'import' 'url(' Str ')' ';'                 { Import (ImportSourceUrl (Url $3)) }
+    | Header Headers                              { $1 : $2 }
+Header :: { Either CssRule FileHeader }
+    : 'import' Str ';'                            { Right (HeaderImport (Import (ImportSourceStr $2))) }
+    | 'import' 'url(' Str ')' ';'                 { Right (HeaderImport (Import ((ImportSourceUrl (Url $3))))) }
+    | 'layer' LayerNames ';'                      { Right (HeaderLayers (LayerStmt $2)) }
+    | 'layer' IdKwd '{' CssRuleBody '}'           { Left (LayerBlock (Just (LayerName $2)) $4) }
+LayerNames :: { NonEmpty LayerName }
+    : IdKwd                                       { LayerName $1 :| [] }
+    | IdKwd ',' LayerNames                        { LayerName $1 <| $3 }
 CssFileBody
     : CssRule                                     { $1 :| [] }
     | CssRule CssFileBody                         { $1 <| $2 }
-
 CssRule :: { CssRule }
     : SelectorList '{' CssRuleBody '}'            { CssRule $1 $3 }
     | 'media' '{' CssRuleBody '}'                 { MediaRule (MediaQueryList []) $3 }
     | 'media' MediaQueryList '{' CssRuleBody '}'  { MediaRule (MediaQueryList $2) $4 }
-
+    | 'layer' IdKwdMb '{' CssRuleBody '}'         { LayerBlock (fmap LayerName $2) $4 }
+IdKwdMb
+    :                                             { Nothing }
+    | IdKwd                                       { Just $1 }
 MediaQueryList :: { [ MediaQuery ] }
     : MediaQuery                                  { [ $1 ] }
     | MediaQuery ',' MediaQueryList               { $1 : $3 }

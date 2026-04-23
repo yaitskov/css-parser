@@ -77,6 +77,7 @@ $pm       = [\-\+]
 
 @charset = @c@h@a@r@s@e@t
 @import  = @i@m@p@o@r@t
+@layer   = @l@a@y@e@r
 @media   = @m@e@d@i@a
 
 @not     = @n@o@t
@@ -115,6 +116,7 @@ tokens :-
   (@wo ";" @wo)+                          { constoken Semicolon }
   @wo "@" @charset $w @wo                 { constoken CharsetT }
   @wo "@" @import $w @wo                  { constoken ImportT }
+  @wo "@" @layer $w @wo                   { constoken LayerT }
   @wo "@" @media $w @wo                   { constoken MediaT }
   @only @wo                               { constoken OnlyT }
   @not @wo                                { constoken NotT }
@@ -257,6 +259,7 @@ data Token
     | Dot
     | CharsetT
     | ImportT
+    | LayerT
     | MediaT
     | OnlyT
     | NotT

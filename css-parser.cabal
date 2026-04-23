@@ -37,6 +37,7 @@ library
     , CssParser
     , CssParser.At
     , CssParser.At.Import
+    , CssParser.At.Layer
     , CssParser.At.MediaQuery
     , CssParser.File
     , CssParser.FixRule
@@ -59,6 +60,7 @@ library
     , array >=0.5.2
     , bytestring >=0.9
     , Decimal >=0.4.2
+    , either < 6
   build-tool-depends:
     , alex:alex
     , happy:happy

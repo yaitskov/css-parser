@@ -1,5 +1,6 @@
 module CssParser.Rule where
 
+import CssParser.At.Layer
 import CssParser.At.MediaQuery
 import CssParser.Ident
 import CssParser.Prelude
@@ -8,6 +9,7 @@ import CssParser.Rule.Pseudo
 data CssRule
   = CssRule (NonEmpty Selector) [CssRuleBodyItem]
   | MediaRule MediaQueryList [CssRuleBodyItem]
+  | LayerBlock (Maybe LayerName) [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

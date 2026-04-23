@@ -15,6 +15,8 @@ instance CssShow CssRule where
     CssRule sels body ->
       intercalate ", " (toList $ fmap toCssText sels) <> "{" <> toCssText body <> "}"
     MediaRule mql body -> toCssText mql <> " {" <> toCssText body <> "}"
+    LayerBlock mbn body ->
+      "@layer " <> maybe "" ((<> " ") . toCssText) mbn <> "{" <> toCssText body <> "}"
 
 instance CssShow CssRuleBodyItem where
   toCssText = \case
