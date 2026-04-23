@@ -79,10 +79,24 @@ checkParse :: String -> Bool
 checkParse x = y == y
   where y = parseCss x
 
+examples :: [String]
+examples = media <> validSelectors
+
+media :: [String]
+media =
+  [ "@media screen and (width >= 900px)"
+  , "@media not all and (hover: hover)"
+  , "@media screen, print"
+  , "@media all "
+  , "@media  "
+  , "@media (max-width: 320px)"
+  , "@media (400px < width < 1000px) or (a)"
+  ]
+
 -- Based on the w3c testkit: https://test.csswg.org/harness/suite/selectors-3_dev/
 validSelectors :: [String]
-validSelectors = [
-    "body > p"
+validSelectors =
+  [ "body > p"
   , "div ol>li p"
   , "*.pastoral"
   , ".pastoral"
