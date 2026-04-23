@@ -7,13 +7,14 @@ import CssParser.At.Import
 import CssParser.At.Layer
 import CssParser.At.MediaQuery hiding (Mm, Cm, Dpi, Em)
 import CssParser.At.MediaQuery qualified as MQ
+import CssParser.At.Namespace
 import CssParser.At.Page
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Value
 import CssParser.Fun
 import CssParser.File
 import CssParser.FixRule
-import CssParser.Ident hiding (Ident)
+import CssParser.Ident hiding (Ident, Namespace)
 import CssParser.Ident qualified as R
 import CssParser.Lexer qualified as L
 import CssParser.Lexer
@@ -23,7 +24,7 @@ import CssParser.Lexer
     , Integer, Comma, Plus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, Decimal, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
-    , CharsetT, ImportT, MediaT, LayerT
+    , CharsetT, ImportT, MediaT, LayerT, NamespaceT
     , NotT, OrT, AndT, OnlyT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
@@ -69,6 +70,7 @@ import Prelude
     '}'         { TokenLoc CClose _ _ }
     '='         { TokenLoc TEqual _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
+    namespace   { TokenLoc NamespaceT _ _ }
     'import'    { TokenLoc ImportT _ _ }
     'layer'     { TokenLoc LayerT _ _ }
     'page'      { TokenLoc PageT _ _ }
@@ -120,10 +122,11 @@ import Prelude
 %%
 
 CssFile
-    : Charset Headers CssFileBody                 { CssFile
+    : Charset Headers Namespaces CssFileBody      { CssFile
                                                       $1
                                                       (mapMaybe rightToMaybe $2)
-                                                      (prependList (mapMaybe leftToMaybe $2) $3)
+                                                      $3
+                                                      (prependList (mapMaybe leftToMaybe $2) $4)
                                                   }
 Charset
     :                                             { Nothing }
@@ -132,11 +135,19 @@ Headers :: { [ Either CssRule FileHeader ] }
     :                                             { [] }
     | Header Headers                              { $1 : $2 }
 Header :: { Either CssRule FileHeader }
-    : 'import' Str ';'                            { Right (HeaderImport (Import (ImportSourceStr $2))) }
-    | 'import' 'url(' Str ')' ';'                 { Right (HeaderImport (Import ((ImportSourceUrl (Url $3))))) }
+    : 'import' Source ';'                         { Right (HeaderImport (Import $2)) }
     | 'layer' LayerNames ';'                      { Right (HeaderLayers (LayerStmt $2)) }
     | 'layer' IdKwd '{' CssRuleBody '}'           { Left (LayerBlock (Just (LayerName $2)) $4) }
     | 'layer' '{' CssRuleBody '}'                 { Left (LayerBlock Nothing $3) }
+Namespaces
+    :                                             { [] }
+    | Namespace ';' Namespaces                    { $1 : $3 }
+Namespace
+    : namespace IdKwdMb Os Source                 { Namespace $2 $4 }
+Source
+    : 'url(' Str ')'                              { UrlSource (Url $2) }
+    | Str                                         { StrSource $1 }
+
 LayerNames :: { NonEmpty LayerName }
     : IdKwd                                       { LayerName $1 :| [] }
     | IdKwd ',' LayerNames                        { LayerName $1 <| $3 }
@@ -282,7 +293,7 @@ Selector :: { Selector }
     ;
 
 TagSelector :: { TagSelector }
-    : Ident '|' TagName TagAttrs TagId TagClasses     { TagSelector (Namespace $1) $3 $4 $5 $6 }
+    : Ident '|' TagName TagAttrs TagId TagClasses     { TagSelector (R.Namespace $1) $3 $4 $5 $6 }
     | Ident TagAttrs TagId TagClasses                 { TagSelector NoBar (TagName $1) $2 $3 $4 }
     | '&' TagAttrs TagId TagClasses                   { TagSelector NoBar AmpersandTag $2 $3 $4 }
     | '*' '|' TagName TagAttrs TagId TagClasses       { TagSelector AsteriskNs $3 $4 $5 $6 }
@@ -364,10 +375,10 @@ AttrBox
 
 Attr
     : Ident ']'                       { HasAttr (AttrName NoBar $1) }
-    | Ident '|' Ident ']'             { HasAttr (AttrName (Namespace $1) $3) }
+    | Ident '|' Ident ']'             { HasAttr (AttrName (R.Namespace $1) $3) }
     | Ident '|' Ident AttrOp IdTxt ']'
-                                      { Attr (AttrName (Namespace $1) $3) $4 $5 }
-    | Ident '|' Ident AttrOp Str ']'  { Attr (AttrName (Namespace $1) $3) $4 $5 }
+                                      { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
+    | Ident '|' Ident AttrOp Str ']'  { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
     | Ident AttrOp IdTxt ']'          { Attr (AttrName NoBar $1) $2 $3 }
     | Ident AttrOp Str ']'            { Attr (AttrName NoBar $1) $2 $3 }
     | '|' Ident ']'                   { HasAttr (AttrName NoNs $2) }

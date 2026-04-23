@@ -22,3 +22,15 @@ readRatio s =
     (divisibleStr, '/':divisorStr) ->
       Ratio <$> readEither divisibleStr <*> readEither divisorStr
     (_, _) -> Left $ "No slash in ratio [" <> s <> "]"
+
+newtype Url = Url { unUrl :: Text }  deriving newtype (Show, Eq, Ord)
+instance CssShow Url where
+  toCssText (Url u) = "url(" <> encodeStringLiteral u <> ")"
+
+data Source = UrlSource Url | StrSource Text
+  deriving (Show, Eq, Generic)
+
+instance CssShow Source where
+  toCssText = \case
+    UrlSource u -> toCssText u
+    StrSource t -> encodeStringLiteral t

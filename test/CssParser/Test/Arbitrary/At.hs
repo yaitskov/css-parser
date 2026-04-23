@@ -5,8 +5,10 @@ module CssParser.Test.Arbitrary.At where
 import CssParser.At
 import CssParser.At.Import
 import CssParser.At.Layer
+import CssParser.At.Namespace
 import CssParser.At.Page
 import CssParser.Norm
+import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
 
@@ -17,11 +19,11 @@ instance Arbitrary Charset where
 instance Arbitrary Url where
   arbitrary = pure $ Url "https://ooo.com/aoeu/style.css"
 
-instance Arbitrary ImportSource where
+instance Arbitrary Source where
   arbitrary =
     oneof
-    [ ImportSourceUrl <$> arbitrary
-    , ImportSourceStr <$> arbitraryWord
+    [ UrlSource <$> arbitrary
+    , StrSource <$> arbitraryWord
     ]
 
 deriving via (GenericArbitrary LayerName) instance Arbitrary LayerName
@@ -41,3 +43,5 @@ instance Norm PageSelector where
 instance Arbitrary PageSelector where
   arbitrary = normalize <$> genericArbitrary
   shrink = filter (/= PageSelector Nothing []) . genericShrink
+
+deriving via (GenericArbitrary Namespace) instance Arbitrary Namespace

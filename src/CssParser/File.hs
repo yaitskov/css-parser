@@ -2,6 +2,7 @@ module CssParser.File where
 
 import CssParser.At ( Charset )
 import CssParser.At.Import ( Import )
+import CssParser.At.Namespace
 import CssParser.Prelude
 import CssParser.Rule ( CssRule )
 import CssParser.Rule.Show ()
@@ -21,7 +22,8 @@ instance CssShow FileHeader where
 data CssFile
   = CssFile
     { charset :: Maybe Charset
-    , headers :: [ FileHeader  ]
+    , headers :: [ FileHeader ]
+    , namespaces :: [ Namespace ]
     , rules :: NonEmpty CssRule
     }
   deriving (Show, Eq, Generic)
@@ -30,4 +32,5 @@ instance CssShow CssFile where
   toCssText cf = unlines $
     maybeToList (toCssText <$> cf.charset) <>
     (toCssText <$> cf.headers) <>
+    (toCssText <$> cf.namespaces) <>
     (toCssText <$> toList cf.rules)

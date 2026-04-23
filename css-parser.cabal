@@ -39,6 +39,7 @@ library
     , CssParser.At.Import
     , CssParser.At.Layer
     , CssParser.At.MediaQuery
+    , CssParser.At.Namespace
     , CssParser.At.Page
     , CssParser.File
     , CssParser.FixRule
