@@ -7,7 +7,7 @@ import CssParser.At.Page
 import CssParser.Fun
 import CssParser.Rule
 import CssParser.Rule.Pseudo
-import CssParser.Rule.Value
+import CssParser.Rule.Value (Ratio(..), readRatio)
 import CssParser.Utils(readCssString, readIdentifier, readDecimalE, dropEnd)
 import Data.Decimal(Decimal)
 import Data.Text (pack)

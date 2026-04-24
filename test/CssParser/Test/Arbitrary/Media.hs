@@ -4,6 +4,7 @@ module CssParser.Test.Arbitrary.Media where
 
 import CssParser.At.MediaQuery
 import CssParser.Norm
+import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Value ()
@@ -32,7 +33,7 @@ deriving via (GenericArbitrary MediaBoolExpr) instance Arbitrary MediaBoolExpr
 deriving via (GenericArbitrary MfRelation) instance Arbitrary MfRelation
 deriving via (GenericArbitrary MtModifier) instance Arbitrary MtModifier
 deriving via (GenericArbitrary MediaType) instance Arbitrary MediaType
-deriving via (GenericArbitrary PropVal) instance Arbitrary PropVal
-deriving via (GenericArbitrary PropValType) instance Arbitrary PropValType
+
+
 deriving via (GenericArbitrary MediaQuery) instance Arbitrary MediaQuery
 deriving via (GenericArbitrary MediaQueryList) instance Arbitrary MediaQueryList

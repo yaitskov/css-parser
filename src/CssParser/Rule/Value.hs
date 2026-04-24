@@ -1,5 +1,6 @@
 module CssParser.Rule.Value where
 
+import CssParser.Ident
 import CssParser.Prelude
 import CssParser.Show
 
@@ -23,7 +24,7 @@ readRatio s =
       Ratio <$> readEither divisibleStr <*> readEither divisorStr
     (_, _) -> Left $ "No slash in ratio [" <> s <> "]"
 
-newtype Url = Url { unUrl :: Text }  deriving newtype (Show, Eq, Ord)
+newtype Url = Url { unUrl :: Text }  deriving newtype (Show, Eq, Ord) deriving (Generic)
 instance CssShow Url where
   toCssText (Url u) = "url(" <> encodeStringLiteral u <> ")"
 
@@ -34,3 +35,41 @@ instance CssShow Source where
   toCssText = \case
     UrlSource u -> toCssText u
     StrSource t -> encodeStringLiteral t
+
+data PropValType
+  = Px | Dpi | Percent | K | Em | Mm | Cm | Vh | Vw
+  deriving (Eq, Ord, Show, Enum, Bounded, Generic)
+
+instance CssShow PropValType where
+  toCssText = \case
+    Px -> "px"
+    Dpi -> "dpi"
+    Percent -> "%"
+    K -> ""
+    Em -> "em"
+    Mm -> "mm"
+    Vw -> "vw"
+    Vh -> "vh"
+    Cm -> "cm"
+
+data PropVal
+  = IntVal Unsigned PropValType
+  | RatioVal Ratio
+  | IdentRef Ident
+  | UrlVal Url
+  | StrVal Text
+  deriving (Eq, Ord, Show, Generic)
+
+instance CssShow PropVal where
+  toCssText = \case
+    IntVal i pvt -> numToText i <> toCssText pvt
+    RatioVal rv -> toCssText rv
+    IdentRef i -> toCssText i
+    UrlVal u -> toCssText u
+    StrVal s -> encodeStringLiteral s
+
+newtype PropVals = PropVals (NonEmpty PropVal) deriving (Show, Eq, Ord, Generic)
+
+instance CssShow PropVals where
+  toCssText (PropVals ne) =
+    unwords . fmap toCssText $ toList ne

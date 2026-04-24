@@ -11,13 +11,10 @@ import CssParser.Norm
 import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
-
+import CssParser.Test.Arbitrary.Value ()
 
 instance Arbitrary Charset where
   arbitrary = Charset <$> elements ["UTF-8", "iso-8859-15"]
-
-instance Arbitrary Url where
-  arbitrary = pure $ Url "https://ooo.com/aoeu/style.css"
 
 instance Arbitrary Source where
   arbitrary =

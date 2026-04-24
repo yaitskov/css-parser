@@ -5,34 +5,6 @@ import CssParser.Prelude
 import CssParser.Rule.Value
 import CssParser.Show
 
-data PropValType
-  = Px | Dpi | Percent | K | Em | Mm | Cm | Vh | Vw
-  deriving (Eq, Ord, Show, Enum, Bounded, Generic)
-
-instance CssShow PropValType where
-  toCssText = \case
-    Px -> "px"
-    Dpi -> "dpi"
-    Percent -> "%"
-    K -> ""
-    Em -> "em"
-    Mm -> "mm"
-    Vw -> "vw"
-    Vh -> "vh"
-    Cm -> "cm"
-
-data PropVal
-  = IntVal Unsigned PropValType
-  | RatioVal Ratio
-  | IdentRef Ident
-  deriving (Eq, Ord, Show, Generic)
-
-instance CssShow PropVal where
-  toCssText = \case
-    IntVal i pvt -> numToText i <> toCssText pvt
-    RatioVal rv -> toCssText rv
-    IdentRef i -> toCssText i
-
 newtype MediaType = MediaType Ident deriving (Eq, Ord, Generic) deriving newtype (Show, CssShow)
 
 data MtModifier = MtNot | MtOnly deriving (Show, Eq, Ord, Enum, Bounded, Generic)

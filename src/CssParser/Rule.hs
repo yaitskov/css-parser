@@ -6,6 +6,7 @@ import CssParser.At.Page
 import CssParser.Ident
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
+import CssParser.Rule.Value
 import CssParser.Rule.Var
 
 data CssRule
@@ -59,7 +60,7 @@ data Attr
   deriving (Eq, Ord, Show, Generic)
 
 data CssRuleBodyItem
-  = CssLeafRule PropertyName (NonEmpty ())
+  = CssLeafRule PropertyName PropVals
   | CssNestedRule CssRule
   deriving (Show, Ord, Eq, Generic)
 

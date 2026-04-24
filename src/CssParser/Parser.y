@@ -5,12 +5,12 @@ module CssParser.Parser where
 import CssParser.At
 import CssParser.At.Import
 import CssParser.At.Layer
-import CssParser.At.MediaQuery hiding (Mm, Cm, Dpi, Em)
-import CssParser.At.MediaQuery qualified as MQ
+import CssParser.At.MediaQuery
 import CssParser.At.Namespace
 import CssParser.At.Page
 import CssParser.Rule.Pseudo
-import CssParser.Rule.Value
+import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em)
+import CssParser.Rule.Value qualified as Vl
 import CssParser.Rule.Var qualified as V
 import CssParser.Fun
 import CssParser.File
@@ -239,27 +239,29 @@ MfRel :: { MfRelation }
     | '='                                         { MfEq }
 
 PropVal :: { PropVal }
-    : 'mm'                                        { IntVal (Unsigned $1) MQ.Mm }
-    | 'em'                                        { IntVal (Unsigned $1) MQ.Em }
-    | 'cm'                                        { IntVal (Unsigned $1) MQ.Cm }
-    | 'vw'                                        { IntVal (Unsigned $1) MQ.Vw }
-    | 'vh'                                        { IntVal (Unsigned $1) MQ.Vh }
-    | 'dpi'                                       { IntVal (Unsigned $1) MQ.Dpi }
-    | 'percents'                                  { IntVal (Unsigned $1) MQ.Percent }
-    | 'px'                                        { IntVal (Unsigned $1) MQ.Px }
-    | Unsigned                                    { IntVal $1 MQ.K }
+    : 'mm'                                        { IntVal (Unsigned $1) Vl.Mm }
+    | 'em'                                        { IntVal (Unsigned $1) Vl.Em }
+    | 'cm'                                        { IntVal (Unsigned $1) Vl.Cm }
+    | 'vw'                                        { IntVal (Unsigned $1) Vl.Vw }
+    | 'vh'                                        { IntVal (Unsigned $1) Vl.Vh }
+    | 'dpi'                                       { IntVal (Unsigned $1) Vl.Dpi }
+    | 'percents'                                  { IntVal (Unsigned $1) Vl.Percent }
+    | 'px'                                        { IntVal (Unsigned $1) Vl.Px }
+    | Unsigned                                    { IntVal $1 Vl.K }
     | 'ratio'                                     { RatioVal $1 }
     | Ident                                       { IdentRef $1 }
+    | Str                                         { StrVal $1 }
+    | 'url(' Str ')'                              { UrlVal (Url $2) }
 
 Unsigned
     : integer                                     { Unsigned $1 }
 
 CssRuleBody :: { [ CssRuleBodyItem ] }
     :                                             { [] }
-    | Var   ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (PropertyName $1) $3 : $5 }
-    | IdKwd ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (PropertyName $1) $3 : $5 }
-    | Var   ':' CssPropertyVals                   { [ CssLeafRule (PropertyName $1) $3 ] }
-    | IdKwd ':' CssPropertyVals                   { [ CssLeafRule (PropertyName $1) $3 ] }
+    | Var   ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (PropertyName $1) (PropVals $3) : $5 }
+    | IdKwd ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (PropertyName $1) (PropVals $3) : $5 }
+    | Var   ':' CssPropertyVals                   { [ CssLeafRule (PropertyName $1) (PropVals $3) ] }
+    | IdKwd ':' CssPropertyVals                   { [ CssLeafRule (PropertyName $1) (PropVals $3) ] }
     | IdKwd '{' CssRuleBody '}' CssRuleBody       { CssNestedRule (tagNameRule $1 $3) : $5 }
     | IdKwd '>' OptSpace CssRule CssRuleBody      { CssNestedRule (prependIdentToRule $1 Child $4) : $5 }
     | IdKwd ' ' CssRule CssRuleBody               { CssNestedRule (prependIdentToRule $1 Descendant $3) : $4 }
@@ -277,21 +279,14 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | IdKwd '.' CssRule CssRuleBody               { CssNestedRule (tagNameIsClass $1 $3) : $4 }
     | CssRule CssRuleBody                         { CssNestedRule $1 : $2 }
 
-CssPropertyVals :: { NonEmpty () }
-    : CssPropertyVal                              { $1 :| [] }
-    | CssPropertyVal ' ' CssPropertyVals          { $1 <| $3 }
-    | CssPropertyVal CssPropertyVals              { $1 <| $2 }
-
-CssPropertyVal :: { () }
-    : integer                                     { () }
-    | ident                                       { () }
-    | string                                      { () }
+CssPropertyVals :: { NonEmpty PropVal }
+    : PropVal                                     { $1 :| [] }
+    | PropVal ' ' CssPropertyVals                 { $1 <| $3 }
+    | PropVal CssPropertyVals                     { $1 <| $2 }
 
 SelectorList :: { NonEmpty Selector }
     : Selector                                    { $1 :| [] }
     | Selector ',' SelectorList                   { $1 <| $3 }
-    ;
-
 Selector :: { Selector }
     : TagSelector ZipTagRelationAndTagSelector        { Selector $1 $2 }
     | TagSelector ZipTagRelationAndTagSelector pseude { PeSelector $1 $2 $3 }
