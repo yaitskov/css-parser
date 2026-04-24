@@ -18,6 +18,7 @@ data CssRule
   | CounterStyle Ident [CssRuleBodyItem]
   | Property Var [CssRuleBodyItem]
   | Keyframes KeyframeSet
+  | ColorProfile PropertyName [PropEntry]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

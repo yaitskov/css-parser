@@ -26,6 +26,8 @@ instance CssShow CssRule where
     Property pn body ->
       "@property " <> toCssText pn <> " {" <> toCssText body <> "}"
     Keyframes kf -> toCssText kf
+    ColorProfile n b ->
+      "@color-profile " <> toCssText n <> " {" <> toCssText b <> "}"
 
 instance CssShow CssRuleBodyItem where
   toCssText = \case

@@ -32,7 +32,7 @@ import CssParser.Lexer
     , RatioT, Percents, Pixels
     , UrlT
     , PseudoPageT, PageT, PageMarginT
-    , KeyframesT
+    , KeyframesT, ColorProfileT
     )
   )
 import CssParser.Parser.Monad
@@ -73,6 +73,7 @@ import Prelude
     '='         { TokenLoc TEqual _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
     property    { TokenLoc PropertyT _ _ }
+    colorProf   { TokenLoc ColorProfileT _ _ }
     namespace   { TokenLoc NamespaceT _ _ }
     keyframes   { TokenLoc KeyframesT _ _ }
     counterStyle
@@ -171,6 +172,8 @@ CssRule :: { CssRule }
     | counterStyle IdKwd '{' CssRuleBody '}'      { CounterStyle $2 $4 }
     | property Var '{' CssRuleBody '}'            { Property (R.Var $2) $4 }
     | keyframes IdKwd '{' KeyframeList '}'        { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
+    | colorProf Os Var '{' PropEntries '}'        { ColorProfile (VarProp (R.Var $3)) $5 }
+    | colorProf Os IdKwd '{' PropEntries '}'      { ColorProfile (PropertyName $3) $5 }
 KeyframeList
     :                                             { [] }
     | Keyframe KeyframeList                       { $1 : $2 }

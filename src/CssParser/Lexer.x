@@ -94,6 +94,8 @@ $pm       = [\-\+]
 
 @first   = @f@i@r@s@t
 @blank   = @b@l@a@n@k
+@color   = @c@o@l@o@r
+@profile = @p@r@o@f@i@l@e
 
 @not     = @n@o@t
 @and     = @a@n@d
@@ -151,6 +153,7 @@ tokens :-
   @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
+  "@" @color "-" @profile                 { constoken ColorProfileT }
   @wo "@" @property $w @wo                { constoken PropertyT }
   @wo "@" @counter "-" @style $w @wo      { constoken CounterStyleT }
   @wo "@" @charset $w @wo                 { constoken CharsetT }
@@ -316,6 +319,7 @@ data Token
     | PageMarginT PageMargin
 
     | NamespaceT
+    | ColorProfileT
     | PropertyT
     | CounterStyleT
     | CharsetT
