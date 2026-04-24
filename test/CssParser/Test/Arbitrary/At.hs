@@ -6,6 +6,7 @@ import CssParser.At
 import CssParser.At.Import
 import CssParser.At.Layer
 import CssParser.At.Namespace
+import CssParser.At.Keyframe
 import CssParser.At.Page
 import CssParser.Norm
 import CssParser.Rule.Value
@@ -22,6 +23,7 @@ instance Arbitrary Source where
     [ UrlSource <$> arbitrary
     , StrSource <$> arbitraryWord
     ]
+
 
 deriving via (GenericArbitrary LayerName) instance Arbitrary LayerName
 deriving via (GenericArbitrary LayerStmt) instance Arbitrary LayerStmt
@@ -42,3 +44,9 @@ instance Arbitrary PageSelector where
   shrink = filter (/= PageSelector Nothing []) . genericShrink
 
 deriving via (GenericArbitrary Namespace) instance Arbitrary Namespace
+
+deriving via (GenericArbitrary KeyframeSet) instance Arbitrary KeyframeSet
+deriving via (GenericArbitrary KeyframeSetName) instance Arbitrary KeyframeSetName
+deriving via (GenericArbitrary Keyframe) instance Arbitrary Keyframe
+deriving via (GenericArbitrary KeyframeAdr) instance Arbitrary KeyframeAdr
+deriving via (GenericArbitrary PropEntry) instance Arbitrary PropEntry

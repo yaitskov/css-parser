@@ -37,6 +37,7 @@ library
     , CssParser
     , CssParser.At
     , CssParser.At.Import
+    , CssParser.At.Keyframe
     , CssParser.At.Layer
     , CssParser.At.MediaQuery
     , CssParser.At.Namespace
@@ -52,7 +53,6 @@ library
     , CssParser.Rule.Pseudo
     , CssParser.Rule.Show
     , CssParser.Rule.Value
-    , CssParser.Rule.Var
     , CssParser.Show
     , CssParser.TextMarshal
     , CssParser.Utils

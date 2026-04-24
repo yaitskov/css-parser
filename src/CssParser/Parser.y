@@ -4,6 +4,7 @@ module CssParser.Parser where
 
 import CssParser.At
 import CssParser.At.Import
+import CssParser.At.Keyframe
 import CssParser.At.Layer
 import CssParser.At.MediaQuery
 import CssParser.At.Namespace
@@ -11,11 +12,10 @@ import CssParser.At.Page
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em)
 import CssParser.Rule.Value qualified as Vl
-import CssParser.Rule.Var qualified as V
 import CssParser.Fun
 import CssParser.File
 import CssParser.FixRule
-import CssParser.Ident hiding (Ident, Namespace)
+import CssParser.Ident hiding (Ident, Namespace, Var)
 import CssParser.Ident qualified as R
 import CssParser.Lexer qualified as L
 import CssParser.Lexer
@@ -32,6 +32,7 @@ import CssParser.Lexer
     , RatioT, Percents, Pixels
     , UrlT
     , PseudoPageT, PageT, PageMarginT
+    , KeyframesT
     )
   )
 import CssParser.Parser.Monad
@@ -73,6 +74,7 @@ import Prelude
     'charset'   { TokenLoc CharsetT _ _ }
     property    { TokenLoc PropertyT _ _ }
     namespace   { TokenLoc NamespaceT _ _ }
+    keyframes   { TokenLoc KeyframesT _ _ }
     counterStyle
                 { TokenLoc CounterStyleT _ _ }
     'import'    { TokenLoc ImportT _ _ }
@@ -167,8 +169,22 @@ CssRule :: { CssRule }
     | 'page' PageSelectorList '{' CssRuleBody '}' { Page (PageSelectorList $2) $4 }
     | pageMargin '{' CssRuleBody '}'              { PageMarginBlock $1 $3 }
     | counterStyle IdKwd '{' CssRuleBody '}'      { CounterStyle $2 $4 }
-    | property Var '{' CssRuleBody '}'            { Property (V.Var $2) $4 }
-
+    | property Var '{' CssRuleBody '}'            { Property (R.Var $2) $4 }
+    | keyframes IdKwd '{' KeyframeList '}'        { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
+KeyframeList
+    :                                             { [] }
+    | Keyframe KeyframeList                       { $1 : $2 }
+Keyframe
+    : KeyframeAdr '{' PropEntries '}'             { Keyframe $1 $3 }
+KeyframeAdr
+    : IdKwd                                       { KeyframeLabel $1 }
+    | 'percents'                                  { KeyframePercentAdr (Unsigned $1) }
+PropEntries
+    :                                             { [] }
+    | PropEntry PropEntries                       { $1 : $2 }
+PropEntry
+    : IdKwd ':' CssPropertyVals ';'               { PropEntry (PropertyName $1) (PropVals $3) }
+    | Var   ':' CssPropertyVals ';'               { PropEntry (VarProp (R.Var $1)) (PropVals $3) }
 PageSelectorList
     : PageSelector                                { [ $1 ] }
     | PageSelector Os PageSelectorList            { $1 : $3 }
@@ -258,9 +274,9 @@ Unsigned
 
 CssRuleBody :: { [ CssRuleBodyItem ] }
     :                                             { [] }
-    | Var   ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (PropertyName $1) (PropVals $3) : $5 }
+    | Var   ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (VarProp (R.Var $1)) (PropVals $3) : $5 }
     | IdKwd ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (PropertyName $1) (PropVals $3) : $5 }
-    | Var   ':' CssPropertyVals                   { [ CssLeafRule (PropertyName $1) (PropVals $3) ] }
+    | Var   ':' CssPropertyVals                   { [ CssLeafRule (VarProp (R.Var $1)) (PropVals $3) ] }
     | IdKwd ':' CssPropertyVals                   { [ CssLeafRule (PropertyName $1) (PropVals $3) ] }
     | IdKwd '{' CssRuleBody '}' CssRuleBody       { CssNestedRule (tagNameRule $1 $3) : $5 }
     | IdKwd '>' OptSpace CssRule CssRuleBody      { CssNestedRule (prependIdentToRule $1 Child $4) : $5 }

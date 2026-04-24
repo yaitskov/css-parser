@@ -1,5 +1,6 @@
 module CssParser.Rule where
 
+import CssParser.At.Keyframe
 import CssParser.At.Layer
 import CssParser.At.MediaQuery
 import CssParser.At.Page
@@ -7,7 +8,6 @@ import CssParser.Ident
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Value
-import CssParser.Rule.Var
 
 data CssRule
   = CssRule (NonEmpty Selector) [CssRuleBodyItem]
@@ -17,6 +17,7 @@ data CssRule
   | PageMarginBlock PageMargin [CssRuleBodyItem]
   | CounterStyle Ident [CssRuleBodyItem]
   | Property Var [CssRuleBodyItem]
+  | Keyframes KeyframeSet
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

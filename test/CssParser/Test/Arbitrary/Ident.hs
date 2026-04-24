@@ -10,6 +10,7 @@ instance Arbitrary Ident where
   arbitrary = Ident <$> arbitraryIdent
   shrink (Ident a) = Ident <$> shrinkIdent a
 
+deriving via (GenericArbitrary Var) instance Arbitrary Var
 deriving via (GenericArbitrary PropertyName) instance Arbitrary PropertyName
 deriving via (GenericArbitrary TagName) instance Arbitrary TagName
 deriving via (GenericArbitrary Namespace) instance Arbitrary Namespace

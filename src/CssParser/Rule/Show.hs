@@ -25,6 +25,7 @@ instance CssShow CssRule where
       "@counter-style " <> toCssText cn <> " {" <> toCssText body <> "}"
     Property pn body ->
       "@property " <> toCssText pn <> " {" <> toCssText body <> "}"
+    Keyframes kf -> toCssText kf
 
 instance CssShow CssRuleBodyItem where
   toCssText = \case

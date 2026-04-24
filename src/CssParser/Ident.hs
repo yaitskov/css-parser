@@ -34,7 +34,23 @@ data AttrName
   , attrName :: Ident
   } deriving (Eq, Ord, Show, Generic)
 
-newtype PropertyName = PropertyName Ident deriving newtype (Eq, Ord, Show, IsString) deriving (Generic)
+newtype Var = Var Ident deriving newtype (Show, Eq, Ord) deriving (Generic)
+
+instance CssShow Var where
+  toCssText (Var i) = "--" <> toCssText i
+
+data PropertyName
+  = PropertyName Ident
+  | VarProp Var
+  deriving  (Eq, Ord, Show, Generic)
+
+instance CssShow PropertyName where
+  toCssText = \case
+    PropertyName i -> toCssText i
+    VarProp v -> toCssText v
+
+-- instance CssShow PropertyName where
+--   toCssText (PropertyName (Ident pn)) = fromStrict pn
 
 instance CssShow Namespace where
   toCssText = \case
@@ -50,8 +66,6 @@ instance CssShow TagName where
     AmpersandTag -> "&"
     TagName (Ident lt) -> fromStrict lt
 
-instance CssShow PropertyName where
-  toCssText (PropertyName (Ident pn)) = fromStrict pn
 
 instance CssShow Ident where
   toCssText (Ident i) = encodeIdentifier i

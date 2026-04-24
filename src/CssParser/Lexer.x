@@ -74,6 +74,7 @@ $pm       = [\-\+]
 @oftype  = @o@f@hyphen@t@y@p@e
 @lasth   = @l@a@s@t@hyphen
 
+@keyframes = @k@e@y@f@r@a@m@e@s
 @charset = @c@h@a@r@s@e@t
 @import  = @i@m@p@o@r@t
 @style   = @s@t@y@l@e
@@ -155,6 +156,7 @@ tokens :-
   @wo "@" @charset $w @wo                 { constoken CharsetT }
   @wo "@" @namespace $w @wo               { constoken NamespaceT }
   @wo "@" @import $w @wo                  { constoken ImportT }
+  @wo "@" @keyframes $w @wo               { constoken KeyframesT }
   @wo "@" @layer $w @wo                   { constoken LayerT }
   @wo "@" @media $w @wo                   { constoken MediaT }
   @only @wo                               { constoken OnlyT }
@@ -318,6 +320,7 @@ data Token
     | CounterStyleT
     | CharsetT
     | ImportT
+    | KeyframesT
     | LayerT
     | MediaT
     | OnlyT
