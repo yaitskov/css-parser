@@ -130,7 +130,7 @@ CssFile
                                                       $1
                                                       (mapMaybe rightToMaybe $2)
                                                       $3
-                                                      (prependList (mapMaybe leftToMaybe $2) $4)
+                                                      (mapMaybe leftToMaybe $2 <> $4)
                                                   }
 Charset
     :                                             { Nothing }
@@ -156,8 +156,8 @@ LayerNames :: { NonEmpty LayerName }
     : IdKwd                                       { LayerName $1 :| [] }
     | IdKwd ',' LayerNames                        { LayerName $1 <| $3 }
 CssFileBody
-    : CssRule                                     { $1 :| [] }
-    | CssRule CssFileBody                         { $1 <| $2 }
+    :                                             { [] }
+    | CssRule CssFileBody                         { $1 : $2 }
 CssRule :: { CssRule }
     : SelectorList '{' CssRuleBody '}'            { CssRule $1 $3 }
     | 'media' '{' CssRuleBody '}'                 { MediaRule (MediaQueryList []) $3 }

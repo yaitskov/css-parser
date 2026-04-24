@@ -24,7 +24,7 @@ data CssFile
     { charset :: Maybe Charset
     , headers :: [ FileHeader ]
     , namespaces :: [ Namespace ]
-    , rules :: NonEmpty CssRule
+    , rules :: [ CssRule ]
     }
   deriving (Show, Eq, Generic)
 
@@ -33,4 +33,4 @@ instance CssShow CssFile where
     maybeToList (toCssText <$> cf.charset) <>
     (toCssText <$> cf.headers) <>
     (toCssText <$> cf.namespaces) <>
-    (toCssText <$> toList cf.rules)
+    (toCssText <$> cf.rules)
