@@ -96,6 +96,8 @@ properties =
   , "display: none;"
   , "border: 1px solid green;"
   , "src: url(\"https://example.org/SWOP2006_Coated5v2.icc\");"
+  , "src: format(\"opentype\");"
+  , "src: format(\"opentype\") tech(color);"
   ]
 
 page :: [String]

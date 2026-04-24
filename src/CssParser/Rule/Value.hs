@@ -58,6 +58,7 @@ data PropVal
   | IdentRef Ident
   | UrlVal Url
   | StrVal Text
+  | AppFun Ident PropVals
   deriving (Eq, Ord, Show, Generic)
 
 instance CssShow PropVal where
@@ -67,6 +68,7 @@ instance CssShow PropVal where
     IdentRef i -> toCssText i
     UrlVal u -> toCssText u
     StrVal s -> encodeStringLiteral s
+    AppFun fn args -> toCssText fn <> "(" <> toCssText args <> ")"
 
 newtype PropVals = PropVals (NonEmpty PropVal) deriving (Show, Eq, Ord, Generic)
 

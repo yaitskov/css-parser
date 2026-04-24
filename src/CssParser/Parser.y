@@ -269,6 +269,7 @@ PropVal :: { PropVal }
     | Unsigned                                    { IntVal $1 Vl.K }
     | 'ratio'                                     { RatioVal $1 }
     | Ident                                       { IdentRef $1 }
+    | Ident '(' CssPropertyVals ')'               { AppFun $1 (PropVals $3) }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
 
@@ -310,8 +311,6 @@ Selector :: { Selector }
     : TagSelector ZipTagRelationAndTagSelector        { Selector $1 $2 }
     | TagSelector ZipTagRelationAndTagSelector pseude { PeSelector $1 $2 $3 }
     | pseude                                          { PeSelectorOnly $1 }
-    ;
-
 TagSelector :: { TagSelector }
     : Ident '|' TagName TagAttrs TagId TagClasses     { TagSelector (R.Namespace $1) $3 $4 $5 $6 }
     | Ident TagAttrs TagId TagClasses                 { TagSelector NoBar (TagName $1) $2 $3 $4 }
