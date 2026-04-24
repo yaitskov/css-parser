@@ -131,6 +131,8 @@ validSelectors =
   , "#chapter1"
   , "*#z98y"
   , "math + p"
+  , "/* ---- */ math +/* ]] */p/* (((- */ "
+  , "<!--  ---- --> math +<!-- ]] -->p<!-- (((- --> "
   , "h1.opener + h2"
   , "h1 ~ pre"
   , "*"

@@ -19,8 +19,6 @@ import Text.Read (readEither)
 
 $nonascii = [^\0-\xff]
 $w        = [\ \t\r\n\f]
-$nostar   = [^\*]
-$nostars  = [^\/\*]
 $tl       = [\~]
 $pm       = [\-\+]
 
@@ -241,7 +239,16 @@ tokens :-
   @psc @blank                             { constoken (PseudoPageT BlankPp) }
   @psc @first                             { constoken (PseudoPageT FirstPp) }
   $w @wo                                  { constoken Space }
-  @cmo $nostar* \*+ ($nostars $nostar* \*+)* @cmc;
+  @cmo                                    { begin comment }
+  "<!--"                                  { begin htmlComment }
+ }
+ <comment> {
+  .                                       ;
+  @cmc                                    { begin state_initial }
+ }
+ <htmlComment> {
+  .                                       ;
+  "-->"                                   { begin state_initial }
  }
  <nth_state> {
   $w @wo                                  { constoken Space }
