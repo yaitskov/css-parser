@@ -5,6 +5,7 @@ module CssParser.Parser where
 import CssParser.At
 import CssParser.At.FontFace
 import CssParser.At.FontFeatureValues
+import CssParser.At.FontPaletteValues
 import CssParser.At.Import
 import CssParser.At.Keyframe
 import CssParser.At.Layer
@@ -35,7 +36,7 @@ import CssParser.Lexer
     , UrlT
     , PseudoPageT, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
-    , FontFeatureValuesT, AtT
+    , FontFeatureValuesT, AtT, FontPaletteValuesT
     )
   )
 import CssParser.Parser.Monad
@@ -43,7 +44,7 @@ import CssParser.Prelude
   ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe, rightToMaybe
   )
 import CssParser.Rule
-import Data.Text (pack)
+import Data.Text (Text, pack)
 
 import Prelude
 
@@ -77,6 +78,8 @@ import Prelude
     'charset'   { TokenLoc CharsetT _ _ }
     unRange     { TokenLoc UnicodeRangeT _ _ }
     '@'         { TokenLoc AtT _ _ }
+    fontPaletteValues
+                { TokenLoc FontPaletteValuesT _ _ }
     fontFeatureValues
                 { TokenLoc FontFeatureValuesT _ _ }
     property    { TokenLoc PropertyT _ _ }
@@ -196,6 +199,8 @@ CssRule :: { CssRule }
                                                         (mapMaybe leftToMaybe $6)
                                                         (mapMaybe rightToMaybe $6))
                                                   }
+    | fontPaletteValues ' ' Var Os '{' PropEntries '}'
+                                                  { FontPaletteValuesBlock (FontPaletteValues (R.Var $3) $6) }
 FontFeatureValBlocks :: { [ Either PropEntry FontFeatureValuesSubBlock ] }
     :                                             { [] }
     | FontFeatureValBlock FontFeatureValBlocks    { Right $1 : $2 }
@@ -486,16 +491,12 @@ MediaKeywordAsIdent
 
 Ident
     : ident        { R.Ident (pack $1) }
-
 IdTxt
     : ident        { pack $1 }
-
-Str
-    : string        { pack $1 }
-
-Var
-    : var        { R.Ident (pack $1) }
-    ;
+Str :: { Text }
+    : string       { pack $1 }
+Var :: { R.Ident }
+    : var          { R.Ident (pack $1) }
 
 {
 happyError :: [TokenLoc] -> P a

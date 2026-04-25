@@ -2,6 +2,7 @@ module CssParser.Rule where
 
 import CssParser.At.FontFace
 import CssParser.At.FontFeatureValues
+import CssParser.At.FontPaletteValues
 import CssParser.At.Keyframe
 import CssParser.At.Layer
 import CssParser.At.MediaQuery
@@ -23,6 +24,7 @@ data CssRule
   | ColorProfile PropertyName [PropEntry]
   | FontFaceBlock FontFace
   | FontFeatureValuesBlock FontFeatureValues
+  | FontPaletteValuesBlock FontPaletteValues
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

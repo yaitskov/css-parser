@@ -10,6 +10,7 @@ import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.At ()
 import CssParser.Test.Arbitrary.FontFace ()
 import CssParser.Test.Arbitrary.FontFeatureValues ()
+import CssParser.Test.Arbitrary.FontPaletteValues ()
 import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Media ()
 

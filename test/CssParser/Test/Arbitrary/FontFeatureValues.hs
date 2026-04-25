@@ -2,7 +2,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.FontFeatureValues where
 
-import CssParser.Prelude
 import CssParser.At.FontFeatureValues
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()

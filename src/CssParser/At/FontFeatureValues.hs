@@ -8,7 +8,7 @@ import CssParser.Show
 
 newtype IdentList = IdentList (NonEmpty Ident) deriving newtype (Eq, Ord, Show) deriving (Generic)
 instance CssShow IdentList where
-  toCssText (IdentList l) = intercalate " " (toCssText <$> toList l)
+  toCssText (IdentList l) = unwords (toCssText <$> toList l)
 
 data FontFeatureValuesSubBlock
   = FontFeatureValuesSubBlock Ident [PropEntry]

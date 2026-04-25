@@ -74,7 +74,7 @@ $pm       = [\-\+]
 @child   = @c@h@i@l@d
 @oftype  = @o@f@hyphen@t@y@p@e
 @lasth   = @l@a@s@t@hyphen
-
+@palette = @p@a@l@e@t@t@e
 @values  = @v@a@l@u@e@s
 @feature = @f@e@a@t@u@r@e
 @unicode = @u@n@i@c@o@d@e
@@ -170,6 +170,7 @@ tokens :-
   @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
+  "@" @font "-" @palette "-" @values      { constoken FontPaletteValuesT }
   "@" @font "-" @feature "-" @values      { constoken FontFeatureValuesT }
   "@" @color "-" @profile                 { constoken ColorProfileT }
   @wo "@" @property $w @wo                { constoken PropertyT }
@@ -318,6 +319,7 @@ data Token
     | String String
     | UnicodeRangeVal String
     | FontFeatureValuesT
+    | FontPaletteValuesT
     | UnicodeRangeT
     | Var String
     | THash String
