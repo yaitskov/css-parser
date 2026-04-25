@@ -19,6 +19,9 @@ import Test.QuickCheck.Arbitrary.Generic as X
 arbitraryLetter :: Gen Char
 arbitraryLetter = elements [ 'a' .. 'z' ]
 
+arbitraryHex :: Gen Char
+arbitraryHex = elements $ ['0' .. '9'] <> [ 'a' .. 'f' ] <> [ 'A' .. 'F' ]
+
 arbitraryWord :: Gen Text
 arbitraryWord = pack <$> listOf1 arbitraryLetter
 

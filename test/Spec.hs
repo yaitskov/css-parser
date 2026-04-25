@@ -110,6 +110,8 @@ fontFeatureValues =
 fontPaletteValues :: [String]
 fontPaletteValues =
   [ "@font-palette-values --Ax {font-family: fa;}"
+  , "@font-palette-values --Ax {font-family: fa; override-colors: 0 #00ffbb;}"
+  , "@font-palette-values --Ax {font-family: fa; override-colors: 0 #fff;}"
   ]
 
 properties :: [String]

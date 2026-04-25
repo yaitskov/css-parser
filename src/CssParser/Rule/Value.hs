@@ -57,6 +57,11 @@ instance CssShow PropValType where
     Grad -> "grad"
     Turn -> "turn"
 
+newtype HexColor = HC Text deriving (Eq, Ord, Show, Generic)
+
+instance CssShow HexColor where
+  toCssText (HC s) = "#" <> fromStrict s
+
 data PropVal
   = IntVal Unsigned PropValType
   | RatioVal Ratio
@@ -64,6 +69,7 @@ data PropVal
   | UrlVal Url
   | StrVal Text
   | AppFun Ident PropVals
+  | HexColor HexColor
   deriving (Eq, Ord, Show, Generic)
 
 newtype LiteralString = LiteralString Text deriving newtype (Eq, Ord, Show, IsString) deriving (Generic)
@@ -78,6 +84,7 @@ instance CssShow PropVal where
     IdentRef i -> toCssText i
     UrlVal u -> toCssText u
     StrVal s -> encodeStringLiteral s
+    HexColor c -> toCssText c
     AppFun fn args -> toCssText fn <> "(" <> toCssText args <> ")"
 
 newtype PropVals = PropVals (NonEmpty PropVal) deriving (Show, Eq, Ord, Generic)

@@ -30,3 +30,8 @@ encodeStringLiteral t =
   cons c (snoc (L.concatMap encodeStringChar $ fromStrict t) c)
   where
     c = '"'
+
+readHex :: String -> Either String Integer
+readHex = \case
+  [a, b, c] -> readEither ['0', 'x', a, a, b, b, c, c]
+  o -> readEither $ '0':'x':o

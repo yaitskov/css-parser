@@ -31,9 +31,12 @@ $pm       = [\-\+]
 @nmchar  = [_\-a-zA-Z0-9] | @nonaesc
 @ident   = [\-]? @nmstart @nmchar*
 @name    = @nmchar+
-@int     = [0-9]+
-@uint    = [0-9]+
-@hexdig  = [0-9a-fA-F]+
+@dec     = [0-9]
+@int     = @dec+
+@uint    = @dec+
+@hexdig  = [0-9a-fA-F]
+@updig  = [0-9a-fA-F\?]
+@hexdigs = @hexdig+
 @float   = [0-9]*[\.][0-9]+
 @string1 = \'([^\n\r\f\\\'] | \\@nl | @nonaesc )*\'   -- strings with single quote
 @string2 = \"([^\n\r\f\\\"] | \\@nl | @nonaesc )*\"   -- strings with double quotes
@@ -193,10 +196,11 @@ tokens :-
   "|"                                     { constoken Pipe }
   @ident                                  { tokenize (Ident . readIdentifier) }
   @string                                 { tokenize (String . readCssString) }
-  "U+" ("?" | "1"? @hexdig){1,5} ("-" ("?" | "1"? @hexdig){1,5})?
+  "U+" ("?" | "1")? ("?" | "0")? @updig{1,4} ("-" ("?" | "1")? ("?" | "0")? @updig{1,4})?
                                           { tokenize (UnicodeRangeVal . drop 2) }
   @var @name                              { tokenize (Var . readIdentifier . drop 2) }
   "#" @name                               { tokenize (THash . readIdentifier . drop 1) }
+
   @float                                  { tokenizeE Decimal readDecimalE }
 
   @wo @uint @deg                          { tokenize (Deg . read . dropEnd 3) }

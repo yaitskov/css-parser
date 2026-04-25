@@ -335,6 +335,7 @@ PropVal :: { PropVal }
     | Ident '(' CssPropertyVals ')'               { AppFun $1 (PropVals $3) }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
+    | hash                                        { HexColor (HC (pack $1)) }
 
 Unsigned
     : integer                                     { Unsigned $1 }

@@ -7,6 +7,13 @@ import CssParser.Norm
 import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
+import Data.Text qualified as T
+
+instance Arbitrary HexColor where
+  arbitrary = HC . pack <$> vectorOf 6 arbitraryHex
+  shrink (HC x)
+    | T.length x == 6 = [HC $ T.take 3 x]
+    | otherwise = []
 
 instance Norm Unsigned where
   normalize = abs

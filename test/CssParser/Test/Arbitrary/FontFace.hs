@@ -20,10 +20,11 @@ unPatternLetter = elements ( '?' : ['0' .. '9' ])
 
 unPattern :: Gen Text
 unPattern = do
-  b <- sublistOf =<< vectorOf 4 unPatternLetter
-  f <- unPatternLetter
+  s <- unPatternLetter
+  b <- sublistOf =<< vectorOf 3 unPatternLetter
+  f <- maybeToList <$> elements [  Nothing, Just '0' ]
   p <- maybeToList <$> elements [  Nothing, Just '1' ]
-  pure (pack $ p ++ f:b)
+  pure (pack $ p ++ f ++ b ++ [s])
 
 unDoublePattern :: Gen Text
 unDoublePattern = liftA2 (\a b -> a <> "-" <> b) unPattern unPattern
