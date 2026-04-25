@@ -13,16 +13,32 @@ instance CssShow CommaSeparatedList where
   toCssText (CommaSeparatedList l) =
     intercalate ", " (toCssText <$> toList l)
 
+newtype UnicodeRange = UnicodeRange Text deriving (Show, Eq, Ord, Generic)
+instance CssShow UnicodeRange where
+  toCssText (UnicodeRange t) = "U+" <> fromStrict t
+
+data FontFacePropEntry
+  = UnicodeRangePropEntry (NonEmpty UnicodeRange)
+  | FontFaceCommonEntry PropEntry
+  deriving (Show, Eq, Ord, Generic)
+
+instance CssShow FontFacePropEntry where
+  toCssText = \case
+    UnicodeRangePropEntry r ->
+      "unicode-range: " <> intercalate ", " (toCssText <$> toList r) <> "; "
+    FontFaceCommonEntry e ->
+      toCssText e
+
 data FontFace
   = FontFace
   { src :: CommaSeparatedList
-  , otherProps :: [PropEntry]
+  , optionalProps :: [FontFacePropEntry]
   }
   deriving (Show, Eq, Ord, Generic)
 
 instance CssShow FontFace where
   toCssText ff =
-    "@font-face { src: " <> toCssText ff.src <> "; " <> toCssText ff.otherProps <> "}"
+    "@font-face { src: " <> toCssText ff.src <> "; " <> toCssText ff.optionalProps <> "}"
 
 fromEitherM
   :: Applicative m
@@ -32,7 +48,7 @@ fromEitherM ef =
     Right v -> pure v
     Left e -> ef e
 
-mkFontFace :: NonEmpty (Either SrcVal PropEntry) -> Either String FontFace
+mkFontFace :: NonEmpty (Either SrcVal FontFacePropEntry) -> Either String FontFace
 mkFontFace x =
   case partitionEithers $ toList x of
     ([sv], o) -> pure $ FontFace sv o

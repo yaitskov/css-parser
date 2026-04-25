@@ -33,7 +33,7 @@ import CssParser.Lexer
     , RatioT, Percents, Pixels
     , UrlT
     , PseudoPageT, PageT, PageMarginT
-    , KeyframesT, ColorProfileT, FontFaceT, SrcPropT
+    , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     )
   )
 import CssParser.Parser.Monad
@@ -73,6 +73,7 @@ import Prelude
     '}'         { TokenLoc CClose _ _ }
     '='         { TokenLoc TEqual _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
+    unRange     { TokenLoc UnicodeRangeT _ _ }
     property    { TokenLoc PropertyT _ _ }
     colorProf   { TokenLoc ColorProfileT _ _ }
     namespace   { TokenLoc NamespaceT _ _ }
@@ -101,6 +102,7 @@ import Prelude
     '*='        { TokenLoc TSubstringMatch _ _ }
     '|='        { TokenLoc TDashMatch _ _ }
     '~='        { TokenLoc TIncludes _ _ }
+    unRangeVal  { TokenLoc (UnicodeRangeVal $$) _ _ }
     ident       { TokenLoc (Ident $$) _ _ }
     string      { TokenLoc (String $$) _ _ }
     hash        { TokenLoc (THash $$) _ _ }
@@ -190,13 +192,16 @@ ColorPropEntries
 CommaSeparatedList :: { NonEmpty PropVals }
     : CssPropertyVals                             { (PropVals $1) :| [] }
     | CssPropertyVals ',' CommaSeparatedList      { (PropVals $1) <| $3 }
-FontFacePropEntries :: { NonEmpty (Either SrcVal PropEntry) }
+FontFacePropEntries :: { NonEmpty (Either SrcVal FontFacePropEntry) }
     : FontFaceProp                                { $1 :| [] }
     | FontFaceProp FontFacePropEntries            { $1 <| $2 }
 FontFaceProp
     : srcProp ':' CommaSeparatedList ';'          { Left (CommaSeparatedList $3) }
-    | PropEntry                                   { Right $1 }
-
+    | unRange ':' UnicodeRangeList ';'            { Right (UnicodeRangePropEntry $3) }
+    | PropEntry                                   { Right (FontFaceCommonEntry $1) }
+UnicodeRangeList
+    : unRangeVal                                  { UnicodeRange (pack $1) :| [] }
+    | unRangeVal ',' UnicodeRangeList             { UnicodeRange (pack $1) <| $3 }
 KeyframeList
     :                                             { [] }
     | Keyframe KeyframeList                       { $1 : $2 }

@@ -33,6 +33,7 @@ $pm       = [\-\+]
 @name    = @nmchar+
 @int     = [0-9]+
 @uint    = [0-9]+
+@hexdig  = [0-9a-fA-F]+
 @float   = [0-9]*[\.][0-9]+
 @string1 = \'([^\n\r\f\\\'] | \\@nl | @nonaesc )*\'   -- strings with single quote
 @string2 = \"([^\n\r\f\\\"] | \\@nl | @nonaesc )*\"   -- strings with double quotes
@@ -74,6 +75,8 @@ $pm       = [\-\+]
 @oftype  = @o@f@hyphen@t@y@p@e
 @lasth   = @l@a@s@t@hyphen
 
+@unicode = @u@n@i@c@o@d@e
+@range   = @r@a@n@g@e
 @src     = @s@r@c
 @font    = @f@o@n@t
 @face    = @f@a@c@e
@@ -140,6 +143,7 @@ tokens :-
   @psc @wo                                { constoken Colon }
   (@wo ";" @wo)+                          { constoken Semicolon }
 
+  @unicode "-" @range                     { constoken UnicodeRangeT }
   @src                                    { constoken SrcPropT }
   "@" @font "-" @face                     { constoken FontFaceT }
   @wo "@" @page $w @wo                    { constoken PageT }
@@ -183,6 +187,8 @@ tokens :-
   "|"                                     { constoken Pipe }
   @ident                                  { tokenize (Ident . readIdentifier) }
   @string                                 { tokenize (String . readCssString) }
+  "U+" ("?" | "1"? @hexdig){1,5} ("-" ("?" | "1"? @hexdig){1,5})?
+                                          { tokenize (UnicodeRangeVal . drop 2) }
   @var @name                              { tokenize (Var . readIdentifier . drop 2) }
   "#" @name                               { tokenize (THash . readIdentifier . drop 1) }
   @float                                  { tokenizeE Decimal readDecimalE }
@@ -305,6 +311,8 @@ data Token
     | TSubstringMatch
     | Ident String
     | String String
+    | UnicodeRangeVal String
+    | UnicodeRangeT
     | Var String
     | THash String
     | Decimal Decimal

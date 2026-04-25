@@ -17,7 +17,7 @@ import Test.QuickCheck.Instances as X ()
 import Test.QuickCheck.Arbitrary.Generic as X
 
 arbitraryLetter :: Gen Char
-arbitraryLetter = elements $ [ 'a' .. 'z' ]
+arbitraryLetter = elements [ 'a' .. 'z' ]
 
 arbitraryWord :: Gen Text
 arbitraryWord = pack <$> listOf1 arbitraryLetter
