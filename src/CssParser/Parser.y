@@ -11,7 +11,7 @@ import CssParser.At.MediaQuery
 import CssParser.At.Namespace
 import CssParser.At.Page
 import CssParser.Rule.Pseudo
-import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em)
+import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em, Deg, Grad, Rad, Turn)
 import CssParser.Rule.Value qualified as Vl
 import CssParser.Fun
 import CssParser.File
@@ -112,14 +112,18 @@ import Prelude
     int         { TokenLoc (TInt $$) _ _ }
     integer     { TokenLoc (Integer $$) _ _ }
     'ratio'     { TokenLoc (RatioT $$) _ _ }
-    'mm'        { TokenLoc (L.Mm $$) _ _ }
-    'em'        { TokenLoc (L.Em $$) _ _ }
-    'cm'        { TokenLoc (L.Cm $$) _ _ }
-    'vw'        { TokenLoc (L.Vw $$) _ _ }
-    'vh'        { TokenLoc (L.Vh $$) _ _ }
-    'dpi'       { TokenLoc (L.Dpi $$) _ _ }
-    'percents'  { TokenLoc (Percents $$) _ _ }
-    'px'        { TokenLoc (Pixels $$) _ _ }
+    turn        { TokenLoc (L.Turn $$) _ _ }
+    grad        { TokenLoc (L.Grad $$) _ _ }
+    deg         { TokenLoc (L.Deg $$) _ _ }
+    rad         { TokenLoc (L.Rad $$) _ _ }
+    mm          { TokenLoc (L.Mm $$) _ _ }
+    em          { TokenLoc (L.Em $$) _ _ }
+    cm          { TokenLoc (L.Cm $$) _ _ }
+    vw          { TokenLoc (L.Vw $$) _ _ }
+    vh          { TokenLoc (L.Vh $$) _ _ }
+    dpi         { TokenLoc (L.Dpi $$) _ _ }
+    percents    { TokenLoc (Percents $$) _ _ }
+    px          { TokenLoc (Pixels $$) _ _ }
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
     'not('      { TokenLoc TNot _ _ }
@@ -200,7 +204,7 @@ Keyframe
     : KeyframeAdr '{' PropEntries '}'             { Keyframe $1 $3 }
 KeyframeAdr
     : IdKwd                                       { KeyframeLabel $1 }
-    | 'percents'                                  { KeyframePercentAdr (Unsigned $1) }
+    | percents                                    { KeyframePercentAdr (Unsigned $1) }
 PropEntries
     :                                             { [] }
     | PropEntry PropEntries                       { $1 : $2 }
@@ -277,14 +281,18 @@ MfRel :: { MfRelation }
     | '='                                         { MfEq }
 
 PropVal :: { PropVal }
-    : 'mm'                                        { IntVal (Unsigned $1) Vl.Mm }
-    | 'em'                                        { IntVal (Unsigned $1) Vl.Em }
-    | 'cm'                                        { IntVal (Unsigned $1) Vl.Cm }
-    | 'vw'                                        { IntVal (Unsigned $1) Vl.Vw }
-    | 'vh'                                        { IntVal (Unsigned $1) Vl.Vh }
-    | 'dpi'                                       { IntVal (Unsigned $1) Vl.Dpi }
-    | 'percents'                                  { IntVal (Unsigned $1) Vl.Percent }
-    | 'px'                                        { IntVal (Unsigned $1) Vl.Px }
+    : mm                                          { IntVal (Unsigned $1) Vl.Mm }
+    | deg                                         { IntVal (Unsigned $1) Vl.Deg }
+    | rad                                         { IntVal (Unsigned $1) Vl.Rad }
+    | grad                                        { IntVal (Unsigned $1) Vl.Grad }
+    | turn                                        { IntVal (Unsigned $1) Vl.Turn }
+    | em                                          { IntVal (Unsigned $1) Vl.Em }
+    | cm                                          { IntVal (Unsigned $1) Vl.Cm }
+    | vw                                          { IntVal (Unsigned $1) Vl.Vw }
+    | vh                                          { IntVal (Unsigned $1) Vl.Vh }
+    | dpi                                         { IntVal (Unsigned $1) Vl.Dpi }
+    | percents                                    { IntVal (Unsigned $1) Vl.Percent }
+    | px                                          { IntVal (Unsigned $1) Vl.Px }
     | Unsigned                                    { IntVal $1 Vl.K }
     | 'ratio'                                     { RatioVal $1 }
     | Ident                                       { IdentRef $1 }

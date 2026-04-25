@@ -114,6 +114,11 @@ $pm       = [\-\+]
 @psb     = [:][:]?
 @lang    = [A-Za-z\-]+
 
+@deg     = @d@e@g
+@rad     = @r@a@d
+@grad    = @g@r@a@d
+@turn    = @t@u@r@n
+
 @mm      = @m@m
 @px      = @p@x
 @cm      = @c@m
@@ -181,6 +186,12 @@ tokens :-
   @var @name                              { tokenize (Var . readIdentifier . drop 2) }
   "#" @name                               { tokenize (THash . readIdentifier . drop 1) }
   @float                                  { tokenizeE Decimal readDecimalE }
+
+  @wo @uint @deg                          { tokenize (Deg . read . dropEnd 3) }
+  @wo @uint @rad                          { tokenize (Rad . read . dropEnd 3) }
+  @wo @uint @grad                         { tokenize (Grad. read . dropEnd 4) }
+  @wo @uint @turn                         { tokenize (Turn . read . dropEnd 4) }
+
   @wo @uint @px                           { tokenize (Pixels . read . dropEnd 2) }
   @wo @uint @mm                           { tokenize (Mm . read . dropEnd 2) }
   @wo @uint @cm                           { tokenize (Cm . read . dropEnd 2) }
@@ -298,6 +309,12 @@ data Token
     | THash String
     | Decimal Decimal
     | Integer Integer
+
+    | Deg Integer
+    | Rad Integer
+    | Grad Integer
+    | Turn Integer
+
     | Pixels Integer
     | Mm Integer
     | Cm Integer
@@ -305,6 +322,7 @@ data Token
     | Vh Integer
     | Vw Integer
     | Dpi Integer
+
     | RatioT Ratio
     | Percents Integer
     | Comma

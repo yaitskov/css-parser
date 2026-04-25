@@ -37,7 +37,7 @@ instance CssShow Source where
     StrSource t -> encodeStringLiteral t
 
 data PropValType
-  = Px | Dpi | Percent | K | Em | Mm | Cm | Vh | Vw
+  = Px | Dpi | Percent | K | Em | Mm | Cm | Vh | Vw | Rad | Deg | Grad | Turn
   deriving (Eq, Ord, Show, Enum, Bounded, Generic)
 
 instance CssShow PropValType where
@@ -51,6 +51,11 @@ instance CssShow PropValType where
     Vw -> "vw"
     Vh -> "vh"
     Cm -> "cm"
+
+    Rad -> "rad"
+    Deg -> "deg"
+    Grad -> "grad"
+    Turn -> "turn"
 
 data PropVal
   = IntVal Unsigned PropValType
