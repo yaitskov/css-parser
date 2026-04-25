@@ -90,7 +90,7 @@ examples :: [String]
 examples = media <> validSelectors <> layer <> page
 
 at :: [String]
-at = colorProfile <> fontFace
+at = colorProfile <> fontFace <> fontFeatureValues
 
 colorProfile :: [String]
 colorProfile =
@@ -100,6 +100,11 @@ colorProfile =
 fontFace :: [String]
 fontFace =
   [ "@font-face { src: local(\"x\"), format(\"z\") url(\"x.otf\"); unicode-range: U+11F?; }"
+  ]
+
+fontFeatureValues :: [String]
+fontFeatureValues =
+  [ "@font-feature-values One Two { font-display: swap; @styleset { nice-style: 12; }}"
   ]
 
 properties :: [String]

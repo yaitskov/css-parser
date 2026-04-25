@@ -18,3 +18,11 @@ instance CssShow a => CssShow (NonEmpty a) where
 
 instance CssShow () where
   toCssText () = " 0 ";
+
+instance CssShow a => CssShow (Maybe a) where
+  toCssText = maybe "" ((<> " ") . toCssText)
+
+instance (CssShow a, CssShow b) => CssShow (Either a b) where
+  toCssText = \case
+    Left e -> toCssText e
+    Right v -> toCssText v

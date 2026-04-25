@@ -66,6 +66,11 @@ data PropVal
   | AppFun Ident PropVals
   deriving (Eq, Ord, Show, Generic)
 
+newtype LiteralString = LiteralString Text deriving newtype (Eq, Ord, Show, IsString) deriving (Generic)
+
+instance CssShow LiteralString where
+  toCssText (LiteralString s) = encodeStringLiteral s
+
 instance CssShow PropVal where
   toCssText = \case
     IntVal i pvt -> numToText i <> toCssText pvt

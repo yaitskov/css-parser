@@ -4,6 +4,7 @@ module CssParser.Parser where
 
 import CssParser.At
 import CssParser.At.FontFace
+import CssParser.At.FontFeatureValues
 import CssParser.At.Import
 import CssParser.At.Keyframe
 import CssParser.At.Layer
@@ -34,6 +35,7 @@ import CssParser.Lexer
     , UrlT
     , PseudoPageT, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
+    , FontFeatureValuesT, AtT
     )
   )
 import CssParser.Parser.Monad
@@ -74,6 +76,9 @@ import Prelude
     '='         { TokenLoc TEqual _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
     unRange     { TokenLoc UnicodeRangeT _ _ }
+    '@'         { TokenLoc AtT _ _ }
+    fontFeatureValues
+                { TokenLoc FontFeatureValuesT _ _ }
     property    { TokenLoc PropertyT _ _ }
     colorProf   { TokenLoc ColorProfileT _ _ }
     namespace   { TokenLoc NamespaceT _ _ }
@@ -184,6 +189,27 @@ CssRule :: { CssRule }
     | colorProf Os Var '{' ColorPropEntries '}'   { ColorProfile (VarProp (R.Var $3)) $5 }
     | colorProf Os IdKwd '{' ColorPropEntries '}' { ColorProfile (PropertyName $3) $5 }
     | fontFace Os '{' FontFacePropEntries '}'     {% fmap FontFaceBlock (fromEitherM failP (mkFontFace $4)) }
+    | fontFeatureValues ' ' StrEitherIds Os '{' FontFeatureValBlocks '}'
+                                                  { FontFeatureValuesBlock
+                                                      (FontFeatureValues
+                                                        $3
+                                                        (mapMaybe leftToMaybe $6)
+                                                        (mapMaybe rightToMaybe $6))
+                                                  }
+FontFeatureValBlocks :: { [ Either PropEntry FontFeatureValuesSubBlock ] }
+    :                                             { [] }
+    | FontFeatureValBlock FontFeatureValBlocks    { Right $1 : $2 }
+    | PropEntry FontFeatureValBlocks              { Left $1 : $2 }
+FontFeatureValBlock
+    : '@' Ident Os '{' PropEntries '}'            { FontFeatureValuesSubBlock $2 $5 }
+
+StrEitherIds :: { Either LiteralString IdentList }
+    : Str                                         { Left (LiteralString $1) }
+    | IdentList                                   { Right (IdentList $1) }
+IdentList :: { NonEmpty R.Ident }
+    : Ident                                       { $1 :| [] }
+    | Ident ' ' IdentList                         { $1 <| $3 }
+
 ColorPropEntries
     : srcProp ':' CssPropertyVals ';' ColorPropEntries
                                                   { PropEntry (PropertyName "src") (PropVals $3) : $5 }
@@ -210,10 +236,10 @@ Keyframe
 KeyframeAdr
     : IdKwd                                       { KeyframeLabel $1 }
     | percents                                    { KeyframePercentAdr (Unsigned $1) }
-PropEntries
+PropEntries :: { [PropEntry] }
     :                                             { [] }
     | PropEntry PropEntries                       { $1 : $2 }
-PropEntry
+PropEntry :: { PropEntry }
     : IdKwd ':' CssPropertyVals ';'               { PropEntry (PropertyName $1) (PropVals $3) }
     | Var   ':' CssPropertyVals ';'               { PropEntry (VarProp (R.Var $1)) (PropVals $3) }
 PageSelectorList

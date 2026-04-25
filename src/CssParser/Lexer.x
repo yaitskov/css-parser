@@ -75,6 +75,8 @@ $pm       = [\-\+]
 @oftype  = @o@f@hyphen@t@y@p@e
 @lasth   = @l@a@s@t@hyphen
 
+@values  = @v@a@l@u@e@s
+@feature = @f@e@a@t@u@r@e
 @unicode = @u@n@i@c@o@d@e
 @range   = @r@a@n@g@e
 @src     = @s@r@c
@@ -145,6 +147,7 @@ tokens :-
 
   @unicode "-" @range                     { constoken UnicodeRangeT }
   @src                                    { constoken SrcPropT }
+  "@"                                     { constoken AtT }
   "@" @font "-" @face                     { constoken FontFaceT }
   @wo "@" @page $w @wo                    { constoken PageT }
 
@@ -167,11 +170,13 @@ tokens :-
   @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
+  "@" @font "-" @feature "-" @values      { constoken FontFeatureValuesT }
   "@" @color "-" @profile                 { constoken ColorProfileT }
   @wo "@" @property $w @wo                { constoken PropertyT }
   @wo "@" @counter "-" @style $w @wo      { constoken CounterStyleT }
   @wo "@" @charset $w @wo                 { constoken CharsetT }
   @wo "@" @namespace $w @wo               { constoken NamespaceT }
+
   @wo "@" @import $w @wo                  { constoken ImportT }
   @wo "@" @keyframes $w @wo               { constoken KeyframesT }
   @wo "@" @layer $w @wo                   { constoken LayerT }
@@ -312,6 +317,7 @@ data Token
     | Ident String
     | String String
     | UnicodeRangeVal String
+    | FontFeatureValuesT
     | UnicodeRangeT
     | Var String
     | THash String
@@ -349,6 +355,7 @@ data Token
     | PageT
     | PageMarginT PageMargin
 
+    | AtT
     | SrcPropT
     | FontFaceT
     | NamespaceT

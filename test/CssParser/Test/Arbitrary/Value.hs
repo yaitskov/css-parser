@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.Value where
 
+import CssParser.Ident
 import CssParser.Norm
 import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
@@ -16,6 +17,7 @@ instance Arbitrary Unsigned where
 instance Arbitrary Url where
   arbitrary = pure $ Url "https://ooo.com/aoeu/style.css"
 
+deriving via Ident instance Arbitrary LiteralString
 deriving via (GenericArbitrary Ratio) instance Arbitrary Ratio
 deriving via (GenericArbitrary PropVals) instance Arbitrary PropVals
 deriving via (GenericArbitrary PropVal) instance Arbitrary PropVal

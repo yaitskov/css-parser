@@ -49,9 +49,6 @@ instance CssShow PropertyName where
     PropertyName i -> toCssText i
     VarProp v -> toCssText v
 
--- instance CssShow PropertyName where
---   toCssText (PropertyName (Ident pn)) = fromStrict pn
-
 instance CssShow Namespace where
   toCssText = \case
     NoBar -> ""

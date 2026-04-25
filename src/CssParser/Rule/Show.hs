@@ -29,6 +29,7 @@ instance CssShow CssRule where
     ColorProfile n b ->
       "@color-profile " <> toCssText n <> " {" <> toCssText b <> "}"
     FontFaceBlock ff -> toCssText ff
+    FontFeatureValuesBlock ffv -> toCssText ffv
 
 instance CssShow CssRuleBodyItem where
   toCssText = \case
