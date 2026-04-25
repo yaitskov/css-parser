@@ -74,6 +74,9 @@ $pm       = [\-\+]
 @oftype  = @o@f@hyphen@t@y@p@e
 @lasth   = @l@a@s@t@hyphen
 
+@src     = @s@r@c
+@font    = @f@o@n@t
+@face    = @f@a@c@e
 @keyframes = @k@e@y@f@r@a@m@e@s
 @charset = @c@h@a@r@s@e@t
 @import  = @i@m@p@o@r@t
@@ -132,6 +135,8 @@ tokens :-
   @psc @wo                                { constoken Colon }
   (@wo ";" @wo)+                          { constoken Semicolon }
 
+  @src                                    { constoken SrcPropT }
+  "@" @font "-" @face                     { constoken FontFaceT }
   @wo "@" @page $w @wo                    { constoken PageT }
 
   @wo "@" @top "-" @left "-" @corner      { constoken (PageMarginT TopLeftCorner) }
@@ -318,6 +323,8 @@ data Token
     | PageT
     | PageMarginT PageMargin
 
+    | SrcPropT
+    | FontFaceT
     | NamespaceT
     | ColorProfileT
     | PropertyT

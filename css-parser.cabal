@@ -36,6 +36,7 @@ library
   exposed-modules:
     , CssParser
     , CssParser.At
+    , CssParser.At.FontFace
     , CssParser.At.Import
     , CssParser.At.Keyframe
     , CssParser.At.Layer
@@ -81,6 +82,7 @@ test-suite test
     , CssParser.Test.Arbitrary.At
     , CssParser.Test.Arbitrary.Ident
     , CssParser.Test.Arbitrary.File
+    , CssParser.Test.Arbitrary.FontFace
     , CssParser.Test.Arbitrary.Media
     , CssParser.Test.Arbitrary.Rule
     , CssParser.Test.Arbitrary.Value

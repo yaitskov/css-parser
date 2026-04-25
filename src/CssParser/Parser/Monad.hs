@@ -1,8 +1,14 @@
 module CssParser.Parser.Monad where
 
-import CssParser.Prelude ( String )
+import CssParser.Prelude ( String, Applicative (..), Functor )
 
-data P a = Ok a | Failed String
+data P a = Ok a | Failed String deriving (Functor)
+
+instance Applicative P where
+  pure = Ok
+  Ok f <*> Ok a = Ok (f a)
+  Failed f <*> _ = Failed f
+  _ <*> Failed b = Failed b
 
 thenP :: P a -> (a -> P b) -> P b
 m `thenP` k =

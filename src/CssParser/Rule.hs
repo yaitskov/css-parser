@@ -1,5 +1,6 @@
 module CssParser.Rule where
 
+import CssParser.At.FontFace
 import CssParser.At.Keyframe
 import CssParser.At.Layer
 import CssParser.At.MediaQuery
@@ -19,6 +20,7 @@ data CssRule
   | Property Var [CssRuleBodyItem]
   | Keyframes KeyframeSet
   | ColorProfile PropertyName [PropEntry]
+  | FontFaceBlock FontFace
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

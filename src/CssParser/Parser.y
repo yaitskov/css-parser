@@ -3,6 +3,7 @@
 module CssParser.Parser where
 
 import CssParser.At
+import CssParser.At.FontFace
 import CssParser.At.Import
 import CssParser.At.Keyframe
 import CssParser.At.Layer
@@ -32,7 +33,7 @@ import CssParser.Lexer
     , RatioT, Percents, Pixels
     , UrlT
     , PseudoPageT, PageT, PageMarginT
-    , KeyframesT, ColorProfileT
+    , KeyframesT, ColorProfileT, FontFaceT, SrcPropT
     )
   )
 import CssParser.Parser.Monad
@@ -78,6 +79,8 @@ import Prelude
     keyframes   { TokenLoc KeyframesT _ _ }
     counterStyle
                 { TokenLoc CounterStyleT _ _ }
+    fontFace    { TokenLoc FontFaceT _ _ }
+    srcProp     { TokenLoc SrcPropT _ _ }
     'import'    { TokenLoc ImportT _ _ }
     'layer'     { TokenLoc LayerT _ _ }
     'page'      { TokenLoc PageT _ _ }
@@ -172,8 +175,24 @@ CssRule :: { CssRule }
     | counterStyle IdKwd '{' CssRuleBody '}'      { CounterStyle $2 $4 }
     | property Var '{' CssRuleBody '}'            { Property (R.Var $2) $4 }
     | keyframes IdKwd '{' KeyframeList '}'        { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
-    | colorProf Os Var '{' PropEntries '}'        { ColorProfile (VarProp (R.Var $3)) $5 }
-    | colorProf Os IdKwd '{' PropEntries '}'      { ColorProfile (PropertyName $3) $5 }
+    | colorProf Os Var '{' ColorPropEntries '}'   { ColorProfile (VarProp (R.Var $3)) $5 }
+    | colorProf Os IdKwd '{' ColorPropEntries '}' { ColorProfile (PropertyName $3) $5 }
+    | fontFace Os '{' FontFacePropEntries '}'     {% fmap FontFaceBlock (fromEitherM failP (mkFontFace $4)) }
+ColorPropEntries
+    : srcProp ':' CssPropertyVals ';' ColorPropEntries
+                                                  { PropEntry (PropertyName "src") (PropVals $3) : $5 }
+    | PropEntry ColorPropEntries                  { $1 : $2 }
+    |                                             { [] }
+CommaSeparatedList :: { NonEmpty PropVals }
+    : CssPropertyVals                             { (PropVals $1) :| [] }
+    | CssPropertyVals ',' CommaSeparatedList      { (PropVals $1) <| $3 }
+FontFacePropEntries :: { NonEmpty (Either SrcVal PropEntry) }
+    : FontFaceProp                                { $1 :| [] }
+    | FontFaceProp FontFacePropEntries            { $1 <| $2 }
+FontFaceProp
+    : srcProp ':' CommaSeparatedList ';'          { Left (CommaSeparatedList $3) }
+    | PropEntry                                   { Right $1 }
+
 KeyframeList
     :                                             { [] }
     | Keyframe KeyframeList                       { $1 : $2 }

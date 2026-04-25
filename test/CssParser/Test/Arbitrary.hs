@@ -23,7 +23,7 @@ arbitraryWord :: Gen Text
 arbitraryWord = pack <$> listOf1 arbitraryLetter
 
 keywords :: Set Text
-keywords = fromList $ T.words "not or and only"
+keywords = fromList $ T.words "not or and only src false true from to url"
 
 arbitraryIdent :: Gen Text
 arbitraryIdent = do

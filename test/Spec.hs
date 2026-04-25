@@ -3,6 +3,7 @@ module Main where
 
 import CssParser
 import CssParser.Test.Arbitrary.File ()
+import CssParser.Test.Arbitrary.FontFace  ()
 import CssParser.Test.Arbitrary.Media ()
 import CssParser.Utils (encodeString, readCssString, encodeIdentifier, readIdentifier)
 import Data.Text (pack)
@@ -34,6 +35,8 @@ tests = testGroup "CssParser"
       ]
     , testGroup "Properties"
       (fmap (\x -> cpt x ("p { " <> x <> " }")) properties)
+    , testGroup "At"
+      (fmap (\x -> testCase x (True @=? checkParse x)) at)
     ]
   , testGroup "Arbitrary "
     [ testProperty "Alex"
@@ -86,6 +89,19 @@ checkParse x = y == y
 examples :: [String]
 examples = media <> validSelectors <> layer <> page
 
+at :: [String]
+at = colorProfile <> fontFace
+
+colorProfile :: [String]
+colorProfile =
+  [ "@color-profile xx { src: url(\"https://example.org/SWOP2006_Coated5v2.icc\"); }"
+  ]
+
+fontFace :: [String]
+fontFace =
+  [ "@font-face { src: local(\"x\"), format(\"z\") url(\"x.otf\"); }"
+  ]
+
 properties :: [String]
 properties =
   [ "margin: 20px;"
@@ -95,9 +111,9 @@ properties =
   , "margin-top: auto;"
   , "display: none;"
   , "border: 1px solid green;"
-  , "src: url(\"https://example.org/SWOP2006_Coated5v2.icc\");"
-  , "src: format(\"opentype\");"
-  , "src: format(\"opentype\") tech(color);"
+  , "s: url(\"https://example.org/SWOP2006_Coated5v2.icc\");"
+  , "s: format(\"opentype\");"
+  , "s: format(\"opentype\") tech(color);"
   ]
 
 page :: [String]
