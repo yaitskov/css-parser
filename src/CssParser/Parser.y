@@ -37,7 +37,7 @@ import CssParser.Lexer
     , UrlT
     , PseudoPageT, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
-    , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT
+    , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT
     )
   )
 import CssParser.Parser.Monad
@@ -143,6 +143,7 @@ import Prelude
     'lang('     { TokenLoc TLang _ _ }
     '('         { TokenLoc TOpen _ _ }
     ')'         { TokenLoc TClose _ _ }
+    '/'         { TokenLoc DivT _ _ }
 
 %left 'or' 'and'
 %right 'not'
@@ -381,7 +382,8 @@ PropVal :: { PropVal }
     | px                                          { IntVal (Unsigned $1) Vl.Px }
     | Unsigned                                    { IntVal $1 Vl.K }
     | 'ratio'                                     { RatioVal $1 }
-    | PropertyName                                { propRef $1 }
+    | PropertyName Os                             { propRef $1 }
+    | PropertyName Os '/' Os PropertyName         { Div $1 $5 }
     | PropertyName '(' CssPropertyVals ')'        { AppFun $1 (PropVals $3) }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }

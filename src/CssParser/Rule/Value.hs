@@ -75,6 +75,7 @@ data PropVal
   | UrlVal Url
   | StrVal Text
   | AppFun PropertyName PropVals
+  | Div PropertyName PropertyName
   | HexColor HexColor
   deriving (Eq, Ord, Show, Generic)
 
@@ -92,6 +93,7 @@ instance CssShow PropVal where
     UrlVal u -> toCssText u
     StrVal s -> encodeStringLiteral s
     HexColor c -> toCssText c
+    Div a b -> toCssText a <> " / " <> toCssText b
     AppFun fn args -> toCssText fn <> "(" <> toCssText args <> ")"
 
 newtype PropVals = PropVals (NonEmpty PropVal) deriving (Show, Eq, Ord, Generic)

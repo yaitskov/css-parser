@@ -197,6 +197,7 @@ tokens :-
   "*"                                     { constoken Asterisk }
   "&"                                     { constoken Ampersand }
   "|"                                     { constoken Pipe }
+  "/"                                     { constoken DivT }
   @ident                                  { tokenize (Ident . readIdentifier) }
   @string                                 { tokenize (String . readCssString) }
   "U+" ("?" | "1")? ("?" | "0")? @updig{1,4} ("-" ("?" | "1")? ("?" | "0")? @updig{1,4})?
@@ -379,6 +380,7 @@ data Token
     | KeyframesT
     | LayerT
     | MediaT
+    | DivT
     | OnlyT
     | NotT
     | AndT
@@ -403,8 +405,6 @@ data Token
     | TNot
     | TLang
     deriving (Show, Eq)
-
-
 
 tokenizeE :: (a -> Token) -> (String -> Either String a) -> AlexInput -> Int -> Alex TokenLoc
 tokenizeE f fe (p, _, _, str) len =

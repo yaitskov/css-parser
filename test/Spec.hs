@@ -140,6 +140,7 @@ properties =
   , "s: url(\"https://example.org/SWOP2006_Coated5v2.icc\");"
   , "s: format(\"opentype\");"
   , "s: format(\"opentype\") tech(color);"
+  , "container: x / y;"
   ]
 
 page :: [String]
