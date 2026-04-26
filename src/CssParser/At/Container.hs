@@ -18,12 +18,6 @@ newtype ContainerQueryMap
 instance CssShow ContainerQueryMap where
   toCssText (ContainerQueryMap cqm) = toCssText cqm
 
-data Not a = Not a | AsIs a deriving (Show, Eq, Ord, Generic)
-
-instance CssShow a => CssShow (Not a) where
-  toCssText = \case
-    Not x -> "not " <> toCssText x
-    AsIs x -> toCssText x
 
 data CqOp
   = CqOpFeature MediaFeature
@@ -40,10 +34,13 @@ instance CssShow CqOp where
     CqApp f args ->
       toCssText f <> "(" <> toCssText args <> ")"
 
+instance ShowParenthesis ContainerQuery CqOp where
+  left _ _ = ""
+  right _ _ = ""
+
 data ContainerQuery
-  = CqBin AndOr (Not CqOp) ContainerQuery
-  | CqFeature (Not CqOp)
-  -- | CqFun (Not Ident) ContainerQuery
+  = CqBin AndOr (Not ContainerQuery CqOp) ContainerQuery
+  | CqFeature (Not ContainerQuery CqOp)
   deriving (Show, Eq, Ord, Generic)
 
 instance CssShow ContainerQuery where

@@ -211,12 +211,8 @@ ContainerQueryMap :: { NonEmpty (These R.Ident ContainerQuery) }
     | IdContainerQuery ',' ContainerQueryMap      { $1 <| $3 }
 IdContainerQuery :: { These R.Ident ContainerQuery }
     : Ident                                       { This $1 }
-    | Ident ' ' Ident Os '(' CQ ')'
-                                                  { These $1
-                                                      (CqFeature (AsIs (CqApp $3 $6)))
-                                                  }
-    | Ident ' ' Ident Os '(' CQ ')' Os BOP CQ
-                                                  { These $1
+    | Ident ' ' Ident Os '(' CQ ')'               { These $1 (CqFeature (AsIs (CqApp $3 $6))) }
+    | Ident ' ' Ident Os '(' CQ ')' Os BOP CQ     { These $1
                                                       (CqBin
                                                         $9
                                                         (AsIs
@@ -235,8 +231,7 @@ IdContainerQuery :: { These R.Ident ContainerQuery }
     | CQ                                          { That $1 }
 CQ :: { ContainerQuery }
     : Ident Os '(' CQ ')'                         { CqFeature (AsIs (CqApp $1 $4)) }
-    | Ident Os '(' CQ ')' Os BOP CQ
-                                                  { CqBin
+    | Ident Os '(' CQ ')' Os BOP CQ               { CqBin
                                                       $7
                                                       (AsIs (CqApp $1 $4))
                                                       $8
@@ -246,8 +241,7 @@ CQ :: { ContainerQuery }
     | 'not' '(' MediaFeature ')' Os BOP CQ        { CqBin $6 (Not (CqOpFeature $3)) $7 }
     | 'not' '(' MediaFeature ')'                  { CqFeature (Not (CqOpFeature $3)) }
     | 'not' Os Ident Os '(' CQ ')'                { CqFeature (Not (CqApp $3 $6)) }
-    | 'not' Os Ident Os '(' CQ ')' Os BOP CQ
-                                                  { CqBin $9 (Not (CqApp $3 $6)) $10 }
+    | 'not' Os Ident Os '(' CQ ')' Os BOP CQ      { CqBin $9 (Not (CqApp $3 $6)) $10 }
     | '(' MediaFeature ')' Os BOP CQ              { CqBin $5 (AsIs (CqOpFeature $2)) $6 }
     | '(' MediaFeature ')'                        { CqFeature (AsIs (CqOpFeature $2)) }
 BOP :: { AndOr }
@@ -307,7 +301,6 @@ PageSelector
     : IdKwd PseudoPageList                        { PageSelector (Just (PageName $1)) $2 }
     | IdKwd                                       { PageSelector (Just (PageName $1)) [] }
     | PseudoPageList                              { PageSelector Nothing $1 }
-
 PseudoPageList
     : pseudoPage                                  { [$1] }
     | pseudoPage PseudoPageList                   { $1 : $2 }
@@ -319,7 +312,7 @@ MediaQueryList :: { [ MediaQuery ] }
     | MediaQuery ',' MediaQueryList               { $1 : $3 }
 
 MediaQuery :: { MediaQuery }
-    : 'not' Os '(' MediaFeature ')'               { MediaQueryConditionOnly (MediaNot $4) }
+    : 'not' Os '(' MediaFeature ')'               { MediaQueryConditionOnly (MediaFeature (Not $4)) }
     | MtModifier MediaType Os 'and' Os MediaCondition
                                                   { MediaQueryWithMt
                                                       $1
@@ -336,16 +329,11 @@ MtModifier :: { Maybe MtModifier }
     | 'only'                                      { Just MtOnly }
 
 MediaCondition :: { MediaBoolExpr }
-    : 'not' '(' MediaFeature ')' Os 'and' MediaCondition
-                                                  { MediaBin And $3 $7 }
-    | 'not' '(' MediaFeature ')' Os 'or' MediaCondition
-                                                  { MediaBin Or $3 $7 }
-    | 'not' '(' MediaFeature ')'                  { MediaNot $3 }
-    | '(' MediaFeature ')' Os 'and' MediaCondition
-                                                  { MediaBin And $2 $6 }
-    | '(' MediaFeature ')' Os 'or' MediaCondition
-                                                  { MediaBin Or $2 $6 }
-    | '(' MediaFeature ')'                        { MediaFeature $2 }
+    : 'not' '(' MediaFeature ')' Os BOP MediaCondition
+                                                  { MediaBin $6 (Not $3) $7 }
+    | 'not' '(' MediaFeature ')'                  { MediaFeature (Not $3) }
+    | '(' MediaFeature ')' Os BOP MediaCondition  { MediaBin $5 (AsIs $2) $6 }
+    | '(' MediaFeature ')'                        { MediaFeature (AsIs $2) }
 
 MediaFeature :: { MediaFeature }
     : PropertyName ':' PropVal                    { PlainMf $1 $3 }

@@ -42,18 +42,27 @@ instance CssShow AndOr where
     And -> " and "
     Or -> " or "
 
+data Not p a = Not a | AsIs a deriving (Show, Eq, Ord, Generic)
+
+instance (ShowParenthesis p a, CssShow a) => CssShow (Not p a) where
+  toCssText = \case
+    Not x -> "not " <> left p a <> toCssText x <> right p a
+    AsIs x -> left p a <> toCssText x <> right p a
+
+instance ShowParenthesis MediaBoolExpr MediaFeature where
+  left _ _ = "("
+  right _ _ = ")"
+
 data MediaBoolExpr
-  = MediaNot MediaFeature
-  | MediaBin AndOr MediaFeature MediaBoolExpr
-  | MediaFeature MediaFeature
+  = MediaBin AndOr (Not MediaBoolExpr MediaFeature) MediaBoolExpr
+  | MediaFeature (Not MediaBoolExpr MediaFeature)
   deriving (Show, Eq, Ord, Generic)
 
 instance CssShow MediaBoolExpr where
   toCssText = \case
-    MediaNot x -> "not (" <> toCssText x <> ")"
     MediaBin bop x l ->
       toCssText (MediaFeature x) <> toCssText bop  <> toCssText l
-    MediaFeature mf -> "(" <> toCssText mf <> ")"
+    MediaFeature mf -> toCssText mf
 
 data MediaFeature
   = PlainMf PropertyName PropVal

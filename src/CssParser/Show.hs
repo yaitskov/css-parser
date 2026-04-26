@@ -4,6 +4,7 @@ module CssParser.Show
   ( module X
   , CssShow (..)
   , ShowSpaceBetween (..)
+  , ShowParenthesis (..)
   ) where
 
 import CssParser.Prelude
@@ -38,3 +39,7 @@ instance (CssShow at, CssShow bt, ShowSpaceBetween at bt) => CssShow (These at b
     This a -> toCssText a
     That b -> toCssText b
     These a b -> toCssText a <> cssSpace at bt <> toCssText b
+
+class ShowParenthesis (parent :: Type) (this :: Type) where
+  left :: forall pp -> forall tt -> (pp ~ parent, tt ~ this) => LText
+  right :: forall pp -> forall tt -> (pp ~ parent, tt ~ this) => LText

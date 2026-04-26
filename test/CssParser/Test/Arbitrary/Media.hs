@@ -34,6 +34,8 @@ deriving via (GenericArbitrary MediaBoolExpr) instance Arbitrary MediaBoolExpr
 deriving via (GenericArbitrary MfRelation) instance Arbitrary MfRelation
 deriving via (GenericArbitrary MtModifier) instance Arbitrary MtModifier
 deriving via (GenericArbitrary MediaType) instance Arbitrary MediaType
+deriving via (GenericArbitrary (Not MediaBoolExpr MediaFeature)) instance Arbitrary (Not MediaBoolExpr MediaFeature)
+
 
 
 deriving via (GenericArbitrary MediaQuery) instance Arbitrary MediaQuery

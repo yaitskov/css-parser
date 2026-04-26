@@ -4,7 +4,7 @@ module CssParser.Test.Arbitrary.Container where
 
 import CssParser.At.Container
 import CssParser.At.MediaQuery
-import CssParser.Ident
+
 import CssParser.Norm
 import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
@@ -24,9 +24,7 @@ instance Norm CqOp where
       MfClosedRange pv _  pn _ _ -> PlainMf pn pv
       o -> o
 
-deriving via (GenericArbitrary (Not MediaFeature)) instance Arbitrary (Not MediaFeature)
-deriving via (GenericArbitrary (Not Ident)) instance Arbitrary (Not Ident)
-deriving via (GenericArbitrary (Not CqOp)) instance Arbitrary (Not CqOp)
+deriving via (GenericArbitrary (Not ContainerQuery CqOp)) instance Arbitrary (Not ContainerQuery CqOp)
 deriving via (GenericArbitrary ContainerQuery) instance Arbitrary ContainerQuery
 
 instance Arbitrary CqOp where
