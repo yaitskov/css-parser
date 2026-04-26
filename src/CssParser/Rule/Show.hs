@@ -33,6 +33,9 @@ instance CssShow CssRule where
       "@container " <> toCssText cq <> " {" <> toCssText body <> "}"
     PositionTry v pl ->
       "@position-try " <> toCssText v <> " {" <> toCssText pl <> "}"
+    StartingStyle body ->
+      "@starting-style  {" <> toCssText body <> "}"
+
 
 instance ShowSpaceBetween CssRuleBodyItem CssRuleBodyItem where
   cssSpace _ _ = " "

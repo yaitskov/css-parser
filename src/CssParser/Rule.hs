@@ -28,6 +28,7 @@ data CssRule
   | FontPaletteValuesBlock FontPaletteValues
   | Container ContainerQueryMap [CssRuleBodyItem]
   | PositionTry Var [PropEntry]
+  | StartingStyle [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

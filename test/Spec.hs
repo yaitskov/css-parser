@@ -2,6 +2,13 @@
 module Main where
 
 import CssParser
+    ( CssShow(toCssText),
+      P(Ok, Failed),
+      CssFile,
+      getToken,
+      alex,
+      parseCssP,
+      parseCss )
 import CssParser.Test.Arbitrary.File ()
 import CssParser.Test.Arbitrary.FontFace  ()
 import CssParser.Test.Arbitrary.Media ()
@@ -11,7 +18,8 @@ import Data.Text.Lazy qualified as TL
 import Prelude
 import Test.Tasty ( defaultMain, testGroup, TestTree )
 import Test.Tasty.HUnit ( testCase, (@=?) )
-import Test.Tasty.QuickCheck -- ( testProperty, withMaxSuccess, withMaxSize, label, (===) )
+import Test.Tasty.QuickCheck
+    ( (===), label, withMaxSuccess, Property, testProperty )
 
 main :: IO ()
 main = defaultMain tests
@@ -126,7 +134,9 @@ container =
 positionTry :: [String]
 positionTry =
   [ "@position-try --x {x: 1px;}"
+  , "@starting-style {}"
   ]
+
 properties :: [String]
 properties =
   [ "margin: 20px;"

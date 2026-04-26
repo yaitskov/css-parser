@@ -70,6 +70,7 @@ $pm       = [\-\+]
 @z       = z|Z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?
 @hyphen  = [\-]|\\0{0,4}2d
 @var     = [\-][\-]
+@starting = @s@t@a@r@t@i@n@g
 
 @position = @p@o@s@i@t@i@o@n
 @try     = @t@r@y
@@ -178,6 +179,7 @@ tokens :-
   @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
+  "@" @starting "-" @style                { constoken StartingStyleT }
   "@" @container                          { constoken ContainerT }
   "@" @font "-" @palette "-" @values      { constoken FontPaletteValuesT }
   "@" @font "-" @feature "-" @values      { constoken FontFeatureValuesT }
@@ -370,6 +372,7 @@ data Token
     | PageT
     | PageMarginT PageMargin
 
+    | StartingStyleT
     | PositionTryT
     | ContainerT
     | AtT
