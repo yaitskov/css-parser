@@ -128,7 +128,7 @@ properties =
   [ "margin: 20px;"
   , "--my-prop: 20px;"
   , "padding: 12em 20mm;"
-  , "padding: 12em 25pt 2px 20mm;"
+  , "padding: 12rem 25pt 2px 20mm;"
   , "margin-top: auto;"
   , "display: none;"
   , "font-style: oblique 20deg 50deg;"

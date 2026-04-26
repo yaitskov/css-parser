@@ -135,6 +135,7 @@ $pm       = [\-\+]
 @vh      = @v@h
 @vw      = @v@w
 @dpi     = @d@p@i
+@rem     = @r@em
 @percent = \%
 
 tokens :-
@@ -216,6 +217,7 @@ tokens :-
   @wo @uint @em                           { tokenize (Em . read . dropEnd 2) }
   @wo @uint @vh                           { tokenize (Vh . read . dropEnd 2) }
   @wo @uint @vw                           { tokenize (Vw . read . dropEnd 2) }
+  @wo @uint @rem                          { tokenize (Rem . read . dropEnd 3) }
   @wo @uint @dpi                          { tokenize (Dpi . read . dropEnd 3) }
   @wo @uint "/" @uint                     { tokenize2 ((pure . RatioT) <=< readRatio) }
   @wo @uint @percent                      { tokenize (Percents . read . dropEnd 1) }
@@ -343,6 +345,7 @@ data Token
     | Em Integer
     | Vh Integer
     | Vw Integer
+    | Rem Integer
     | Dpi Integer
 
     | RatioT Ratio

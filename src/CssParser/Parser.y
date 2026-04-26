@@ -14,7 +14,7 @@ import CssParser.At.MediaQuery
 import CssParser.At.Namespace
 import CssParser.At.Page
 import CssParser.Rule.Pseudo
-import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em, Deg, Grad, Rad, Turn)
+import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em, Deg, Grad, Rad, Turn, Rem)
 import CssParser.Rule.Value qualified as Vl
 import CssParser.Fun
 import CssParser.File
@@ -134,6 +134,7 @@ import Prelude
     vw          { TokenLoc (L.Vw $$) _ _ }
     vh          { TokenLoc (L.Vh $$) _ _ }
     dpi         { TokenLoc (L.Dpi $$) _ _ }
+    rem         { TokenLoc (L.Rem $$) _ _ }
     percents    { TokenLoc (Percents $$) _ _ }
     px          { TokenLoc (Pixels $$) _ _ }
     var         { TokenLoc (Var $$) _ _ }
@@ -387,6 +388,7 @@ PropVal :: { PropVal }
     | vw                                          { IntVal (Unsigned $1) Vl.Vw }
     | vh                                          { IntVal (Unsigned $1) Vl.Vh }
     | dpi                                         { IntVal (Unsigned $1) Vl.Dpi }
+    | rem                                         { IntVal (Unsigned $1) Vl.Rem }
     | percents                                    { IntVal (Unsigned $1) Vl.Percent }
     | px                                          { IntVal (Unsigned $1) Vl.Px }
     | Unsigned                                    { IntVal $1 Vl.K }
