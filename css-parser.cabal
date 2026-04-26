@@ -36,6 +36,7 @@ library
   exposed-modules:
     , CssParser
     , CssParser.At
+    , CssParser.At.Container
     , CssParser.At.FontFace
     , CssParser.At.FontFeatureValues
     , CssParser.At.FontPaletteValues
@@ -67,6 +68,7 @@ library
     , bytestring >=0.9
     , Decimal >=0.4.2
     , either < 6
+    , these < 2
   build-tool-depends:
     , alex:alex
     , happy:happy
@@ -82,6 +84,7 @@ test-suite test
   other-modules:
     , CssParser.Test.Arbitrary
     , CssParser.Test.Arbitrary.At
+    , CssParser.Test.Arbitrary.Container
     , CssParser.Test.Arbitrary.Ident
     , CssParser.Test.Arbitrary.File
     , CssParser.Test.Arbitrary.FontFace

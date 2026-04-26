@@ -17,7 +17,8 @@ data FontFeatureValuesSubBlock
 instance CssShow FontFeatureValuesSubBlock where
   toCssText (FontFeatureValuesSubBlock i ps) =
     "@" <> toCssText i <> " {" <> toCssText ps <> "}"
-
+instance ShowSpaceBetween FontFeatureValuesSubBlock FontFeatureValuesSubBlock where
+  cssSpace _ _ = ""
 data FontFeatureValues
   = FontFeatureValues
   { name :: Either LiteralString IdentList

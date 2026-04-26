@@ -90,7 +90,7 @@ examples :: [String]
 examples = media <> validSelectors <> layer <> page
 
 at :: [String]
-at = colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues
+at = colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <> container
 
 colorProfile :: [String]
 colorProfile =
@@ -112,6 +112,15 @@ fontPaletteValues =
   [ "@font-palette-values --Ax {font-family: fa;}"
   , "@font-palette-values --Ax {font-family: fa; override-colors: 0 #00ffbb;}"
   , "@font-palette-values --Ax {font-family: fa; override-colors: 0 #fff;}"
+  ]
+
+container :: [String]
+container =
+  [ "@container not scroll-state(snapped: none) { }"
+  , "@container foo (snapped: none) { }"
+  , "@container foo  { }"
+  , "@container foo (width > 100px) { }"
+  , "@container style(--theme: one) or style(--theme: two) {}"
   ]
 
 properties :: [String]

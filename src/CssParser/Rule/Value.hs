@@ -62,13 +62,19 @@ newtype HexColor = HC Text deriving (Eq, Ord, Show, Generic)
 instance CssShow HexColor where
   toCssText (HC s) = "#" <> fromStrict s
 
+propRef :: PropertyName -> PropVal
+propRef = \case
+  PropertyName i -> IdentRef i
+  VarProp v -> VarRef v
+
 data PropVal
   = IntVal Unsigned PropValType
   | RatioVal Ratio
   | IdentRef Ident
+  | VarRef Var
   | UrlVal Url
   | StrVal Text
-  | AppFun Ident PropVals
+  | AppFun PropertyName PropVals
   | HexColor HexColor
   deriving (Eq, Ord, Show, Generic)
 
@@ -81,6 +87,7 @@ instance CssShow PropVal where
   toCssText = \case
     IntVal i pvt -> numToText i <> toCssText pvt
     RatioVal rv -> toCssText rv
+    VarRef v -> toCssText v
     IdentRef i -> toCssText i
     UrlVal u -> toCssText u
     StrVal s -> encodeStringLiteral s
@@ -92,3 +99,6 @@ newtype PropVals = PropVals (NonEmpty PropVal) deriving (Show, Eq, Ord, Generic)
 instance CssShow PropVals where
   toCssText (PropVals ne) =
     unwords . fmap toCssText $ toList ne
+
+instance ShowSpaceBetween PropVals PropVals where
+  cssSpace _ _ = ", "

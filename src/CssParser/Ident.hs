@@ -1,16 +1,9 @@
 module CssParser.Ident where
 
 import CssParser.Prelude
-    ( Eq,
-      Ord,
-      Show,
-      IsString,
-      Generic,
-      Semigroup((<>)),
-      Text,
-      fromStrict )
 import CssParser.Show ( CssShow(..) )
 import CssParser.Utils ( encodeIdentifier )
+import Data.Text (pack)
 
 newtype Ident = Ident Text deriving newtype (Eq, Ord, Show, IsString)
 
@@ -43,6 +36,10 @@ data PropertyName
   = PropertyName Ident
   | VarProp Var
   deriving  (Eq, Ord, Show, Generic)
+
+instance IsString PropertyName where
+  fromString ('-':'-':v) = VarProp (Var . Ident $ pack v)
+  fromString o = PropertyName . Ident $ pack o
 
 instance CssShow PropertyName where
   toCssText = \case

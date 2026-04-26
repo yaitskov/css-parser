@@ -71,6 +71,7 @@ $pm       = [\-\+]
 @hyphen  = [\-]|\\0{0,4}2d
 @var     = [\-][\-]
 
+@container = @c@o@n@t@a@i@n@e@r
 @firsth  = @f@i@r@s@t@hyphen
 @nthh    = @n@t@h@hyphen
 @onlyh   = @o@n@l@y@hyphen
@@ -173,6 +174,7 @@ tokens :-
   @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
+  "@" @container                          { constoken ContainerT }
   "@" @font "-" @palette "-" @values      { constoken FontPaletteValuesT }
   "@" @font "-" @feature "-" @values      { constoken FontFeatureValuesT }
   "@" @color "-" @profile                 { constoken ColorProfileT }
@@ -259,7 +261,7 @@ tokens :-
   @psc @nthh@oftype "("                   { constAndBegin (PseudoFunction NthFOfType) nth_state }
   @psc @n@o@t "(" @wo                     { constoken TNot }
   @wo ")"                                 { constoken TClose }
-  @wo "(" @wo                             { constoken TOpen }
+  "(" @wo                                 { constoken TOpen }
   @psc @onlyh@oftype                      { constoken (AtomicPseudoClassT OnlyOfType) }
   @psc @onlyh@child                       { constoken (AtomicPseudoClassT OnlyChild) }
   @psc @o@p@t@i@o@n@a@l                   { constoken (AtomicPseudoClassT Optional) }
@@ -361,6 +363,7 @@ data Token
     | PageT
     | PageMarginT PageMargin
 
+    | ContainerT
     | AtT
     | SrcPropT
     | FontFaceT

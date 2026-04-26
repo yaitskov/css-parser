@@ -16,7 +16,7 @@ deriving via (GenericArbitrary FontFace) instance Arbitrary FontFace
 deriving via (GenericArbitrary FontFacePropEntry) instance Arbitrary FontFacePropEntry
 
 unPatternLetter :: Gen Char
-unPatternLetter = elements ( '?' : ['0' .. '9' ])
+unPatternLetter = elements ( '?' : ['0' .. '9' ] <> ['a' .. 'f' ])
 
 unPattern :: Gen Text
 unPattern = do
@@ -35,7 +35,6 @@ instance Arbitrary UnicodeRange where
     case T.dropEnd 1 ur of
       ur'->
         case T.unsnoc ur' of
-          Just (_, '+') -> []
           Just (ur'', '-') -> shrink (UnicodeRange ur'')
-          Just (ur'', _) -> [UnicodeRange ur'']
+          Just (_, _) -> [UnicodeRange ur']
           Nothing -> []

@@ -1,8 +1,8 @@
 module CssParser.At.Page where
 
-import CssParser.Ident
+import CssParser.Ident ( Ident(..) )
 import CssParser.Prelude
-import CssParser.Show ( CssShow(..) )
+import CssParser.Show ( CssShow(..), ShowSpaceBetween(..) )
 
 data PseudoPage
   = LeftPp
@@ -10,6 +10,9 @@ data PseudoPage
   | BlankPp
   | FirstPp
   deriving (Eq, Show, Ord, Generic)
+
+instance ShowSpaceBetween PseudoPage PseudoPage where
+  cssSpace _ _ = ""
 
 instance CssShow PseudoPage where
   toCssText = \case
@@ -63,7 +66,7 @@ data PageSelector = PageSelector (Maybe PageName) [PseudoPage]
 
 instance CssShow PageSelector where
   toCssText (PageSelector mpn pps) =
-    maybe "" toCssText mpn <> intercalate "" (toCssText <$> pps)
+    maybe "" toCssText mpn <> toCssText pps
 
 newtype PageSelectorList = PageSelectorList [PageSelector]
   deriving newtype (Show, Eq, Ord) deriving (Generic)

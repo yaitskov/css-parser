@@ -1,3 +1,6 @@
+{-# LANGUAGE RequiredTypeArguments #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 module CssParser.At.FontFace where
 
 import CssParser.Rule.Value
@@ -8,14 +11,18 @@ import CssParser.Show
 newtype CommaSeparatedList
   = CommaSeparatedList (NonEmpty PropVals)
   deriving (Show, Eq, Ord, Generic)
+
+instance ShowSpaceBetween CommaSeparatedList CommaSeparatedList where
+  cssSpace _ _ = "; "
 type SrcVal = CommaSeparatedList
 instance CssShow CommaSeparatedList where
-  toCssText (CommaSeparatedList l) =
-    intercalate ", " (toCssText <$> toList l)
+  toCssText (CommaSeparatedList l) = toCssText l
 
 newtype UnicodeRange = UnicodeRange Text deriving (Show, Eq, Ord, Generic)
 instance CssShow UnicodeRange where
   toCssText (UnicodeRange t) = "U+" <> fromStrict t
+instance ShowSpaceBetween UnicodeRange UnicodeRange where
+  cssSpace _ _ = ", "
 
 data FontFacePropEntry
   = UnicodeRangePropEntry (NonEmpty UnicodeRange)
@@ -25,9 +32,12 @@ data FontFacePropEntry
 instance CssShow FontFacePropEntry where
   toCssText = \case
     UnicodeRangePropEntry r ->
-      "unicode-range: " <> intercalate ", " (toCssText <$> toList r) <> "; "
+      "unicode-range: " <> toCssText r <> "; "
     FontFaceCommonEntry e ->
       toCssText e
+
+instance ShowSpaceBetween FontFacePropEntry FontFacePropEntry where
+  cssSpace _ _ = " "
 
 data FontFace
   = FontFace

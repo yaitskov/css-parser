@@ -1,5 +1,6 @@
 module CssParser.Rule where
 
+import CssParser.At.Container
 import CssParser.At.FontFace
 import CssParser.At.FontFeatureValues
 import CssParser.At.FontPaletteValues
@@ -25,6 +26,7 @@ data CssRule
   | FontFaceBlock FontFace
   | FontFeatureValuesBlock FontFeatureValues
   | FontPaletteValuesBlock FontPaletteValues
+  | Container ContainerQueryMap [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

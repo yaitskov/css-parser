@@ -3,6 +3,7 @@
 module CssParser.Parser where
 
 import CssParser.At
+import CssParser.At.Container
 import CssParser.At.FontFace
 import CssParser.At.FontFeatureValues
 import CssParser.At.FontPaletteValues
@@ -36,12 +37,12 @@ import CssParser.Lexer
     , UrlT
     , PseudoPageT, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
-    , FontFeatureValuesT, AtT, FontPaletteValuesT
+    , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT
     )
   )
 import CssParser.Parser.Monad
 import CssParser.Prelude
-  ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe, rightToMaybe
+  ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe, rightToMaybe, These(..)
   )
 import CssParser.Rule
 import Data.Text (Text, pack)
@@ -82,6 +83,7 @@ import Prelude
                 { TokenLoc FontPaletteValuesT _ _ }
     fontFeatureValues
                 { TokenLoc FontFeatureValuesT _ _ }
+    container   { TokenLoc ContainerT _ _ }
     property    { TokenLoc PropertyT _ _ }
     colorProf   { TokenLoc ColorProfileT _ _ }
     namespace   { TokenLoc NamespaceT _ _ }
@@ -201,13 +203,61 @@ CssRule :: { CssRule }
                                                   }
     | fontPaletteValues ' ' Var Os '{' PropEntries '}'
                                                   { FontPaletteValuesBlock (FontPaletteValues (R.Var $3) $6) }
+    | container Os ContainerQueryMap '{' CssRuleBody '}'
+                                                  { Container (ContainerQueryMap $3) $5 }
+ContainerQueryMap :: { NonEmpty (These R.Ident ContainerQuery) }
+    : IdContainerQuery                            { $1 :| [] }
+    | IdContainerQuery ',' ContainerQueryMap      { $1 <| $3 }
+IdContainerQuery :: { These R.Ident ContainerQuery }
+    : Ident                                       { This $1 }
+    | Ident ' ' Ident Os '(' CQ ')'
+                                                  { These $1
+                                                      (CqFeature (AsIs (CqApp $3 $6)))
+                                                  }
+    | Ident ' ' Ident Os '(' CQ ')' Os BOP CQ
+                                                  { These $1
+                                                      (CqBin
+                                                        $9
+                                                        (AsIs
+                                                          (CqApp $3 $6))
+                                                        $10)
+                                                  }
+    | Ident ' ' CQ                                { These $1 $3 }
+    | Ident '(' CQ ')'                            { That (CqFeature (AsIs (CqApp $1 $3))) }
+    | Ident '(' CQ ')' Os BOP CQ                  { That
+                                                      (CqBin
+                                                        $6
+                                                        (AsIs
+                                                          (CqApp $1 $3))
+                                                        $7)
+                                                  }
+    | CQ                                          { That $1 }
+CQ :: { ContainerQuery }
+    : Ident Os '(' CQ ')'                         { CqFeature (AsIs (CqApp $1 $4)) }
+    | Ident Os '(' CQ ')' Os BOP CQ
+                                                  { CqBin
+                                                      $7
+                                                      (AsIs (CqApp $1 $4))
+                                                      $8
+                                                  }
+    | Ident ':' PropVal                           { CqFeature (AsIs (CqOpFeature (PlainMf (PropertyName $1) $3))) }
+    | Var   ':' PropVal                           { CqFeature (AsIs (CqOpFeature (PlainMf (VarProp (R.Var $1)) $3))) }
+    | 'not' '(' MediaFeature ')' Os BOP CQ        { CqBin $6 (Not (CqOpFeature $3)) $7 }
+    | 'not' '(' MediaFeature ')'                  { CqFeature (Not (CqOpFeature $3)) }
+    | 'not' Os Ident Os '(' CQ ')'                { CqFeature (Not (CqApp $3 $6)) }
+    | 'not' Os Ident Os '(' CQ ')' Os BOP CQ
+                                                  { CqBin $9 (Not (CqApp $3 $6)) $10 }
+    | '(' MediaFeature ')' Os BOP CQ              { CqBin $5 (AsIs (CqOpFeature $2)) $6 }
+    | '(' MediaFeature ')'                        { CqFeature (AsIs (CqOpFeature $2)) }
+BOP :: { AndOr }
+    : 'and'                                       { And }
+    | 'or'                                        { Or }
 FontFeatureValBlocks :: { [ Either PropEntry FontFeatureValuesSubBlock ] }
     :                                             { [] }
     | FontFeatureValBlock FontFeatureValBlocks    { Right $1 : $2 }
     | PropEntry FontFeatureValBlocks              { Left $1 : $2 }
 FontFeatureValBlock
     : '@' Ident Os '{' PropEntries '}'            { FontFeatureValuesSubBlock $2 $5 }
-
 StrEitherIds :: { Either LiteralString IdentList }
     : Str                                         { Left (LiteralString $1) }
     | IdentList                                   { Right (IdentList $1) }
@@ -244,9 +294,11 @@ KeyframeAdr
 PropEntries :: { [PropEntry] }
     :                                             { [] }
     | PropEntry PropEntries                       { $1 : $2 }
+PropertyName :: { PropertyName }
+    : IdKwd                                       { PropertyName $1 }
+    | Var                                         { VarProp (R.Var $1) }
 PropEntry :: { PropEntry }
-    : IdKwd ':' CssPropertyVals ';'               { PropEntry (PropertyName $1) (PropVals $3) }
-    | Var   ':' CssPropertyVals ';'               { PropEntry (VarProp (R.Var $1)) (PropVals $3) }
+    : PropertyName ':' CssPropertyVals ';'        { PropEntry $1 (PropVals $3) }
 PageSelectorList
     : PageSelector                                { [ $1 ] }
     | PageSelector Os PageSelectorList            { $1 : $3 }
@@ -295,19 +347,27 @@ MediaCondition :: { MediaBoolExpr }
     | '(' MediaFeature ')'                        { MediaFeature $2 }
 
 MediaFeature :: { MediaFeature }
-    : Ident ':' PropVal                           { PlainMf $1 $3 }
-    | Ident '=' PropVal                           { OpenRangeFeature $1 MfEq $3 }
-    | Ident '<' Ident MfRel PropVal               { MfClosedRange (IdentRef $1) MfLt $3 $4 $5 }
-    | Ident '<' PropVal                           { OpenRangeFeature $1 MfLt $3 }
-    | Ident '>' Ident MfRel PropVal               { MfClosedRange (IdentRef $1) MfGt $3 $4 $5 }
-    | Ident '>' PropVal                           { OpenRangeFeature $1 MfGt $3 }
-    | Ident '<=' Ident MfRel PropVal              { MfClosedRange (IdentRef $1) MfLe $3 $4 $5 }
-    | Ident '<=' PropVal                          { OpenRangeFeature $1 MfLe $3 }
-    | Ident '>=' Ident MfRel PropVal              { MfClosedRange (IdentRef $1) MfGe $3 $4 $5 }
-    | Ident '>=' PropVal                          { OpenRangeFeature $1 MfGe $3 }
-    | Ident                                       { BooleanMf $1 }
-    | PropVal MfRel Ident                         { OpenRangeFeatureFlipped $1 $2 $3 }
-    | PropVal MfRel Ident MfRel PropVal           { MfClosedRange $1 $2 $3 $4 $5 }
+    : PropertyName ':' PropVal                    { PlainMf $1 $3 }
+    | PropertyName MfRel PropVal                  { OpenRangeFeature $1 $2 $3 }
+    | PropertyName MfRel PropertyName MfRel PropVal
+                                                  { MfClosedRange (propRef $1) $2 $3 $4 $5 }
+    | PropertyName '(' CssPropertyVals ')' MfRel PropertyName
+                                                  { OpenRangeFeatureFlipped
+                                                      (AppFun $1 (PropVals $3))
+                                                      $5
+                                                      $6
+                                                  }
+    | PropertyName '(' CssPropertyVals ')' MfRel PropertyName MfRel PropVal
+                                                  { MfClosedRange
+                                                      (AppFun $1 (PropVals $3))
+                                                      $5
+                                                      $6
+                                                      $7
+                                                      $8
+                                                  }
+    | PropertyName                                { BooleanMf $1 }
+    | PropVal MfRel PropertyName                  { OpenRangeFeatureFlipped $1 $2 $3 }
+    | PropVal MfRel PropertyName MfRel PropVal    { MfClosedRange $1 $2 $3 $4 $5 }
 
 MfRel :: { MfRelation }
     : '<'                                         { MfLt }
@@ -331,8 +391,8 @@ PropVal :: { PropVal }
     | px                                          { IntVal (Unsigned $1) Vl.Px }
     | Unsigned                                    { IntVal $1 Vl.K }
     | 'ratio'                                     { RatioVal $1 }
-    | Ident                                       { IdentRef $1 }
-    | Ident '(' CssPropertyVals ')'               { AppFun $1 (PropVals $3) }
+    | PropertyName                                { propRef $1 }
+    | PropertyName '(' CssPropertyVals ')'        { AppFun $1 (PropVals $3) }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
     | hash                                        { HexColor (HC (pack $1)) }

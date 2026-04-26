@@ -16,9 +16,11 @@ instance CssShow MtModifier where
 
 newtype MediaQueryList = MediaQueryList [MediaQuery] deriving (Show, Eq, Ord, Generic)
 
+instance ShowSpaceBetween MediaQuery MediaQuery where
+  cssSpace _ _ = ", "
+
 instance CssShow MediaQueryList where
-  toCssText (MediaQueryList mqs) =
-    "@media " <> intercalate ", " (toCssText <$> mqs)
+  toCssText (MediaQueryList mqs) = "@media " <> toCssText mqs
 
 data MediaQuery
   = MediaQueryConditionOnly MediaBoolExpr
@@ -35,6 +37,11 @@ instance CssShow MediaQuery where
 
 data AndOr = And | Or deriving (Show, Eq, Ord, Generic)
 
+instance CssShow AndOr where
+  toCssText = \case
+    And -> " and "
+    Or -> " or "
+
 data MediaBoolExpr
   = MediaNot MediaFeature
   | MediaBin AndOr MediaFeature MediaBoolExpr
@@ -44,18 +51,16 @@ data MediaBoolExpr
 instance CssShow MediaBoolExpr where
   toCssText = \case
     MediaNot x -> "not (" <> toCssText x <> ")"
-    MediaBin And x l ->
-      toCssText (MediaFeature x) <> " and " <> toCssText l
-    MediaBin Or x l ->
-      toCssText (MediaFeature x) <> " or " <> toCssText l
+    MediaBin bop x l ->
+      toCssText (MediaFeature x) <> toCssText bop  <> toCssText l
     MediaFeature mf -> "(" <> toCssText mf <> ")"
 
 data MediaFeature
-  = PlainMf Ident PropVal
-  | BooleanMf Ident
-  | OpenRangeFeature Ident MfRelation PropVal
-  | OpenRangeFeatureFlipped PropVal MfRelation Ident
-  | MfClosedRange PropVal MfRelation Ident MfRelation PropVal
+  = PlainMf PropertyName PropVal
+  | BooleanMf PropertyName
+  | OpenRangeFeature PropertyName MfRelation PropVal
+  | OpenRangeFeatureFlipped PropVal MfRelation PropertyName
+  | MfClosedRange PropVal MfRelation PropertyName MfRelation PropVal
   deriving (Show, Eq, Ord, Generic)
 
 instance CssShow MediaFeature where
