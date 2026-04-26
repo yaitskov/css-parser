@@ -90,7 +90,7 @@ examples :: [String]
 examples = media <> validSelectors <> layer <> page
 
 at :: [String]
-at = colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <> container
+at = colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <> container <> positionTry
 
 colorProfile :: [String]
 colorProfile =
@@ -123,6 +123,10 @@ container =
   , "@container style(--theme: one) or style(--theme: two) {}"
   ]
 
+positionTry :: [String]
+positionTry =
+  [ "@position-try --x {x: 1px;}"
+  ]
 properties :: [String]
 properties =
   [ "margin: 20px;"

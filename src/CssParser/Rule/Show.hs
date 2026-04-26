@@ -31,6 +31,8 @@ instance CssShow CssRule where
     FontPaletteValuesBlock ffv -> toCssText ffv
     Container cq body ->
       "@container " <> toCssText cq <> " {" <> toCssText body <> "}"
+    PositionTry v pl ->
+      "@position-try " <> toCssText v <> " {" <> toCssText pl <> "}"
 
 instance ShowSpaceBetween CssRuleBodyItem CssRuleBodyItem where
   cssSpace _ _ = " "

@@ -71,6 +71,8 @@ $pm       = [\-\+]
 @hyphen  = [\-]|\\0{0,4}2d
 @var     = [\-][\-]
 
+@position = @p@o@s@i@t@i@o@n
+@try     = @t@r@y
 @container = @c@o@n@t@a@i@n@e@r
 @firsth  = @f@i@r@s@t@hyphen
 @nthh    = @n@t@h@hyphen
@@ -154,6 +156,7 @@ tokens :-
   @src                                    { constoken SrcPropT }
   "@"                                     { constoken AtT }
   "@" @font "-" @face                     { constoken FontFaceT }
+  "@" @position "-" @try                  { constoken PositionTryT }
   @wo "@" @page $w @wo                    { constoken PageT }
 
   @wo "@" @top "-" @left "-" @corner      { constoken (PageMarginT TopLeftCorner) }
@@ -367,6 +370,7 @@ data Token
     | PageT
     | PageMarginT PageMargin
 
+    | PositionTryT
     | ContainerT
     | AtT
     | SrcPropT
