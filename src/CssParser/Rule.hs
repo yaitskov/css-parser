@@ -29,6 +29,7 @@ data CssRule
   | Container ContainerQueryMap [CssRuleBodyItem]
   | PositionTry Var [PropEntry]
   | StartingStyle [CssRuleBodyItem]
+  | ViewTransition [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

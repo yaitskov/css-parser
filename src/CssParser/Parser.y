@@ -38,7 +38,7 @@ import CssParser.Lexer
     , PseudoPageT, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
-    , StartingStyleT
+    , StartingStyleT, ViewTransitionT
     )
   )
 import CssParser.Parser.Monad
@@ -80,6 +80,8 @@ import Prelude
     'charset'   { TokenLoc CharsetT _ _ }
     unRange     { TokenLoc UnicodeRangeT _ _ }
     '@'         { TokenLoc AtT _ _ }
+    viewTransition
+                { TokenLoc ViewTransitionT _ _ }
     startingStyle
                 { TokenLoc StartingStyleT _ _ }
     positionTry { TokenLoc PositionTryT _ _ }
@@ -213,6 +215,8 @@ CssRule :: { CssRule }
                                                   { Container (ContainerQueryMap $3) $5 }
     | positionTry Os Var '{' PropEntries '}'      { PositionTry (R.Var $3) $5 }
     | startingStyle Os '{' CssRuleBody '}'        { StartingStyle $4 }
+    | viewTransition Os '{' CssRuleBody '}'       { ViewTransition $4 }
+
 ContainerQueryMap :: { NonEmpty (These R.Ident ContainerQuery) }
     : IdContainerQuery                            { $1 :| [] }
     | IdContainerQuery ',' ContainerQueryMap      { $1 <| $3 }

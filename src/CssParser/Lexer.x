@@ -72,6 +72,8 @@ $pm       = [\-\+]
 @var     = [\-][\-]
 @starting = @s@t@a@r@t@i@n@g
 
+@view    = @v@i@e@w
+@transition = @t@r@a@n@s@i@t@i@o@n
 @position = @p@o@s@i@t@i@o@n
 @try     = @t@r@y
 @container = @c@o@n@t@a@i@n@e@r
@@ -179,6 +181,7 @@ tokens :-
   @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
+  "@" @view "-" @transition               { constoken ViewTransitionT }
   "@" @starting "-" @style                { constoken StartingStyleT }
   "@" @container                          { constoken ContainerT }
   "@" @font "-" @palette "-" @values      { constoken FontPaletteValuesT }
@@ -372,6 +375,7 @@ data Token
     | PageT
     | PageMarginT PageMargin
 
+    | ViewTransitionT
     | StartingStyleT
     | PositionTryT
     | ContainerT

@@ -135,6 +135,7 @@ positionTry :: [String]
 positionTry =
   [ "@position-try --x {x: 1px;}"
   , "@starting-style {}"
+  , "@view-transition {}"
   ]
 
 properties :: [String]
