@@ -14,6 +14,7 @@ import CssParser.Test.Arbitrary.FontPaletteValues ()
 import CssParser.Test.Arbitrary.Container ()
 import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Media ()
+import CssParser.Test.Arbitrary.MonoPair ()
 
 instance Arbitrary Hash where
     arbitrary = Hash <$> arbitraryIdent

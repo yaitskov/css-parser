@@ -2,10 +2,11 @@
 module CssParser.Rule.Show where
 
 import CssParser.Ident ( Ident(Ident), AttrName(AttrName) )
+import CssParser.MonoPair
 import CssParser.Prelude
 import CssParser.Rule
 import CssParser.Rule.Pseudo ( Language(Language) )
-import CssParser.Show ( CssShow(..), encodeStringLiteral, ShowSpaceBetween(..) )
+import CssParser.Show
 import CssParser.Utils ( encodeIdentifier )
 
 instance CssShow CssRule where
@@ -37,7 +38,15 @@ instance CssShow CssRule where
       "@starting-style {" <> toCssText body <> "}"
     ViewTransition body ->
       "@view-transition {" <> toCssText body <> "}"
+    ScopeBlock range body ->
+      "@scope " <> toCssText range <> " {" <> toCssText body <> "}"
 
+type SelectorList = NonEmpty Selector
+instance ShowSpaceBetween (MonoPair SelectorList) SelectorList  where
+  cssSpace _ _ = ") to ("
+instance ShowParenthesis (MonoPair SelectorList) SelectorList where
+  left _ _ = "("
+  right _ _ = ")"
 instance ShowSpaceBetween CssRuleBodyItem CssRuleBodyItem where
   cssSpace _ _ = " "
 

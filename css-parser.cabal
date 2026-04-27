@@ -50,6 +50,7 @@ library
     , CssParser.FixRule
     , CssParser.Fun
     , CssParser.Ident
+    , CssParser.MonoPair
     , CssParser.Norm
     , CssParser.Parser.Monad
     , CssParser.Prelude
@@ -91,6 +92,7 @@ test-suite test
     , CssParser.Test.Arbitrary.FontFeatureValues
     , CssParser.Test.Arbitrary.FontPaletteValues
     , CssParser.Test.Arbitrary.Media
+    , CssParser.Test.Arbitrary.MonoPair
     , CssParser.Test.Arbitrary.Rule
     , CssParser.Test.Arbitrary.Value
 

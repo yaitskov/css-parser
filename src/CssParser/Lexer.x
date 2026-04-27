@@ -72,6 +72,7 @@ $pm       = [\-\+]
 @var     = [\-][\-]
 @starting = @s@t@a@r@t@i@n@g
 
+@scope   = @s@c@o@p@e
 @view    = @v@i@e@w
 @transition = @t@r@a@n@s@i@t@i@o@n
 @position = @p@o@s@i@t@i@o@n
@@ -114,10 +115,11 @@ $pm       = [\-\+]
 @color   = @c@o@l@o@r
 @profile = @p@r@o@f@i@l@e
 
+@to      = @t@o
 @not     = @n@o@t
 @and     = @a@n@d
-@or     =  @o@r
-@only   = @o@n@l@y
+@or      = @o@r
+@only    = @o@n@l@y
 
 @url     = @u@r@l
 
@@ -181,6 +183,8 @@ tokens :-
   @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
+
+  "@" @scope                              { constoken ScopeT }
   "@" @view "-" @transition               { constoken ViewTransitionT }
   "@" @starting "-" @style                { constoken StartingStyleT }
   "@" @container                          { constoken ContainerT }
@@ -196,6 +200,7 @@ tokens :-
   @wo "@" @keyframes $w @wo               { constoken KeyframesT }
   @wo "@" @layer $w @wo                   { constoken LayerT }
   @wo "@" @media $w @wo                   { constoken MediaT }
+  @to                                     { constoken ToT }
   @only @wo                               { constoken OnlyT }
   @not @wo                                { constoken NotT }
   @or @wo                                 { constoken OrT }
@@ -375,10 +380,12 @@ data Token
     | PageT
     | PageMarginT PageMargin
 
+    | ScopeT
     | ViewTransitionT
     | StartingStyleT
     | PositionTryT
     | ContainerT
+    | ToT
     | AtT
     | SrcPropT
     | FontFaceT

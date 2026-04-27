@@ -38,9 +38,10 @@ import CssParser.Lexer
     , PseudoPageT, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
-    , StartingStyleT, ViewTransitionT
+    , StartingStyleT, ViewTransitionT, ScopeT, ToT
     )
   )
+import CssParser.MonoPair
 import CssParser.Parser.Monad
 import CssParser.Prelude
   ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe, rightToMaybe, These(..)
@@ -89,6 +90,8 @@ import Prelude
                 { TokenLoc FontPaletteValuesT _ _ }
     fontFeatureValues
                 { TokenLoc FontFeatureValuesT _ _ }
+    'to'        { TokenLoc ToT _ _ }
+    scope       { TokenLoc ScopeT _ _ }
     container   { TokenLoc ContainerT _ _ }
     property    { TokenLoc PropertyT _ _ }
     colorProf   { TokenLoc ColorProfileT _ _ }
@@ -216,7 +219,12 @@ CssRule :: { CssRule }
     | positionTry Os Var '{' PropEntries '}'      { PositionTry (R.Var $3) $5 }
     | startingStyle Os '{' CssRuleBody '}'        { StartingStyle $4 }
     | viewTransition Os '{' CssRuleBody '}'       { ViewTransition $4 }
+    | scope Os '{' CssRuleBody '}'                { ScopeBlock EmptyPair $4 }
+    | scope Os '(' SelectorList ')' Os '{' CssRuleBody '}'
+                                                  { ScopeBlock (HalfPair $4) $8 }
 
+    | scope Os '(' SelectorList ')' Os 'to' Os '(' SelectorList ')' Os '{' CssRuleBody '}'
+                                                  { ScopeBlock (FullPair $4 $10) $14 }
 ContainerQueryMap :: { NonEmpty (These R.Ident ContainerQuery) }
     : IdContainerQuery                            { $1 :| [] }
     | IdContainerQuery ',' ContainerQueryMap      { $1 <| $3 }
