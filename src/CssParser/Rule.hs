@@ -8,15 +8,18 @@ import CssParser.At.Keyframe
 import CssParser.At.Layer
 import CssParser.At.MediaQuery
 import CssParser.At.Page
-import CssParser.At.Supports
+import CssParser.At.Supports qualified as S
 import CssParser.Ident
 import CssParser.MonoPair
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Value
 
+type SelectorList = NonEmpty Selector
+type FeatureQuery = S.FeatureQuery SelectorList
+
 data CssRule
-  = CssRule (NonEmpty Selector) [CssRuleBodyItem]
+  = CssRule SelectorList [CssRuleBodyItem]
   | MediaRule MediaQueryList [CssRuleBodyItem]
   | LayerBlock (Maybe LayerName) [CssRuleBodyItem]
   | Page PageSelectorList [CssRuleBodyItem]
@@ -32,7 +35,7 @@ data CssRule
   | PositionTry Var [PropEntry]
   | StartingStyle [CssRuleBodyItem]
   | ViewTransition [CssRuleBodyItem]
-  | ScopeBlock (MonoPair (NonEmpty Selector)) [CssRuleBodyItem]
+  | ScopeBlock (MonoPair SelectorList) [CssRuleBodyItem]
   | Supports FeatureQuery [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
@@ -61,7 +64,7 @@ data TagSelector
 data Class
   = AtomicClass { unClass :: Ident }
   | AtomicPseudoClass AtomicPseudoClass
-  | NotClass (NonEmpty Selector)
+  | NotClass SelectorList
   | Lang Language
   | NthChild Nth
   | NthLastChild Nth

@@ -13,7 +13,7 @@ import CssParser.At.Layer
 import CssParser.At.MediaQuery
 import CssParser.At.Namespace
 import CssParser.At.Page
-import CssParser.At.Supports
+import CssParser.At.Supports hiding (FeatureQuery)
 import CssParser.Norm
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em, Deg, Grad, Rad, Turn, Rem)
@@ -40,7 +40,7 @@ import CssParser.Lexer
     , PseudoPageT, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
-    , StartingStyleT, ViewTransitionT, ScopeT, ToT, SupportsT
+    , StartingStyleT, ViewTransitionT, ScopeT, ToT, SupportsT, SelectorFunT
     )
   )
 import CssParser.MonoPair
@@ -49,7 +49,6 @@ import CssParser.Prelude
   ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe, rightToMaybe, These(..)
   )
 import CssParser.Rule
-import CssParser.Rule.Show (SelectorList)
 import Data.Text (Text, pack)
 
 import Prelude
@@ -120,6 +119,7 @@ import Prelude
     'and'       { TokenLoc AndT _ _ }
 -- media end
     'url('      { TokenLoc UrlT _ _ }
+    'selector(' { TokenLoc SelectorFunT _ _ }
     '^='        { TokenLoc TPrefixMatch _ _ }
     '$='        { TokenLoc TSuffixMatch _ _ }
     '*='        { TokenLoc TSubstringMatch _ _ }
@@ -230,6 +230,8 @@ FeatureQuery :: { FeatureQuery }
     | FeatureQuery Os BOP Os FeatureQuery         { FqBop $3 $1 $5 }
     | 'not' FeatureQuery                          { FqNot $2 }
     | 'not' FeatureQuery Os BOP Os FeatureQuery   { FqBop $4 (FqNot $2) $6 }
+    | 'selector(' SelectorList ')'                { FqApp (FqSelectorFun $2) }
+    | Ident '(' PropVals ')'                      { FqApp (FqSomeFun $1 $3) }
 ESL :: { SelectorList }
     : '(' SelectorList ')'                        { $2 }
 SelectorPair :: { MonoPair SelectorList }
@@ -291,7 +293,6 @@ StrEitherIds :: { Either LiteralString IdentList }
 IdentList :: { NonEmpty R.Ident }
     : Ident                                       { $1 :| [] }
     | Ident ' ' IdentList                         { $1 <| $3 }
-
 ColorPropEntries
     : srcProp ':' PropVals ';' ColorPropEntries   { PropEntry (PropertyName "src") $3 : $5 }
     | PropEntry ColorPropEntries                  { $1 : $2 }

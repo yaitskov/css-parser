@@ -46,7 +46,6 @@ instance CssShow CssRule where
 embrace :: CssShow a => a -> LText
 embrace x = " {" <> toCssText x <> "}"
 
-type SelectorList = NonEmpty Selector
 instance ShowSpaceBetween (MonoPair SelectorList) SelectorList  where
   cssSpace _ _ = ") to ("
 instance ShowParenthesis (MonoPair SelectorList) SelectorList where

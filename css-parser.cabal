@@ -95,7 +95,6 @@ test-suite test
     , CssParser.Test.Arbitrary.Media
     , CssParser.Test.Arbitrary.MonoPair
     , CssParser.Test.Arbitrary.Rule
-    , CssParser.Test.Arbitrary.Supports
     , CssParser.Test.Arbitrary.Value
 
   build-depends:

@@ -72,16 +72,24 @@ data MediaFeature
   | MfClosedRange PropVal MfRelation PropertyName MfRelation PropVal
   deriving (Show, Eq, Ord, Generic)
 
+toPlainMf :: PropVals -> MediaFeature -> MediaFeature
+toPlainMf pvs = \case
+  BooleanMf pn -> PlainMf pn pvs
+  OpenRangeFeature pn _ pv -> PlainMf pn . PropVals $ pure pv
+  OpenRangeFeatureFlipped pv _ pn -> PlainMf pn . PropVals $ pure pv
+  MfClosedRange pv _  pn _ _ -> PlainMf pn . PropVals $ pure pv
+  o -> o
+
 instance CssShow MediaFeature where
   toCssText = \case
     PlainMf i v -> toCssText i <> ": " <> toCssText v
     BooleanMf i -> toCssText i
     OpenRangeFeature i r v ->
-      toCssText i <> " " <> toCssText r <> " " <> toCssText v
+      toCssText i <> toCssText r <> toCssText v
     OpenRangeFeatureFlipped v r i ->
-      toCssText v <> " " <> toCssText r <> " " <> toCssText i
+      toCssText v <> toCssText r <> toCssText i
     MfClosedRange lv lr i rr rv ->
-      toCssText lv <> " " <> toCssText lr <> " " <> toCssText i <> toCssText rr <> " " <> toCssText rv
+      toCssText lv <> toCssText lr <> toCssText i <> toCssText rr <> toCssText rv
 
 data MfRelation
   = MfEq
@@ -93,8 +101,8 @@ data MfRelation
 
 instance CssShow MfRelation where
   toCssText = \case
-    MfEq -> "="
-    MfGt -> ">"
-    MfLt -> "<"
-    MfGe -> ">="
-    MfLe -> "<="
+    MfEq -> " = "
+    MfGt -> " > "
+    MfLt -> " < "
+    MfGe -> " >= "
+    MfLe -> " <= "

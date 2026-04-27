@@ -71,7 +71,7 @@ $pm       = [\-\+]
 @hyphen  = [\-]|\\0{0,4}2d
 @var     = [\-][\-]
 @starting = @s@t@a@r@t@i@n@g
-
+@selector = @s@e@l@e@c@t@o@r
 @supports = @s@u@p@p@o@r@t@s
 @scope   = @s@c@o@p@e
 @view    = @v@i@e@w
@@ -206,6 +206,7 @@ tokens :-
   @not @wo                                { constoken NotT }
   @or @wo                                 { constoken OrT }
   @and @wo                                { constoken AndT }
+  @selector "("                           { constoken SelectorFunT }
   @wo @url @wo "("                        { constoken UrlT }
   "."                                     { constoken Dot }
   "*"                                     { constoken Asterisk }
@@ -382,6 +383,7 @@ data Token
     | PageT
     | PageMarginT PageMargin
 
+    | SelectorFunT
     | SupportsT
     | ScopeT
     | ViewTransitionT

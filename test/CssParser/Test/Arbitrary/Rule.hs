@@ -2,8 +2,10 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.Rule where
 
+import CssParser.At.Supports ( FqFun )
 import CssParser.FixRule ( nullTagSelector )
-import CssParser.Ident
+import CssParser.Ident ( TagName(AsteriskTag) )
+import CssParser.Norm ( normUntilConst )
 import CssParser.Rule
 import CssParser.Rule.Pseudo
 import CssParser.Test.Arbitrary
@@ -15,7 +17,7 @@ import CssParser.Test.Arbitrary.FontPaletteValues ()
 import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Media ()
 import CssParser.Test.Arbitrary.MonoPair ()
-import CssParser.Test.Arbitrary.Supports ()
+
 
 instance Arbitrary Hash where
     arbitrary = Hash <$> arbitraryIdent
@@ -45,3 +47,9 @@ deriving via (GenericArbitrary PseudoElement) instance Arbitrary PseudoElement
 
 instance Arbitrary AtomicPseudoClass where
   arbitrary = arbitraryBoundedEnum
+
+deriving via (GenericArbitrary (FqFun SelectorList)) instance Arbitrary (FqFun SelectorList)
+
+instance Arbitrary FeatureQuery where
+  arbitrary = normUntilConst <$> genericArbitrary
+  shrink = normUntilConst <$> genericShrink

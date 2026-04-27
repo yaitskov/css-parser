@@ -151,6 +151,7 @@ supports =
   , "@supports not (transform-origin: 10em 10em 10em) {}"
   , "@supports (transform-origin: 5% 5%) { }"
   , "@supports not (not (transform-origin: 2px)) { }"
+  , "@supports selector(h2 > p) and font-tech(color-COLRv1) or font-format(opentype) {}"
   , "@supports (display: grid) and (not (display: inline-grid)) { }"
   ]
 
