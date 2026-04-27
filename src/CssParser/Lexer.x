@@ -286,6 +286,7 @@ tokens :-
   @psc @r@e@a@d@hyphen@w@r@i@t@e          { constoken (AtomicPseudoClassT ReadWrite) }
   @psc @r@e@q@u@i@r@e@d                   { constoken (AtomicPseudoClassT Required) }
   @psc @r@o@o@t                           { constoken (AtomicPseudoClassT Root) }
+  @psc @scope                             { constoken (AtomicPseudoClassT Scope) }
   @psc @t@a@r@g@e@t                       { constoken (AtomicPseudoClassT Target) }
   @psc @v@a@l@i@d                         { constoken (AtomicPseudoClassT Valid) }
   @psc @v@i@s@i@t@e@d                     { constoken (AtomicPseudoClassT Visited) }

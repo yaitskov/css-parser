@@ -43,6 +43,7 @@ data AtomicPseudoClass
   | ReadWrite  -- ^ The @:rad-write@ pseudo class.
   | Required  -- ^ The @:required@ pseudo class.
   | Root  -- ^ The @:root@ pseudo class.
+  | Scope
   | Target  -- ^ The @:target@ pseudo class.
   | Valid  -- ^ The @:valid@ pseudo class.
   | Visited  -- ^ The @:visited@ pseudo class.
@@ -97,6 +98,7 @@ instance CssShow AtomicPseudoClass where
         ReadWrite -> "read-write"
         Required -> "required"
         Root -> "root"
+        Scope -> "scope"
         Target -> "target"
         Valid -> "valid"
         Visited -> "visited"
