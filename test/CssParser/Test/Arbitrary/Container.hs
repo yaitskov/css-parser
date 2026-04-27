@@ -18,10 +18,10 @@ instance Norm CqOp where
     o -> o
     where
     n = \case
-      BooleanMf pn -> PlainMf pn (IntVal 0 Mm)
-      OpenRangeFeature pn _ pv -> PlainMf pn pv
-      OpenRangeFeatureFlipped pv _ pn -> PlainMf pn pv
-      MfClosedRange pv _  pn _ _ -> PlainMf pn pv
+      BooleanMf pn -> PlainMf pn . PropVals $ pure (IntVal 0 Mm)
+      OpenRangeFeature pn _ pv -> PlainMf pn . PropVals $ pure pv
+      OpenRangeFeatureFlipped pv _ pn -> PlainMf pn . PropVals $ pure pv
+      MfClosedRange pv _  pn _ _ -> PlainMf pn . PropVals $ pure pv
       o -> o
 
 deriving via (GenericArbitrary (Not ContainerQuery CqOp)) instance Arbitrary (Not ContainerQuery CqOp)

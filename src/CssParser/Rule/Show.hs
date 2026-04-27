@@ -39,7 +39,12 @@ instance CssShow CssRule where
     ViewTransition body ->
       "@view-transition {" <> toCssText body <> "}"
     ScopeBlock range body ->
-      "@scope " <> toCssText range <> " {" <> toCssText body <> "}"
+      "@scope " <> toCssText range <> embrace body
+    Supports fq body ->
+      "@supports " <> toCssText fq <> embrace body
+
+embrace :: CssShow a => a -> LText
+embrace x = " {" <> toCssText x <> "}"
 
 type SelectorList = NonEmpty Selector
 instance ShowSpaceBetween (MonoPair SelectorList) SelectorList  where

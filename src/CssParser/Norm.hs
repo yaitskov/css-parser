@@ -62,3 +62,10 @@ instance Norm LText where
 
 instance Norm Integer where
   normalize = id
+
+normUntilConst :: (Norm a, Eq a) => a -> a
+normUntilConst a =
+  let a' = normalize a in
+    if a' == a
+    then a'
+    else normUntilConst a'

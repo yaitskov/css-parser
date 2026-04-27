@@ -46,6 +46,7 @@ library
     , CssParser.At.MediaQuery
     , CssParser.At.Namespace
     , CssParser.At.Page
+    , CssParser.At.Supports
     , CssParser.File
     , CssParser.FixRule
     , CssParser.Fun
@@ -94,6 +95,7 @@ test-suite test
     , CssParser.Test.Arbitrary.Media
     , CssParser.Test.Arbitrary.MonoPair
     , CssParser.Test.Arbitrary.Rule
+    , CssParser.Test.Arbitrary.Supports
     , CssParser.Test.Arbitrary.Value
 
   build-depends:

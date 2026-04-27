@@ -27,7 +27,7 @@ data AttrName
   , attrName :: Ident
   } deriving (Eq, Ord, Show, Generic)
 
-newtype Var = Var Ident deriving newtype (Show, Eq, Ord) deriving (Generic)
+newtype Var = Var Ident deriving newtype (Show, Eq, Ord, IsString) deriving (Generic)
 
 instance CssShow Var where
   toCssText (Var i) = "--" <> toCssText i

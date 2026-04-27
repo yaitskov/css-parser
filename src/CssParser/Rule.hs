@@ -8,6 +8,7 @@ import CssParser.At.Keyframe
 import CssParser.At.Layer
 import CssParser.At.MediaQuery
 import CssParser.At.Page
+import CssParser.At.Supports
 import CssParser.Ident
 import CssParser.MonoPair
 import CssParser.Prelude
@@ -31,7 +32,8 @@ data CssRule
   | PositionTry Var [PropEntry]
   | StartingStyle [CssRuleBodyItem]
   | ViewTransition [CssRuleBodyItem]
-  | ScopeBlock (MonoPair (NonEmpty Selector))  [CssRuleBodyItem]
+  | ScopeBlock (MonoPair (NonEmpty Selector)) [CssRuleBodyItem]
+  | Supports FeatureQuery [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

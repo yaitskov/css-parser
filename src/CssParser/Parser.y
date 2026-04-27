@@ -13,6 +13,8 @@ import CssParser.At.Layer
 import CssParser.At.MediaQuery
 import CssParser.At.Namespace
 import CssParser.At.Page
+import CssParser.At.Supports
+import CssParser.Norm
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em, Deg, Grad, Rad, Turn, Rem)
 import CssParser.Rule.Value qualified as Vl
@@ -38,7 +40,7 @@ import CssParser.Lexer
     , PseudoPageT, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
-    , StartingStyleT, ViewTransitionT, ScopeT, ToT
+    , StartingStyleT, ViewTransitionT, ScopeT, ToT, SupportsT
     )
   )
 import CssParser.MonoPair
@@ -47,6 +49,7 @@ import CssParser.Prelude
   ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe, rightToMaybe, These(..)
   )
 import CssParser.Rule
+import CssParser.Rule.Show (SelectorList)
 import Data.Text (Text, pack)
 
 import Prelude
@@ -81,6 +84,7 @@ import Prelude
     'charset'   { TokenLoc CharsetT _ _ }
     unRange     { TokenLoc UnicodeRangeT _ _ }
     '@'         { TokenLoc AtT _ _ }
+    supports    { TokenLoc SupportsT _ _ }
     viewTransition
                 { TokenLoc ViewTransitionT _ _ }
     startingStyle
@@ -154,8 +158,8 @@ import Prelude
     ')'         { TokenLoc TClose _ _ }
     '/'         { TokenLoc DivT _ _ }
 
-%left 'or' 'and'
 %right 'not'
+%left 'or' 'and'
 %%
 
 CssFile
@@ -214,17 +218,26 @@ CssRule :: { CssRule }
                                                   }
     | fontPaletteValues ' ' Var Os '{' PropEntries '}'
                                                   { FontPaletteValuesBlock (FontPaletteValues (R.Var $3) $6) }
-    | container Os ContainerQueryMap '{' CssRuleBody '}'
-                                                  { Container (ContainerQueryMap $3) $5 }
+    | container Os ContainerQueryMap ERB          { Container (ContainerQueryMap $3) $4 }
     | positionTry Os Var '{' PropEntries '}'      { PositionTry (R.Var $3) $5 }
-    | startingStyle Os '{' CssRuleBody '}'        { StartingStyle $4 }
-    | viewTransition Os '{' CssRuleBody '}'       { ViewTransition $4 }
-    | scope Os '{' CssRuleBody '}'                { ScopeBlock EmptyPair $4 }
-    | scope Os '(' SelectorList ')' Os '{' CssRuleBody '}'
-                                                  { ScopeBlock (HalfPair $4) $8 }
-
-    | scope Os '(' SelectorList ')' Os 'to' Os '(' SelectorList ')' Os '{' CssRuleBody '}'
-                                                  { ScopeBlock (FullPair $4 $10) $14 }
+    | startingStyle Os ERB                        { StartingStyle $3 }
+    | viewTransition Os ERB                       { ViewTransition $3 }
+    | scope Os SelectorPair ERB                   { ScopeBlock $3 $4 }
+    | supports Os FeatureQuery ERB                { Supports (normalize $3) $4 }
+FeatureQuery :: { FeatureQuery }
+    : '(' MediaFeature ')'                        { FqMediaFeature $2 }
+    | '(' FeatureQuery ')'                        { FqParen $2 }
+    | FeatureQuery Os BOP Os FeatureQuery         { FqBop $3 $1 $5 }
+    | 'not' FeatureQuery                          { FqNot $2 }
+    | 'not' FeatureQuery Os BOP Os FeatureQuery   { FqBop $4 (FqNot $2) $6 }
+ESL :: { SelectorList }
+    : '(' SelectorList ')'                        { $2 }
+SelectorPair :: { MonoPair SelectorList }
+    :                                             { EmptyPair }
+    | ESL Os                                      { HalfPair $1 }
+    | ESL Os 'to' Os ESL Os                       { FullPair $1 $5 }
+ERB :: { [CssRuleBodyItem] } -- Embraced Rule Body
+    : '{' CssRuleBody '}'                         { $2 }
 ContainerQueryMap :: { NonEmpty (These R.Ident ContainerQuery) }
     : IdContainerQuery                            { $1 :| [] }
     | IdContainerQuery ',' ContainerQueryMap      { $1 <| $3 }
@@ -255,8 +268,8 @@ CQ :: { ContainerQuery }
                                                       (AsIs (CqApp $1 $4))
                                                       $8
                                                   }
-    | Ident ':' PropVal                           { CqFeature (AsIs (CqOpFeature (PlainMf (PropertyName $1) $3))) }
-    | Var   ':' PropVal                           { CqFeature (AsIs (CqOpFeature (PlainMf (VarProp (R.Var $1)) $3))) }
+    | Ident ':' PropVals                          { CqFeature (AsIs (CqOpFeature (PlainMf (PropertyName $1) $3))) }
+    | Var   ':' PropVals                          { CqFeature (AsIs (CqOpFeature (PlainMf (VarProp (R.Var $1)) $3))) }
     | 'not' '(' MediaFeature ')' Os BOP CQ        { CqBin $6 (Not (CqOpFeature $3)) $7 }
     | 'not' '(' MediaFeature ')'                  { CqFeature (Not (CqOpFeature $3)) }
     | 'not' Os Ident Os '(' CQ ')'                { CqFeature (Not (CqApp $3 $6)) }
@@ -280,8 +293,7 @@ IdentList :: { NonEmpty R.Ident }
     | Ident ' ' IdentList                         { $1 <| $3 }
 
 ColorPropEntries
-    : srcProp ':' CssPropertyVals ';' ColorPropEntries
-                                                  { PropEntry (PropertyName "src") (PropVals $3) : $5 }
+    : srcProp ':' PropVals ';' ColorPropEntries   { PropEntry (PropertyName "src") $3 : $5 }
     | PropEntry ColorPropEntries                  { $1 : $2 }
     |                                             { [] }
 CommaSeparatedList :: { NonEmpty PropVals }
@@ -312,7 +324,7 @@ PropertyName :: { PropertyName }
     : IdKwd                                       { PropertyName $1 }
     | Var                                         { VarProp (R.Var $1) }
 PropEntry :: { PropEntry }
-    : PropertyName ':' CssPropertyVals ';'        { PropEntry $1 (PropVals $3) }
+    : PropertyName ':' PropVals ';'               { PropEntry $1 $3 }
 PageSelectorList
     : PageSelector                                { [ $1 ] }
     | PageSelector Os PageSelectorList            { $1 : $3 }
@@ -355,19 +367,19 @@ MediaCondition :: { MediaBoolExpr }
     | '(' MediaFeature ')'                        { MediaFeature (AsIs $2) }
 
 MediaFeature :: { MediaFeature }
-    : PropertyName ':' PropVal                    { PlainMf $1 $3 }
+    : PropertyName ':' PropVals                   { PlainMf $1 $3 }
     | PropertyName MfRel PropVal                  { OpenRangeFeature $1 $2 $3 }
     | PropertyName MfRel PropertyName MfRel PropVal
                                                   { MfClosedRange (propRef $1) $2 $3 $4 $5 }
-    | PropertyName '(' CssPropertyVals ')' MfRel PropertyName
+    | PropertyName '(' PropVals ')' MfRel PropertyName
                                                   { OpenRangeFeatureFlipped
-                                                      (AppFun $1 (PropVals $3))
+                                                      (AppFun $1 $3)
                                                       $5
                                                       $6
                                                   }
-    | PropertyName '(' CssPropertyVals ')' MfRel PropertyName MfRel PropVal
+    | PropertyName '(' PropVals ')' MfRel PropertyName MfRel PropVal
                                                   { MfClosedRange
-                                                      (AppFun $1 (PropVals $3))
+                                                      (AppFun $1 $3)
                                                       $5
                                                       $6
                                                       $7
@@ -402,7 +414,7 @@ PropVal :: { PropVal }
     | 'ratio'                                     { RatioVal $1 }
     | PropertyName Os                             { propRef $1 }
     | PropertyName Os '/' Os PropertyName         { Div $1 $5 }
-    | PropertyName '(' CssPropertyVals ')'        { AppFun $1 (PropVals $3) }
+    | PropertyName '(' PropVals ')'               { AppFun $1 $3 }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
     | hash                                        { HexColor (HC (pack $1)) }
@@ -412,10 +424,10 @@ Unsigned
 
 CssRuleBody :: { [ CssRuleBodyItem ] }
     :                                             { [] }
-    | Var   ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (VarProp (R.Var $1)) (PropVals $3) : $5 }
-    | IdKwd ':' CssPropertyVals ';' CssRuleBody   { CssLeafRule (PropertyName $1) (PropVals $3) : $5 }
-    | Var   ':' CssPropertyVals                   { [ CssLeafRule (VarProp (R.Var $1)) (PropVals $3) ] }
-    | IdKwd ':' CssPropertyVals                   { [ CssLeafRule (PropertyName $1) (PropVals $3) ] }
+    | Var   ':' PropVals ';' CssRuleBody          { CssLeafRule (VarProp (R.Var $1)) $3 : $5 }
+    | IdKwd ':' PropVals ';' CssRuleBody          { CssLeafRule (PropertyName $1) $3 : $5 }
+    | Var   ':' PropVals                          { [ CssLeafRule (VarProp (R.Var $1)) $3 ] }
+    | IdKwd ':' PropVals                          { [ CssLeafRule (PropertyName $1) $3 ] }
     | IdKwd '{' CssRuleBody '}' CssRuleBody       { CssNestedRule (tagNameRule $1 $3) : $5 }
     | IdKwd '>' OptSpace CssRule CssRuleBody      { CssNestedRule (prependIdentToRule $1 Child $4) : $5 }
     | IdKwd ' ' CssRule CssRuleBody               { CssNestedRule (prependIdentToRule $1 Descendant $3) : $4 }
@@ -432,6 +444,9 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | IdKwd ',' CssRule CssRuleBody               { CssNestedRule (prependSelectorToRule $1 $3) : $4 }
     | IdKwd '.' CssRule CssRuleBody               { CssNestedRule (tagNameIsClass $1 $3) : $4 }
     | CssRule CssRuleBody                         { CssNestedRule $1 : $2 }
+
+PropVals :: { PropVals }
+    : CssPropertyVals                             { PropVals $1 }
 
 CssPropertyVals :: { NonEmpty PropVal }
     : PropVal                                     { $1 :| [] }

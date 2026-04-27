@@ -84,9 +84,11 @@ encodeDecodeCss sg =
     Ok parsedSg
       | sg == parsedSg -> True
       | otherwise ->
-        error $ "Parsed value differs:\n" <> show parsedSg <>
-          "\nCSS Input:\n" <> sgTxt <>
-          "\nCSS Print:\n" <> TL.unpack (toCssText parsedSg)
+        error $
+          "CSS Input:\n" <> sgTxt <>
+          "\nCSS Print:\n" <> TL.unpack (toCssText parsedSg) <>
+          "\nParsed:\n" <> show parsedSg <>
+          "\nSHOWED INPUT: "
   where
     sgTxt = TL.unpack $ toCssText sg
 
@@ -98,7 +100,9 @@ examples :: [String]
 examples = media <> validSelectors <> layer <> page
 
 at :: [String]
-at = colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <> container <> positionTry
+at =
+  colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <>
+  container <> positionTry <> supports
 
 colorProfile :: [String]
 colorProfile =
@@ -138,6 +142,16 @@ positionTry =
   , "@view-transition {}"
   , "@scope { x: 1rem; }"
   , "@scope { :scope {x: 1rem;} }"
+  ]
+
+supports :: [String]
+supports =
+  [ "@supports (transform-style: preserve-3d) or\n" <>
+      "( (-moz-transform-style: preserve-3d) or (-webkit-transform-style: preserve-3d)  ) {  }"
+  , "@supports not (transform-origin: 10em 10em 10em) {}"
+  , "@supports (transform-origin: 5% 5%) { }"
+  , "@supports not (not (transform-origin: 2px)) { }"
+  , "@supports (display: grid) and (not (display: inline-grid)) { }"
   ]
 
 properties :: [String]

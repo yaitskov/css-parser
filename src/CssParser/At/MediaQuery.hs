@@ -65,7 +65,7 @@ instance CssShow MediaBoolExpr where
     MediaFeature mf -> toCssText mf
 
 data MediaFeature
-  = PlainMf PropertyName PropVal
+  = PlainMf PropertyName PropVals
   | BooleanMf PropertyName
   | OpenRangeFeature PropertyName MfRelation PropVal
   | OpenRangeFeatureFlipped PropVal MfRelation PropertyName

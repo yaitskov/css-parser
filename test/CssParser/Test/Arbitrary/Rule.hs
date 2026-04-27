@@ -2,19 +2,20 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.Rule where
 
-import CssParser.Ident
 import CssParser.FixRule ( nullTagSelector )
+import CssParser.Ident
 import CssParser.Rule
 import CssParser.Rule.Pseudo
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.At ()
+import CssParser.Test.Arbitrary.Container ()
 import CssParser.Test.Arbitrary.FontFace ()
 import CssParser.Test.Arbitrary.FontFeatureValues ()
 import CssParser.Test.Arbitrary.FontPaletteValues ()
-import CssParser.Test.Arbitrary.Container ()
 import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Media ()
 import CssParser.Test.Arbitrary.MonoPair ()
+import CssParser.Test.Arbitrary.Supports ()
 
 instance Arbitrary Hash where
     arbitrary = Hash <$> arbitraryIdent

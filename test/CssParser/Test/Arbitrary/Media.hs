@@ -13,7 +13,7 @@ instance Norm MediaFeature where
   normalize = \case
     OpenRangeFeatureFlipped v@IdentRef {} r i -> OpenRangeFeature i (flipRel r) v
     OpenRangeFeatureFlipped v@VarRef {} r i -> OpenRangeFeature i (flipRel r) v
-    MfClosedRange lv MfEq i _ _ -> PlainMf i lv
+    MfClosedRange lv MfEq i _ _ -> PlainMf i . PropVals $ pure lv
     o -> o
 
 instance Arbitrary MediaFeature where
@@ -35,8 +35,6 @@ deriving via (GenericArbitrary MfRelation) instance Arbitrary MfRelation
 deriving via (GenericArbitrary MtModifier) instance Arbitrary MtModifier
 deriving via (GenericArbitrary MediaType) instance Arbitrary MediaType
 deriving via (GenericArbitrary (Not MediaBoolExpr MediaFeature)) instance Arbitrary (Not MediaBoolExpr MediaFeature)
-
-
 
 deriving via (GenericArbitrary MediaQuery) instance Arbitrary MediaQuery
 deriving via (GenericArbitrary MediaQueryList) instance Arbitrary MediaQueryList
