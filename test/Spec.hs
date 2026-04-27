@@ -102,7 +102,7 @@ examples = media <> validSelectors <> layer <> page
 at :: [String]
 at =
   colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <>
-  container <> positionTry <> supports
+  container <> positionTry <> supports <> unknown
 
 colorProfile :: [String]
 colorProfile =
@@ -153,6 +153,16 @@ supports =
   , "@supports not (not (transform-origin: 2px)) { }"
   , "@supports selector(h2 > p) and font-tech(color-COLRv1) or font-format(opentype) {}"
   , "@supports (display: grid) and (not (display: inline-grid)) { }"
+  ]
+
+unknown :: [String]
+unknown =
+  [ "@foobar{margin: 20px;}"
+  , "@foobar {margin: 20px;}"
+  , "@foobar aoeu {margin: 20px;}"
+  , "@foobar aoeu{margin: 20px;}"
+  , "@foobar \"oeu\" {margin: 20px;}"
+  , "@foobar ao, eu {margin: 20px;}"
   ]
 
 properties :: [String]

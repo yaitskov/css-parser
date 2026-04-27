@@ -37,6 +37,7 @@ data CssRule
   | ViewTransition [CssRuleBodyItem]
   | ScopeBlock (MonoPair SelectorList) [CssRuleBodyItem]
   | Supports FeatureQuery [CssRuleBodyItem]
+  | UnknownGramma Ident (Maybe CommaSeparatedList) [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 data Selector

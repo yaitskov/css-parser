@@ -224,6 +224,8 @@ CssRule :: { CssRule }
     | viewTransition Os ERB                       { ViewTransition $3 }
     | scope Os SelectorPair ERB                   { ScopeBlock $3 $4 }
     | supports Os FeatureQuery ERB                { Supports (normalize $3) $4 }
+    | '@' Ident Os CommaSeparatedList Os ERB      { UnknownGramma $2 (Just (CommaSeparatedList $4)) $6 }
+    | '@' Ident Os ERB                            { UnknownGramma $2 Nothing $4 }
 FeatureQuery :: { FeatureQuery }
     : '(' MediaFeature ')'                        { FqMediaFeature $2 }
     | '(' FeatureQuery ')'                        { FqParen $2 }

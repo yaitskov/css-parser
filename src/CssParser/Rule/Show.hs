@@ -42,6 +42,8 @@ instance CssShow CssRule where
       "@scope " <> toCssText range <> embrace body
     Supports fq body ->
       "@supports " <> toCssText fq <> embrace body
+    UnknownGramma i query body ->
+      "@" <> toCssText i <> " " <> maybe "" toCssText query <> embrace body
 
 embrace :: CssShow a => a -> LText
 embrace x = " {" <> toCssText x <> "}"
