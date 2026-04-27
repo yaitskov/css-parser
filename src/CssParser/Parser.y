@@ -424,10 +424,8 @@ Unsigned
 
 CssRuleBody :: { [ CssRuleBodyItem ] }
     :                                             { [] }
-    | Var   ':' PropVals ';' CssRuleBody          { CssLeafRule (VarProp (R.Var $1)) $3 : $5 }
-    | IdKwd ':' PropVals ';' CssRuleBody          { CssLeafRule (PropertyName $1) $3 : $5 }
-    | Var   ':' PropVals                          { [ CssLeafRule (VarProp (R.Var $1)) $3 ] }
-    | IdKwd ':' PropVals                          { [ CssLeafRule (PropertyName $1) $3 ] }
+    | PropertyName ':' PropVals ';' CssRuleBody   { CssLeafRule $1 $3 : $5 }
+    | PropertyName ':' PropVals                   { [ CssLeafRule $1 $3 ] }
     | IdKwd '{' CssRuleBody '}' CssRuleBody       { CssNestedRule (tagNameRule $1 $3) : $5 }
     | IdKwd '>' OptSpace CssRule CssRuleBody      { CssNestedRule (prependIdentToRule $1 Child $4) : $5 }
     | IdKwd ' ' CssRule CssRuleBody               { CssNestedRule (prependIdentToRule $1 Descendant $3) : $4 }
