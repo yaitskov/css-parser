@@ -143,6 +143,8 @@ misc =
   , "@scope { x: 1rem; }"
   , "@scope { :scope {x: 1rem;} }"
   , "div { > p { --x: 1px; }}"
+  , "div {>p{ --x: 1px; }}"
+  , "div {p{ --x: 1px; }}"
   ]
 
 supports :: [String]
@@ -242,6 +244,8 @@ validSelectors =
   , "div *:first-child"
   , "body > h2:nth-of-type(n+2):nth-last-of-type(n+2)"
   , "body > h2:not(:first-of-type):not(:last-of-type)"
+  , ":where(ol, ul, menu:focus)"
+  , "div:where(ol, ul) :where(ol, ul, menu:hover) ol"
   , "h1, h2, h3"
   , "h1"
   , "foo|h1"

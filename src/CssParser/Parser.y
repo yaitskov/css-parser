@@ -36,7 +36,7 @@ import CssParser.Lexer
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
     , RatioT, Percents, Pixels
-    , UrlT
+    , UrlT, TWhere
     , PseudoPageT, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
@@ -153,6 +153,7 @@ import Prelude
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
     'not('      { TokenLoc TNot _ _ }
+    where       { TokenLoc TWhere _ _ }
     'lang('     { TokenLoc TLang _ _ }
     '('         { TokenLoc TOpen _ _ }
     ')'         { TokenLoc TClose _ _ }
@@ -443,6 +444,8 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                   { upsertHeadTagSelector (setTag $1 . addClass (NotClass $3)) $5 $6 }
     | IdKwd 'not(' SelectorList ')' ERB CssRuleBody
                                                   { newRule (setTag $1 . addClass (NotClass $3)) $5 $6 }
+    | IdKwd where ESL ContinueRule CssRuleBody    { upsertHeadTagSelector (setTag $1 . addClass (Where $3)) $4 $5 }
+    | IdKwd where ESL ERB CssRuleBody             { newRule (setTag $1 . addClass (Where $3)) $4 $5 }
     | IdKwd 'lang(' Str ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector (setTag $1 . addClass (Lang (Language $3))) $5 $6 }
     | IdKwd 'lang(' Str ')' ERB CssRuleBody       { newRule (setTag $1 . addClass (Lang (Language $3))) $5 $6 }
@@ -500,6 +503,7 @@ TagClass :: { Class }
     | pseudc                                          { AtomicPseudoClass $1 }
     | 'not(' SelectorList ')'                         { NotClass $2 }
     | 'lang(' string ')'                              { Lang (Language (pack $2)) }
+    | where ESL                                       { Where $2 }
     | pseudf Os Nth                                   { call $1 $3 }
 ZipTagRelAndTagSel :: { [ (TagRelation, TagSelector) ] }
     :                                                 { [] }

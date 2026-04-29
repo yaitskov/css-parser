@@ -67,6 +67,7 @@ data Class
   | AtomicPseudoClass AtomicPseudoClass
   | NotClass SelectorList
   | Lang Language
+  | Where SelectorList
   | NthChild Nth
   | NthLastChild Nth
   | NthLastOfType Nth

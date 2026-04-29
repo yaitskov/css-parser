@@ -118,6 +118,7 @@ $pm       = [\-\+]
 
 @to      = @t@o
 @not     = @n@o@t
+@where   = @w@h@e@r@e
 @and     = @a@n@d
 @or      = @o@r
 @only    = @o@n@l@y
@@ -277,7 +278,8 @@ tokens :-
   @psc @nthh@lasth@child "("              { constAndBegin (PseudoFunction NthFLastChild) nth_state }
   @psc @nthh@lasth@oftype "("             { constAndBegin (PseudoFunction NthFLastOfType) nth_state }
   @psc @nthh@oftype "("                   { constAndBegin (PseudoFunction NthFOfType) nth_state }
-  @psc @n@o@t "(" @wo                     { constoken TNot }
+  @psc @not "(" @wo                       { constoken TNot }
+  @psc @where                             { constoken TWhere }
   @wo ")"                                 { constoken TClose }
   "("                                     { constoken TOpen }
   @psc @onlyh@oftype                      { constoken (AtomicPseudoClassT OnlyOfType) }
@@ -292,10 +294,12 @@ tokens :-
   @psc @t@a@r@g@e@t                       { constoken (AtomicPseudoClassT Target) }
   @psc @v@a@l@i@d                         { constoken (AtomicPseudoClassT Valid) }
   @psc @v@i@s@i@t@e@d                     { constoken (AtomicPseudoClassT Visited) }
+
   @psc @left                              { constoken (PseudoPageT LeftPp) }
   @psc @right                             { constoken (PseudoPageT RightPp) }
   @psc @blank                             { constoken (PseudoPageT BlankPp) }
   @psc @first                             { constoken (PseudoPageT FirstPp) }
+
   $w @wo                                  { constoken Space }
   @cmo                                    { begin comment }
   "<!--"                                  { begin htmlComment }
@@ -426,6 +430,7 @@ data Token
     | TOpen
     | TClose
     | TNot
+    | TWhere
     | TLang
     deriving (Show, Eq)
 
