@@ -102,7 +102,7 @@ examples = media <> validSelectors <> layer <> page
 at :: [String]
 at =
   colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <>
-  container <> positionTry <> supports <> unknown
+  container <> misc <> supports <> unknown
 
 colorProfile :: [String]
 colorProfile =
@@ -135,13 +135,14 @@ container =
   , "@container style(--theme: one) or style(--theme: two) {}"
   ]
 
-positionTry :: [String]
-positionTry =
+misc :: [String]
+misc =
   [ "@position-try --x {x: 1px;}"
   , "@starting-style {}"
   , "@view-transition {}"
   , "@scope { x: 1rem; }"
   , "@scope { :scope {x: 1rem;} }"
+  , "div { > p { --x: 1px; }}"
   ]
 
 supports :: [String]

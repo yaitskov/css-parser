@@ -105,16 +105,16 @@ instance CssShow Hash where
 
 instance CssShow Selector where
   toCssText = \case
-    Selector fts tss ->
-      fold fts tss
-    PeSelector fts tss pe ->
-      fold fts tss <> toCssText pe
+    Selector frl fts tss ->
+      fold frl fts tss
+    PeSelector frl fts tss pe ->
+      fold frl fts tss <> toCssText pe
     PeSelectorOnly pe -> toCssText pe
     where
-      fold fts =
+      fold frl fts =
         foldl
           (\ s (tr, ts) -> s <> toCssText tr <> toCssText ts)
-          (toCssText fts)
+          (maybe "" toCssText frl <> toCssText fts)
 
 instance CssShow TagSelector where
   toCssText ts =

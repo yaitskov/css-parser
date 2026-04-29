@@ -279,7 +279,7 @@ tokens :-
   @psc @nthh@oftype "("                   { constAndBegin (PseudoFunction NthFOfType) nth_state }
   @psc @n@o@t "(" @wo                     { constoken TNot }
   @wo ")"                                 { constoken TClose }
-  "(" @wo                                 { constoken TOpen }
+  "("                                     { constoken TOpen }
   @psc @onlyh@oftype                      { constoken (AtomicPseudoClassT OnlyOfType) }
   @psc @onlyh@child                       { constoken (AtomicPseudoClassT OnlyChild) }
   @psc @o@p@t@i@o@n@a@l                   { constoken (AtomicPseudoClassT Optional) }

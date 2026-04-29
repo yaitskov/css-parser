@@ -41,8 +41,8 @@ data CssRule
   deriving (Show, Ord, Eq, Generic)
 
 data Selector
-  = Selector TagSelector [(TagRelation, TagSelector)]
-  | PeSelector TagSelector [(TagRelation, TagSelector)] PseudoElement
+  = Selector (Maybe TagRelation) TagSelector [(TagRelation, TagSelector)]
+  | PeSelector (Maybe TagRelation) TagSelector [(TagRelation, TagSelector)] PseudoElement
   | PeSelectorOnly PseudoElement
   deriving (Eq, Ord, Show, Generic)
 
