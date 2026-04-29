@@ -36,7 +36,7 @@ import CssParser.Lexer
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
     , RatioT, Percents, Pixels
-    , UrlT, TWhere
+    , UrlT, TWhere, THas, TIs
     , PseudoPageT, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
@@ -152,8 +152,10 @@ import Prelude
     px          { TokenLoc (Pixels $$) _ _ }
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
-    'not('      { TokenLoc TNot _ _ }
+    ':not'      { TokenLoc TNot _ _ }
     where       { TokenLoc TWhere _ _ }
+    is          { TokenLoc TIs _ _ }
+    has         { TokenLoc THas _ _ }
     'lang('     { TokenLoc TLang _ _ }
     '('         { TokenLoc TOpen _ _ }
     ')'         { TokenLoc TClose _ _ }
@@ -440,12 +442,15 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | IdKwd pseudc ContinueRule CssRuleBody       { upsertHeadTagSelector
                                                       (setTag $1 . addClass (AtomicPseudoClass $2)) $3 $4 }
     | IdKwd pseudc ERB CssRuleBody                { newRule (addClass (AtomicPseudoClass $2) . setTag $1) $3 $4 }
-    | IdKwd 'not(' SelectorList ')' ContinueRule CssRuleBody
-                                                  { upsertHeadTagSelector (setTag $1 . addClass (NotClass $3)) $5 $6 }
-    | IdKwd 'not(' SelectorList ')' ERB CssRuleBody
-                                                  { newRule (setTag $1 . addClass (NotClass $3)) $5 $6 }
+    | IdKwd ':not' ESL ContinueRule CssRuleBody   { upsertHeadTagSelector (setTag $1 . addClass (NotClass $3)) $4 $5 }
+    | IdKwd ':not' ESL ERB CssRuleBody            { newRule (setTag $1 . addClass (NotClass $3)) $4 $5 }
     | IdKwd where ESL ContinueRule CssRuleBody    { upsertHeadTagSelector (setTag $1 . addClass (Where $3)) $4 $5 }
     | IdKwd where ESL ERB CssRuleBody             { newRule (setTag $1 . addClass (Where $3)) $4 $5 }
+    | IdKwd is    ESL ContinueRule CssRuleBody    { upsertHeadTagSelector (setTag $1 . addClass (Is $3)) $4 $5 }
+    | IdKwd is    ESL ERB          CssRuleBody    { newRule (setTag $1 . addClass (Is $3)) $4 $5 }
+    | IdKwd has   ESL ContinueRule CssRuleBody    { upsertHeadTagSelector (setTag $1 . addClass (Has $3)) $4 $5 }
+    | IdKwd has   ESL ERB          CssRuleBody    { newRule (setTag $1 . addClass (Has $3)) $4 $5 }
+
     | IdKwd 'lang(' Str ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector (setTag $1 . addClass (Lang (Language $3))) $5 $6 }
     | IdKwd 'lang(' Str ')' ERB CssRuleBody       { newRule (setTag $1 . addClass (Lang (Language $3))) $5 $6 }
@@ -501,9 +506,11 @@ TagClasses :: { [ Class ] }
 TagClass :: { Class }
     : '.' Ident                                       { AtomicClass $2 }
     | pseudc                                          { AtomicPseudoClass $1 }
-    | 'not(' SelectorList ')'                         { NotClass $2 }
-    | 'lang(' string ')'                              { Lang (Language (pack $2)) }
+    | ':not' ESL                                      { NotClass $2 }
+    | 'lang(' Str ')'                                 { Lang (Language $2) }
     | where ESL                                       { Where $2 }
+    | is ESL                                          { Is $2 }
+    | has ESL                                         { Has $2 }
     | pseudf Os Nth                                   { call $1 $3 }
 ZipTagRelAndTagSel :: { [ (TagRelation, TagSelector) ] }
     :                                                 { [] }

@@ -85,6 +85,8 @@ instance CssShow Class where
     NotClass nes -> ":not(" <> toCssText nes <> ")"
     Lang (Language l) -> ":lang(" <> fromStrict l <> ")"
     Where nes -> ":where(" <> toCssText nes <> ")"
+    Is nes -> ":is(" <> toCssText nes <> ")"
+    Has nes -> ":has(" <> toCssText nes <> ")"
     NthChild nth -> ":nth-child(" <> toCssText nth <> ")"
     NthLastChild nth -> ":nth-last-child(" <> toCssText nth <> ")"
     NthLastOfType nth -> ":nth-last-of-type(" <> toCssText nth <> ")"

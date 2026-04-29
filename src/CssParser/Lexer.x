@@ -117,6 +117,8 @@ $pm       = [\-\+]
 @profile = @p@r@o@f@i@l@e
 
 @to      = @t@o
+@is      = @i@s
+@has     = @h@a@s
 @not     = @n@o@t
 @where   = @w@h@e@r@e
 @and     = @a@n@d
@@ -278,8 +280,10 @@ tokens :-
   @psc @nthh@lasth@child "("              { constAndBegin (PseudoFunction NthFLastChild) nth_state }
   @psc @nthh@lasth@oftype "("             { constAndBegin (PseudoFunction NthFLastOfType) nth_state }
   @psc @nthh@oftype "("                   { constAndBegin (PseudoFunction NthFOfType) nth_state }
-  @psc @not "(" @wo                       { constoken TNot }
+  @psc @not                               { constoken TNot }
   @psc @where                             { constoken TWhere }
+  @psc @has                               { constoken THas }
+  @psc @is                                { constoken TIs }
   @wo ")"                                 { constoken TClose }
   "("                                     { constoken TOpen }
   @psc @onlyh@oftype                      { constoken (AtomicPseudoClassT OnlyOfType) }
@@ -431,6 +435,8 @@ data Token
     | TClose
     | TNot
     | TWhere
+    | TIs
+    | THas
     | TLang
     deriving (Show, Eq)
 

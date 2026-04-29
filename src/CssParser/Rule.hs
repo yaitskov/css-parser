@@ -68,6 +68,8 @@ data Class
   | NotClass SelectorList
   | Lang Language
   | Where SelectorList
+  | Has SelectorList
+  | Is SelectorList
   | NthChild Nth
   | NthLastChild Nth
   | NthLastOfType Nth
