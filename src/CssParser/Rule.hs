@@ -43,8 +43,28 @@ data CssRule
 
 data Selector
   = Selector (Maybe TagRelation) TagSelector [(TagRelation, TagSelector)]
-  | PeSelector (Maybe TagRelation) TagSelector [(TagRelation, TagSelector)] PseudoElement
-  | PeSelectorOnly PseudoElement
+  | PeSelector (Maybe TagRelation) TagSelector [(TagRelation, TagSelector)] PseudeTagSelector
+  | PeSelectorOnly PseudeTagSelector
+  deriving (Eq, Ord, Show, Generic)
+
+data PseudeTagSelector
+  = PseudeTagSelector
+  { ptagName :: CompositePe
+  , ptagAttrs :: [Attr]
+  , ptagClasses :: [Class]
+  } deriving (Eq, Ord, Show, Generic)
+
+data CompositePe
+  = AtomicPe PseudoElement
+  | Highlight (Embraced Ident)
+  | Part (Embraced (SslNe Ident))
+  | Picker (Embraced Ident)
+  | ScrollButton (Embraced TagName)
+  | Slotted (Embraced SelectorList)
+  | ViewTransitionGroup (Embraced SelectorList)
+  | ViewTransitionImagePair (Embraced SelectorList)
+  | ViewTransitionNew (Embraced SelectorList)
+  | ViewTransitionOld (Embraced SelectorList)
   deriving (Eq, Ord, Show, Generic)
 
 data TagRelation
@@ -77,7 +97,7 @@ data Class
   | NthOfType Nth -- :nth-of-type(<An+B> | even | odd)
   | ActiveViewTransitionType (Embraced (CslNe Ident))
   | Dir (Embraced Ident)
-  | Heading (Embraced (CslNe Integer))
+  | Heading (Embraced (CslNe Unsigned))
   | Host (Embraced SelectorList)
   | State (Embraced Ident)
   deriving (Eq, Ord, Show, Generic)

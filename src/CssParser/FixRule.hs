@@ -5,12 +5,10 @@ import CssParser.Ident
     ( Ident, Namespace(Namespace, NoBar), TagName(TagName, NoTag) )
 import CssParser.Prelude
 import CssParser.Rule
-import CssParser.Rule.Pseudo
-import Data.Functor.Identity
+
 
 tagSelectorOnly :: Ident -> TagSelector
-tagSelectorOnly tn =
-  TagSelector NoBar (TagName tn) [] Nothing []
+tagSelectorOnly tn = TagSelector NoBar (TagName tn) [] Nothing []
 
 setTag :: Ident -> TagSelector -> TagSelector
 setTag tn ts = ts { tagName = TagName tn }
@@ -50,13 +48,6 @@ updateFirstTagSelector f = \case
   PeSelector ftr fts ots pe -> PeSelector ftr (f fts) ots pe
   PeSelectorOnly pe -> PeSelector Nothing (f nullTagSelector) [] pe
 
--- mergeTagSelectors :: TagSelector -> TagSelector -> TagSelector
--- mergeTagSelectors pts ts = ts
---   { tagName = pts.tagName
---   , tagId = pts.tagId
---   , tagClasses = pts.tagClasses <> ts.tagClasses
---   }
-
 upsertHeadTagSelector :: (TagSelector -> TagSelector) -> CssRule -> [CssRuleBodyItem] -> [CssRuleBodyItem]
 upsertHeadTagSelector f cr bodyItems =
   CssNestedRule (mergePrecedingTagSelector f cr) : bodyItems
@@ -84,17 +75,17 @@ addClass c ts  = ts { tagClasses = c : ts.tagClasses }
 newRule :: (TagSelector -> TagSelector) -> [CssRuleBodyItem] -> [CssRuleBodyItem] -> [CssRuleBodyItem]
 newRule f body = (CssNestedRule (CssRule (Selector Nothing (f nullTagSelector) [] :| []) body) :)
 
-mkPeSelector :: (TagSelector -> TagSelector) -> PseudoElement -> Selector
+mkPeSelector :: (TagSelector -> TagSelector) -> PseudeTagSelector -> Selector
 mkPeSelector f = PeSelector Nothing (f nullTagSelector) []
 
-newPseude :: (TagSelector -> TagSelector) -> PseudoElement -> [CssRuleBodyItem] -> [CssRuleBodyItem] -> [CssRuleBodyItem]
-newPseude f pe body = (CssNestedRule (CssRule (mkPeSelector f pe :| []) body) :)
+newPseude :: (TagSelector -> TagSelector) -> PseudeTagSelector -> [CssRuleBodyItem] -> [CssRuleBodyItem] -> [CssRuleBodyItem]
+newPseude f pts body = (CssNestedRule (CssRule (mkPeSelector f pts :| []) body) :)
 
-pushPeSelector :: (TagSelector -> TagSelector) -> PseudoElement -> CssRule -> CssRule
-pushPeSelector f pe =  mapCssRule go
+pushPeSelector :: (TagSelector -> TagSelector) -> PseudeTagSelector -> CssRule -> CssRule
+pushPeSelector f pts =  mapCssRule go
  where
    go :: NonEmpty Selector -> [CssRuleBodyItem] -> CssRule
-   go sl = CssRule (mkPeSelector f pe <| sl)
+   go sl = CssRule (mkPeSelector f pts <| sl)
 
 mapCssRuleM :: Monad m => (NonEmpty Selector -> [CssRuleBodyItem] -> m CssRule) -> CssRule -> m CssRule
 mapCssRuleM f  = \case

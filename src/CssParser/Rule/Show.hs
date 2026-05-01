@@ -91,12 +91,11 @@ instance CssShow Class where
     NthLastChild nth -> ":nth-last-child(" <> toCssText nth <> ")"
     NthLastOfType nth -> ":nth-last-of-type(" <> toCssText nth <> ")"
     NthOfType nth -> ":nth-of-type(" <> toCssText nth <> ")"
-    ActiveViewTransitionType x -> toCssText x
-    Dir x -> toCssText x
-    Heading x -> toCssText x
-    Host x -> toCssText x
-    State x -> toCssText x
-
+    ActiveViewTransitionType x -> ":active-view-transition-type" <> toCssText x
+    Dir x -> ":dir" <> toCssText x
+    Heading x -> ":heading" <> toCssText x
+    Host x -> ":host" <> toCssText x
+    State x -> ":state" <> toCssText x
 
 instance CssShow Attr where
   toCssText (HasAttr name) = "[" <> toCssText name <> "]"
@@ -125,6 +124,15 @@ instance CssShow Selector where
           (\ s (tr, ts) -> s <> toCssText tr <> toCssText ts)
           (maybe "" toCssText frl <> toCssText fts)
 
+instance ShowSpaceBetween Attr Attr where
+  cssSpace _ _ = ""
+instance ShowSpaceBetween Class Class where
+  cssSpace _ _ = ""
+
+instance CssShow PseudeTagSelector where
+  toCssText pts =
+    toCssText pts.ptagName <> toCssText pts.ptagAttrs <> toCssText pts.ptagClasses
+
 instance CssShow TagSelector where
   toCssText ts =
     concat $
@@ -140,3 +148,16 @@ instance CssShow TagSelector where
     , concat (toCssText <$> ts.tagClasses)
     {- HLINT ignore "Use concatMap" -}
     ]
+
+instance CssShow CompositePe where
+  toCssText = \case
+    AtomicPe x -> toCssText x
+    Highlight x -> "::highlight" <> toCssText x
+    Part x -> "::part" <> toCssText x
+    Picker x -> "::picker" <> toCssText x
+    ScrollButton x -> "::scroll-button" <> toCssText x
+    Slotted x -> "::slotted" <> toCssText x
+    ViewTransitionGroup x -> "::view-transition-group" <> toCssText x
+    ViewTransitionImagePair x -> "::view-transition-image-pair" <> toCssText x
+    ViewTransitionNew x -> "::view-transition-new" <> toCssText x
+    ViewTransitionOld x -> "::view-transition-old" <> toCssText x

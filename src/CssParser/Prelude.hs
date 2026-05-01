@@ -8,6 +8,7 @@ import Control.Monad.Fail as X
 import Data.Char as X
 import Data.Either as X (partitionEithers)
 import Data.Either.Combinators as X
+import Data.Functor.Identity as X
 import Data.Kind as X
 import Data.List.NonEmpty as X ( NonEmpty ((:|)), (<|), toList, nonEmpty, appendList, prependList)
 import Data.Maybe as X

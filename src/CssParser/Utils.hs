@@ -125,25 +125,3 @@ _parseEscape = go (6 :: Int) 0
       | isHexDigit c = go (i - 1) (16 * n + digitToInt c) cs
       | otherwise = yield n ca
     yield n s = (chr n, s)
-
--- | Check if the given identifier is a valid css selector identifier.
-isValidIdentifier ::
-  -- | The given identifier to check.
-  String ->
-  -- | 'True' if the given identifier is valid, 'False' otherwise.
-  Bool
-isValidIdentifier = not . null
-
--- | Convert the given string to a given object by first checking if it is a
--- valid identifier, and if not raising an error. If it is a valid identifier,
--- the string is packed, and wrapped in the given function.
-toIdentifier ::
-  -- | The given function to wrap the 'Text' identifier to an object.
-  (Text -> a) ->
-  -- | The string to validate, and wrap into the given function.
-  String ->
-  -- | The identifier object to return if the identifier is valid.
-  a
-toIdentifier f ident
-  | isValidIdentifier ident = f (pack ident)
-  | otherwise = error ("The identifier \"" <> show ident <> "\" is not a valid identifier.")

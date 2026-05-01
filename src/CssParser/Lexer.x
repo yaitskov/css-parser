@@ -274,6 +274,17 @@ tokens :-
   @pse @t@a@r@g@e@t "-" @t@e@x@t                       { constoken (PseudoElementT TargetText) }
   @pse @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n               { constoken (PseudoElementT P.ViewTransition) }
 
+
+  @pse  @h@i@g@h@l@i@g@h@t                                            { constoken THighlight }
+  @pse  @p@a@r@t                                                      { constoken TPart }
+  @pse  @p@i@c@k@e@r                                                  { constoken TPicker }
+  @pse  @s@c@r@o@l@l "-" @b@u@t@t@o@n                                 { constoken TScrollButton }
+  @pse  @s@l@o@t@t@e@d                                                { constoken TSlotted }
+  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @g@r@o@u@p              { constoken TViewTransitionGroup }
+  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @i@m@a@g@e "-" @p@a@i@r { constoken TViewTransitionImagePair }
+  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @n@e@w                  { constoken TViewTransitionNew }
+  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @o@l@d                  { constoken TViewTransitionOld }
+
   @psc @active                                         { constoken (AtomicPseudoClassT Active) }
   @psc @active "-" @view "-" @t@r@a@n@s@i@t@i@o@n      { constoken (AtomicPseudoClassT ActiveViewTransition) }
   @psc @a@n@y "-" @l@i@s@t                             { constoken (AtomicPseudoClassT AnyList) }
@@ -499,6 +510,16 @@ data Token
     | THeading
     | THost
     | TState
+
+    | THighlight
+    | TPart
+    | TPicker
+    | TScrollButton
+    | TSlotted
+    | TViewTransitionGroup
+    | TViewTransitionImagePair
+    | TViewTransitionNew
+    | TViewTransitionOld
 
     deriving (Show, Eq)
 

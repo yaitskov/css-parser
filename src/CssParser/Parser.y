@@ -42,6 +42,8 @@ import CssParser.Lexer
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
     , StartingStyleT, ViewTransitionT, ScopeT, ToT, SupportsT, SelectorFunT
     , TActiveViewTransitionType, TDir, THeading, THost, TState
+    , THighlight, TPart, TPicker, TScrollButton, TSlotted, TViewTransitionGroup
+    , TViewTransitionImagePair, TViewTransitionNew, TViewTransitionOld
     )
   )
 import CssParser.MonoPair
@@ -132,6 +134,21 @@ import Prelude
     string      { TokenLoc (String $$) _ _ }
     hash        { TokenLoc (THash $$) _ _ }
     pseude      { TokenLoc (PseudoElementT $$) _ _ }
+    highlight   { TokenLoc THighlight _ _ }
+    part        { TokenLoc TPart _ _ }
+    picker      { TokenLoc TPicker _ _ }
+    scrollButton
+                { TokenLoc  TScrollButton _ _ }
+    slotted     { TokenLoc  TSlotted _ _ }
+    viewTransitionGroup
+                { TokenLoc TViewTransitionGroup _ _ }
+    viewTransitionImagePair
+                { TokenLoc TViewTransitionImagePair _ _ }
+    viewTransitionNew
+                { TokenLoc TViewTransitionNew _ _ }
+    viewTransitionOld
+                { TokenLoc TViewTransitionOld _ _ }
+
     pseudc      { TokenLoc (AtomicPseudoClassT $$) _ _ }
     pseudf      { TokenLoc (PseudoFunction $$) _ _ }
     pm          { TokenLoc (TPM $$) _ _ }
@@ -528,8 +545,8 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       $7 $8
                                                   }
 
-    | IdKwd pseude ERB CssRuleBody                { newPseude (setTag $1) $2 $3 $4 }
-    | IdKwd pseude ',' ContinueRule CssRuleBody   { CssNestedRule (pushPeSelector (setTag $1) $2 $4) : $5 }
+    | IdKwd PsTgSel ERB CssRuleBody               { newPseude (setTag $1) $2 $3 $4 }
+    | IdKwd PsTgSel ',' ContinueRule CssRuleBody  { CssNestedRule (pushPeSelector (setTag $1) $2 $4) : $5 }
     | CssRule CssRuleBody                         { CssNestedRule $1 : $2 }
 PropVals :: { PropVals }
     : CssPropertyVals                             { PropVals $1 }
@@ -542,8 +559,22 @@ SelectorList :: { NonEmpty Selector }
     | Selector ',' SelectorList                   { $1 <| $3 }
 Selector :: { Selector }
     : TagRelMb TagSelector ZipTagRelAndTagSel         { Selector $1 $2 $3 }
-    | TagRelMb TagSelector ZipTagRelAndTagSel pseude  { PeSelector $1 $2 $3 $4 }
-    | pseude                                          { PeSelectorOnly $1 }
+    | TagRelMb TagSelector ZipTagRelAndTagSel PsTgSel { PeSelector $1 $2 $3 $4 }
+    | PsTgSel                                         { PeSelectorOnly $1 }
+PsTgSel :: { PseudeTagSelector }
+    : CompositePe TagAttrs TagClasses                 { PseudeTagSelector $1 $2 $3 }
+CompositePe :: { CompositePe }
+    : pseude                                          { AtomicPe $1 }
+    | highlight Op Ident ')'                          { Highlight (Embraced $3) }
+    | part Op SslNeOfIdents ')'                       { Part (Embraced $3) }
+    | picker Op Ident Os ')'                          { Picker (Embraced $3) }
+    | scrollButton Op TagName Os ')'                  { ScrollButton (Embraced $3) }
+    | slotted ESL                                     { Slotted (Embraced $2) }
+    | viewTransitionGroup ESL                         { ViewTransitionGroup (Embraced $2) }
+    | viewTransitionImagePair ESL                     { ViewTransitionImagePair (Embraced $2) }
+    | viewTransitionNew ESL                           { ViewTransitionNew (Embraced $2) }
+    | viewTransitionOld ESL                           { ViewTransitionOld (Embraced $2) }
+
 TagRelMb :: { Maybe TagRelation }
     : TagRelation                                     { Just $1 }
     |                                                 { Nothing }
@@ -581,7 +612,7 @@ TagClass :: { Class }
     | 'lang(' Str ')'                                 { Lang (Language $2) }
     | activeViewTransitionType Op CslOfIdents Os ')'  { ActiveViewTransitionType (Embraced $3) }
     | dir Op Ident Os ')'                             { Dir (Embraced $3) }
-    | heading CslOfInts Os ')'                        { Heading (Embraced $2) }
+    | heading Op CslOfInts Os ')'                     { Heading (Embraced $3) }
     | heading                                         { AtomicPseudoClass P.Heading }
     | host ESL                                        { Host (Embraced $2) }
     | host                                            { AtomicPseudoClass P.Host }
@@ -595,12 +626,16 @@ CslOfIdents :: { CslNe R.Ident }
 CslOfIdentsNe :: { NonEmpty R.Ident }
     : Ident                                           { $1 :| [] }
     | Ident Os ',' Os CslOfIdentsNe                   { $1 <| $5 }
-CslOfInts :: { CslNe Integer }
+SslNeOfIdents :: { SslNe R.Ident }
+    : SslOfIdentsNe                                   { SslNe $1 }
+SslOfIdentsNe :: { NonEmpty R.Ident }
+    : Ident                                           { $1 :| [] }
+    | Ident ' ' SslOfIdentsNe                         { $1 <| $3 }
+CslOfInts :: { CslNe Unsigned }
     : CslOfIntsNe                                     { CslNe $1 }
-CslOfIntsNe :: { NonEmpty Integer }
-    : integer                                         { $1 :| [] }
-    | integer Os ',' Os CslOfIntsNe                   { $1 <| $5 }
-
+CslOfIntsNe :: { NonEmpty Unsigned }
+    : Unsigned                                        { $1 :| [] }
+    | Unsigned Os ',' Os CslOfIntsNe                  { $1 <| $5 }
 ZipTagRelAndTagSel :: { [ (TagRelation, TagSelector) ] }
     :                                                 { [] }
     | TagRelation TagSelector ZipTagRelAndTagSel      { ($1, $2) : $3 }

@@ -5,7 +5,7 @@ import CssParser.Prelude
 import CssParser.Show
 
 newtype Unsigned = Unsigned Integer
-  deriving newtype (Eq, Show, Ord, Num, Enum, Real, Read, Integral)
+  deriving newtype (Eq, Show, Ord, Num, Enum, Real, Read, Integral, CssShow)
   deriving (Generic)
 
 data Ratio = Ratio Unsigned Unsigned deriving (Eq, Show, Ord, Generic)

@@ -57,6 +57,8 @@ deriving via (GenericArbitrary CssRuleBodyItem) instance Arbitrary CssRuleBodyIt
 deriving via (GenericArbitrary Nth) instance Arbitrary Nth
 deriving via (GenericArbitrary AttrOp) instance Arbitrary AttrOp
 deriving via (GenericArbitrary PseudoElement) instance Arbitrary PseudoElement
+deriving via (GenericArbitrary CompositePe) instance Arbitrary CompositePe
+deriving via (GenericArbitrary PseudeTagSelector) instance Arbitrary PseudeTagSelector
 
 
 deriving via (GenericArbitrary (FqFun SelectorList)) instance Arbitrary (FqFun SelectorList)

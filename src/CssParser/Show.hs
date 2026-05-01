@@ -7,6 +7,7 @@ module CssParser.Show
   , ShowParenthesis (..)
   , Embraced (..)
   , CslNe (..)
+  , SslNe (..)
   ) where
 
 import CssParser.Prelude
@@ -51,6 +52,11 @@ newtype CslNe a = CslNe (NonEmpty a) deriving (Show, Eq, Ord, Generic)
 
 instance CssShow a => CssShow (CslNe a) where
   toCssText (CslNe l) =  intercalate ", " .  fmap toCssText $ toList l
+
+newtype SslNe a = SslNe (NonEmpty a) deriving (Show, Eq, Ord, Generic)
+
+instance CssShow a => CssShow (SslNe a) where
+  toCssText (SslNe l) =  unwords .  fmap toCssText $ toList l
 
 newtype Embraced a = Embraced a deriving (Show, Eq, Ord, Generic)
 instance CssShow a => CssShow (Embraced a) where

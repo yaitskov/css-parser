@@ -59,3 +59,7 @@ instance Arbitrary a => Arbitrary (Embraced a) where
 instance Arbitrary a => Arbitrary (CslNe a) where
   arbitrary = CslNe <$> arbitrary
   shrink (CslNe a) = CslNe <$> shrink a
+
+instance Arbitrary a => Arbitrary (SslNe a) where
+  arbitrary = SslNe <$> arbitrary
+  shrink (SslNe a) = SslNe <$> shrink a

@@ -1,8 +1,7 @@
 module CssParser.Rule.Pseudo where
 
 import CssParser.Prelude hiding (Left, Right)
-import CssParser.Show
-    ( numToText, CssShow(..), ShowSpaceBetween(..) )
+import CssParser.Show ( numToText, CssShow(..), ShowSpaceBetween(..) )
 
 newtype Language = Language Text deriving newtype (Eq, Ord, Show, IsString)
 
