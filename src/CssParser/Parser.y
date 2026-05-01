@@ -15,7 +15,8 @@ import CssParser.At.Namespace
 import CssParser.At.Page
 import CssParser.At.Supports hiding (FeatureQuery)
 import CssParser.Norm
-import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition)
+import CssParser.Rule.Pseudo qualified as P
+import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition, Heading, Host)
 import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em, Deg, Grad, Rad, Turn, Rem)
 import CssParser.Rule.Value qualified as Vl
 import CssParser.Fun
@@ -40,6 +41,7 @@ import CssParser.Lexer
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
     , StartingStyleT, ViewTransitionT, ScopeT, ToT, SupportsT, SelectorFunT
+    , TActiveViewTransitionType, TDir, THeading, THost, TState
     )
   )
 import CssParser.MonoPair
@@ -48,6 +50,7 @@ import CssParser.Prelude
   ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe, rightToMaybe, These(..)
   )
 import CssParser.Rule
+import CssParser.Show
 import Data.Text (Text, pack)
 
 import Prelude
@@ -156,6 +159,12 @@ import Prelude
     is          { TokenLoc TIs _ _ }
     has         { TokenLoc THas _ _ }
     'lang('     { TokenLoc TLang _ _ }
+    dir         { TokenLoc TDir _ _ }
+    heading     { TokenLoc THeading _ _ }
+    host        { TokenLoc THost _ _ }
+    state       { TokenLoc TState _ _ }
+    activeViewTransitionType
+                { TokenLoc TActiveViewTransitionType _ _ }
     '('         { TokenLoc TOpen _ _ }
     ')'         { TokenLoc TClose _ _ }
     '/'         { TokenLoc DivT _ _ }
@@ -338,7 +347,11 @@ PageSelector
     | PseudoPageList                              { PageSelector Nothing $1 }
 PseudoPageList
     : pseudc                                      { [$1] }
+    | heading                                     { [P.Heading] }
+    | host                                        { [P.Host] }
     | pseudc PseudoPageList                       { $1 : $2 }
+    | heading PseudoPageList                      { P.Heading : $2 }
+    | host PseudoPageList                         { P.Host : $2 }
 IdKwdMb
     :                                             { Nothing }
     | IdKwd                                       { Just $1 }
@@ -456,6 +469,65 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | IdKwd pseudf Os Nth ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector (setTag $1 . addClass (call $2 $4)) $5 $6 }
     | IdKwd pseudf Os Nth ERB CssRuleBody         { newRule (setTag $1 . addClass (call $2 $4)) $5 $6 }
+
+    | IdKwd activeViewTransitionType Op CslOfIdents Os ')' ContinueRule CssRuleBody
+                                                  { upsertHeadTagSelector
+                                                      (setTag $1 . addClass (ActiveViewTransitionType (Embraced $4)))
+                                                      $7 $8}
+    | IdKwd activeViewTransitionType Op CslOfIdents Os ')' ERB CssRuleBody
+                                                  { newRule
+                                                      ( setTag $1
+                                                      . addClass (ActiveViewTransitionType (Embraced $4)))
+                                                      $7 $8
+                                                  }
+    | IdKwd dir Op Ident Os ')' ContinueRule CssRuleBody
+                                                  { upsertHeadTagSelector
+                                                      (setTag $1 . addClass (Dir (Embraced $4)))
+                                                      $7 $8
+                                                  }
+    | IdKwd dir Op Ident Os ')' ERB CssRuleBody   { newRule
+                                                      ( setTag $1
+                                                      . addClass (Dir (Embraced $4)))
+                                                      $7 $8
+                                                  }
+    | IdKwd heading CslOfInts Os ')' ContinueRule CssRuleBody
+                                                  { upsertHeadTagSelector
+                                                      (setTag $1 . addClass (Heading (Embraced $3)))
+                                                      $6 $7
+                                                  }
+    | IdKwd heading CslOfInts Os ')' ERB CssRuleBody
+                                                  { newRule
+                                                      ( setTag $1
+                                                      . addClass (Heading (Embraced $3)))
+                                                      $6 $7
+                                                  }
+    | IdKwd heading ContinueRule CssRuleBody      { upsertHeadTagSelector
+                                                      (setTag $1 . addClass (AtomicPseudoClass P.Heading)) $3 $4 }
+    | IdKwd heading ERB CssRuleBody               { newRule (addClass (AtomicPseudoClass P.Heading) . setTag $1) $3 $4 }
+    | IdKwd host ESL ContinueRule CssRuleBody     { upsertHeadTagSelector
+                                                      (setTag $1 . addClass (Host (Embraced $3)))
+                                                      $4 $5
+                                                  }
+    | IdKwd host ESL ERB CssRuleBody              { newRule
+                                                      ( setTag $1
+                                                      . addClass (Host (Embraced $3)))
+                                                      $4 $5
+                                                  }
+    | IdKwd host ContinueRule CssRuleBody         { upsertHeadTagSelector
+                                                      (setTag $1 . addClass (AtomicPseudoClass P.Host)) $3 $4 }
+    | IdKwd host ERB CssRuleBody                  { newRule (addClass (AtomicPseudoClass P.Host) . setTag $1) $3 $4 }
+
+    | IdKwd state Op Ident Os ')' ContinueRule CssRuleBody
+                                                  { upsertHeadTagSelector
+                                                      (setTag $1 . addClass (State (Embraced $4)))
+                                                      $7 $8
+                                                  }
+    | IdKwd state Op Ident Os ')' ERB CssRuleBody { newRule
+                                                      ( setTag $1
+                                                      . addClass (State (Embraced $4)))
+                                                      $7 $8
+                                                  }
+
     | IdKwd pseude ERB CssRuleBody                { newPseude (setTag $1) $2 $3 $4 }
     | IdKwd pseude ',' ContinueRule CssRuleBody   { CssNestedRule (pushPeSelector (setTag $1) $2 $4) : $5 }
     | CssRule CssRuleBody                         { CssNestedRule $1 : $2 }
@@ -507,10 +579,28 @@ TagClass :: { Class }
     | pseudc                                          { AtomicPseudoClass $1 }
     | ':not' ESL                                      { NotClass $2 }
     | 'lang(' Str ')'                                 { Lang (Language $2) }
+    | activeViewTransitionType Op CslOfIdents Os ')'  { ActiveViewTransitionType (Embraced $3) }
+    | dir Op Ident Os ')'                             { Dir (Embraced $3) }
+    | heading CslOfInts Os ')'                        { Heading (Embraced $2) }
+    | heading                                         { AtomicPseudoClass P.Heading }
+    | host ESL                                        { Host (Embraced $2) }
+    | host                                            { AtomicPseudoClass P.Host }
+    | state Op Ident Os ')'                           { State (Embraced $3) }
     | where ESL                                       { Where $2 }
     | is ESL                                          { Is $2 }
     | has ESL                                         { Has $2 }
     | pseudf Os Nth                                   { call $1 $3 }
+CslOfIdents :: { CslNe R.Ident }
+    : CslOfIdentsNe                                   { CslNe $1 }
+CslOfIdentsNe :: { NonEmpty R.Ident }
+    : Ident                                           { $1 :| [] }
+    | Ident Os ',' Os CslOfIdentsNe                   { $1 <| $5 }
+CslOfInts :: { CslNe Integer }
+    : CslOfIntsNe                                     { CslNe $1 }
+CslOfIntsNe :: { NonEmpty Integer }
+    : integer                                         { $1 :| [] }
+    | integer Os ',' Os CslOfIntsNe                   { $1 <| $5 }
+
 ZipTagRelAndTagSel :: { [ (TagRelation, TagSelector) ] }
     :                                                 { [] }
     | TagRelation TagSelector ZipTagRelAndTagSel      { ($1, $2) : $3 }

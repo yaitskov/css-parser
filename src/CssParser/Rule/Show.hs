@@ -91,6 +91,12 @@ instance CssShow Class where
     NthLastChild nth -> ":nth-last-child(" <> toCssText nth <> ")"
     NthLastOfType nth -> ":nth-last-of-type(" <> toCssText nth <> ")"
     NthOfType nth -> ":nth-of-type(" <> toCssText nth <> ")"
+    ActiveViewTransitionType x -> toCssText x
+    Dir x -> toCssText x
+    Heading x -> toCssText x
+    Host x -> toCssText x
+    State x -> toCssText x
+
 
 instance CssShow Attr where
   toCssText (HasAttr name) = "[" <> toCssText name <> "]"

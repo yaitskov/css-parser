@@ -11,6 +11,7 @@ import Data.Set
 import Data.Text (pack, tails, inits)
 import Data.Text qualified as T
 import CssParser.Prelude as X
+import CssParser.Show
 import Test.QuickCheck as X
 import Test.QuickCheck.Gen as X
 import Test.QuickCheck.Instances as X ()
@@ -50,3 +51,11 @@ shrinkIdent :: Text -> [Text]
 shrinkIdent t
     | T.length t < 2 = []
     | otherwise = L.filter (`notMember` keywords) $ shrinkText t
+
+instance Arbitrary a => Arbitrary (Embraced a) where
+  arbitrary = Embraced <$> arbitrary
+  shrink (Embraced a) =  Embraced <$> shrink a
+
+instance Arbitrary a => Arbitrary (CslNe a) where
+  arbitrary = CslNe <$> arbitrary
+  shrink (CslNe a) = CslNe <$> shrink a

@@ -5,6 +5,8 @@ module CssParser.Show
   , CssShow (..)
   , ShowSpaceBetween (..)
   , ShowParenthesis (..)
+  , Embraced (..)
+  , CslNe (..)
   ) where
 
 import CssParser.Prelude
@@ -43,3 +45,16 @@ instance (CssShow at, CssShow bt, ShowSpaceBetween at bt) => CssShow (These at b
 class ShowParenthesis (parent :: Type) (this :: Type) where
   left :: forall pp -> forall tt -> (pp ~ parent, tt ~ this) => LText
   right :: forall pp -> forall tt -> (pp ~ parent, tt ~ this) => LText
+
+
+newtype CslNe a = CslNe (NonEmpty a) deriving (Show, Eq, Ord, Generic)
+
+instance CssShow a => CssShow (CslNe a) where
+  toCssText (CslNe l) =  intercalate ", " .  fmap toCssText $ toList l
+
+newtype Embraced a = Embraced a deriving (Show, Eq, Ord, Generic)
+instance CssShow a => CssShow (Embraced a) where
+  toCssText (Embraced a) = "("  <> toCssText a <> ")"
+
+instance CssShow Integer where
+  toCssText = numToText

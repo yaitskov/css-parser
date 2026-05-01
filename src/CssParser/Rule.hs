@@ -14,6 +14,7 @@ import CssParser.MonoPair
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Value
+import CssParser.Show
 
 type SelectorList = NonEmpty Selector
 type FeatureQuery = S.FeatureQuery SelectorList
@@ -74,6 +75,11 @@ data Class
   | NthLastChild Nth
   | NthLastOfType Nth
   | NthOfType Nth -- :nth-of-type(<An+B> | even | odd)
+  | ActiveViewTransitionType (Embraced (CslNe Ident))
+  | Dir (Embraced Ident)
+  | Heading (Embraced (CslNe Integer))
+  | Host (Embraced SelectorList)
+  | State (Embraced Ident)
   deriving (Eq, Ord, Show, Generic)
 
 newtype Hash = Hash { unHash :: Text } deriving newtype (Eq, Ord, Show, IsString)

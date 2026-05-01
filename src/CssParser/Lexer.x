@@ -5,7 +5,7 @@ module CssParser.Lexer where
 import Control.Monad ((<=<))
 import CssParser.At.Page
 import CssParser.Fun
-import CssParser.Rule
+import CssParser.Rule hiding (Heading, Host)
 import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition)
 import CssParser.Rule.Pseudo qualified as P
 import CssParser.Rule.Value (Ratio(..), readRatio)
@@ -296,8 +296,6 @@ tokens :-
   @psc @f@u@l@l@s@c@r@e@e@n                            { constoken (AtomicPseudoClassT Fullscreen) }
   @psc @f@u@t@u@r@e                                    { constoken (AtomicPseudoClassT Future) }
   @psc @h@a@s "-" @s@l@o@t@t@e@d                       { constoken (AtomicPseudoClassT HasSlotted) }
-  @psc @h@e@a@d@i@n@g                                  { constoken (AtomicPseudoClassT Heading) }
-  @psc @h@o@s@t                                        { constoken (AtomicPseudoClassT Host) }
   @psc @h@o@v@e@r                                      { constoken (AtomicPseudoClassT Hover) }
   @psc @i@n@d@e@t@e@r@m@i@n@a@t@e                      { constoken (AtomicPseudoClassT Indeterminate) }
   @psc @i@n "-" @r@a@n@g@e                             { constoken (AtomicPseudoClassT InRange) }
@@ -350,6 +348,14 @@ tokens :-
   @psc @where                             { constoken TWhere }
   @psc @has                               { constoken THas }
   @psc @is                                { constoken TIs }
+  @psc @a@c@t@i@v@e "-" @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @t@y@p@e
+                                          { constoken TActiveViewTransitionType }
+  @psc @d@i@r                             { constoken TDir }
+  @psc @h@e@a@d@i@n@g                     { constoken THeading }
+  @psc @h@o@s@t                           { constoken THost }
+  @psc @s@t@a@t@e                         { constoken TState }
+
+
   @wo ")"                                 { constoken TClose }
   "("                                     { constoken TOpen }
 
@@ -487,6 +493,13 @@ data Token
     | TIs
     | THas
     | TLang
+    | TActiveViewTransitionType
+
+    | TDir
+    | THeading
+    | THost
+    | TState
+
     deriving (Show, Eq)
 
 tokenizeE :: (a -> Token) -> (String -> Either String a) -> AlexInput -> Int -> Alex TokenLoc
