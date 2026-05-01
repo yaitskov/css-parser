@@ -6,7 +6,8 @@ import Control.Monad ((<=<))
 import CssParser.At.Page
 import CssParser.Fun
 import CssParser.Rule
-import CssParser.Rule.Pseudo
+import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition)
+import CssParser.Rule.Pseudo qualified as P
 import CssParser.Rule.Value (Ratio(..), readRatio)
 import CssParser.Utils(readCssString, readIdentifier, readDecimalE, dropEnd)
 import Data.Decimal(Decimal)
@@ -75,6 +76,7 @@ $pm       = [\-\+]
 @supports = @s@u@p@p@o@r@t@s
 @scope   = @s@c@o@p@e
 @view    = @v@i@e@w
+@active  = @a@c@t@i@v@e
 @transition = @t@r@a@n@s@i@t@i@o@n
 @position = @p@o@s@i@t@i@o@n
 @try     = @t@r@y
@@ -158,7 +160,6 @@ tokens :-
   @wo "$=" @wo                            { constoken TSuffixMatch }
   @wo "*=" @wo                            { constoken TSubstringMatch }
   @wo ","  @wo                            { constoken Comma }
-  @psc @wo                                { constoken Colon }
   (@wo ";" @wo)+                          { constoken Semicolon }
 
   @unicode "-" @range                     { constoken UnicodeRangeT }
@@ -251,30 +252,95 @@ tokens :-
   @wo "]"                                 { constoken BClose }
   @wo "{" @wo                             { constoken COpen }
   @wo "}" @wo                             { constoken CClose }
-  @psb @a@f@t@e@r                         { constoken (PseudoElementT After) }
-  @psb @b@e@f@o@r@e                       { constoken (PseudoElementT Before) }
-  @psb @firsth@l@e@t@t@e@r                { constoken (PseudoElementT FirstLetter) }
-  @psb @firsth@l@i@n@e                    { constoken (PseudoElementT FirstLine) }
-  @pse @m@a@r@k@e@r                       { constoken (PseudoElementT Marker) }
-  @pse @p@l@a@c@e@h@o@l@d@e@r             { constoken (PseudoElementT Placeholder) }
-  @pse @s@e@l@e@c@t@i@o@n                 { constoken (PseudoElementT Selection) }
-  @psc @a@c@t@i@v@e                       { constoken (AtomicPseudoClassT Active) }
-  @psc @c@h@e@c@k@e@d                     { constoken (AtomicPseudoClassT Checked) }
-  @psc @d@e@f@a@u@l@t                     { constoken (AtomicPseudoClassT Default) }
-  @psc @d@i@s@a@b@l@e@d                   { constoken (AtomicPseudoClassT Disabled) }
-  @psc @e@m@p@t@y                         { constoken (AtomicPseudoClassT Empty) }
-  @psc @e@n@a@b@l@e@d                     { constoken (AtomicPseudoClassT Enabled) }
-  @psc @firsth@child                      { constoken (AtomicPseudoClassT FirstChild) }
-  @psc @firsth@oftype                     { constoken (AtomicPseudoClassT FirstOfType) }
-  @psc @f@o@c@u@s                         { constoken (AtomicPseudoClassT Focus) }
-  @psc @f@u@l@l@s@c@r@e@e@n               { constoken (AtomicPseudoClassT Fullscreen) }
-  @psc @h@o@v@e@r                         { constoken (AtomicPseudoClassT Hover) }
-  @psc @i@n@d@e@t@e@r@m@i@n@a@t@e         { constoken (AtomicPseudoClassT Indeterminate) }
-  @psc @i@n@hyphen@r@a@n@g@e              { constoken (AtomicPseudoClassT InRange) }
-  @psc @i@n@v@a@l@i@d                     { constoken (AtomicPseudoClassT Invalid) }
-  @psc @lasth@child                       { constoken (AtomicPseudoClassT LastChild) }
-  @psc @lasth@oftype                      { constoken (AtomicPseudoClassT LastOfType) }
-  @psc @l@i@n@k                           { constoken (AtomicPseudoClassT Link) }
+  @pse @a@f@t@e@r                                      { constoken (PseudoElementT After) }
+  @pse @b@a@c@k@d@r@o@p                                { constoken (PseudoElementT Backdrop) }
+  @pse @b@e@f@o@r@e                                    { constoken (PseudoElementT Before) }
+  @pse @c@h@e@c@k@m@a@r@k                              { constoken (PseudoElementT Checkmark) }
+  @pse @c@o@l@u@m@n                                    { constoken (PseudoElementT Column) }
+  @pse @c@u@e                                          { constoken (PseudoElementT Cue) }
+  @pse @d@e@t@a@i@l@s "-" @c@o@n@t@e@n@t               { constoken (PseudoElementT DetailsContent) }
+  @pse @f@i@l@e "-" @s@e@l@e@c@t@o@r "-" @b@u@t@t@o@n  { constoken (PseudoElementT FileSelectorButton) }
+  @pse @f@i@r@s@t "-" @l@e@t@t@e@r                     { constoken (PseudoElementT FirstLetter) }
+  @pse @f@i@r@s@t "-" @l@i@n@e                         { constoken (PseudoElementT FirstLine) }
+  @pse @g@r@a@m@m@a@r "-" @e@r@r@o@r                   { constoken (PseudoElementT GrammarError) }
+  @pse @m@a@r@k@e@r                                    { constoken (PseudoElementT Marker) }
+  @pse @p@i@c@k@e@r "-" @i@c@o@n                       { constoken (PseudoElementT PickerIcon) }
+  @pse @p@l@a@c@e@h@o@l@d@e@r                          { constoken (PseudoElementT Placeholder) }
+  @pse @s@c@r@o@l@l "-" @m@a@r@k@e@r                   { constoken (PseudoElementT ScrollMarker) }
+  @pse @s@c@r@o@l@l "-" @m@a@r@k@e@r "-" @g@r@o@u@p    { constoken (PseudoElementT ScrollMarkerGroup) }
+  @pse @s@e@a@r@c@h "-" @t@e@x@t                       { constoken (PseudoElementT SearchText) }
+  @pse @s@e@l@e@c@t@i@o@n                              { constoken (PseudoElementT Selection) }
+  @pse @s@p@e@l@l@i@n@g "-" @e@r@r@o@r                 { constoken (PseudoElementT SpellingError) }
+  @pse @t@a@r@g@e@t "-" @t@e@x@t                       { constoken (PseudoElementT TargetText) }
+  @pse @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n               { constoken (PseudoElementT P.ViewTransition) }
+
+  @psc @active                                         { constoken (AtomicPseudoClassT Active) }
+  @psc @active "-" @view "-" @t@r@a@n@s@i@t@i@o@n      { constoken (AtomicPseudoClassT ActiveViewTransition) }
+  @psc @a@n@y "-" @l@i@s@t                             { constoken (AtomicPseudoClassT AnyList) }
+  @psc @a@u@t@o@f@i@l@l                                { constoken (AtomicPseudoClassT Autofill) }
+  @psc @b@l@a@n@k                                      { constoken (AtomicPseudoClassT Blank) }
+  @psc @b@u@f@f@e@r@i@n@g                              { constoken (AtomicPseudoClassT Buffering) }
+  @psc @c@h@e@c@k@e@d                                  { constoken (AtomicPseudoClassT Checked) }
+  @psc @c@u@r@r@e@n@t                                  { constoken (AtomicPseudoClassT Current) }
+  @psc @d@e@f@a@u@l@t                                  { constoken (AtomicPseudoClassT Default) }
+  @psc @d@e@f@i@n@e@d                                  { constoken (AtomicPseudoClassT Defined) }
+  @psc @d@i@s@a@b@l@e@d                                { constoken (AtomicPseudoClassT Disabled) }
+  @psc @e@m@p@t@y                                      { constoken (AtomicPseudoClassT Empty) }
+  @psc @e@n@a@b@l@e@d                                  { constoken (AtomicPseudoClassT Enabled) }
+  @psc @f@i@r@s@t                                      { constoken (AtomicPseudoClassT First) }
+  @psc @f@i@r@s@t "-" @c@h@i@l@d                       { constoken (AtomicPseudoClassT FirstChild) }
+  @psc @f@i@r@s@t "-" @o@f "-" @t@y@p@e                { constoken (AtomicPseudoClassT FirstOfType) }
+  @psc @f@o@c@u@s                                      { constoken (AtomicPseudoClassT Focus) }
+  @psc @f@o@c@u@s "-" @v@i@s@i@b@l@e                   { constoken (AtomicPseudoClassT FocusVisible) }
+  @psc @f@o@c@u@s "-" @w@i@t@h@i@n                     { constoken (AtomicPseudoClassT FocusWithin) }
+  @psc @f@u@l@l@s@c@r@e@e@n                            { constoken (AtomicPseudoClassT Fullscreen) }
+  @psc @f@u@t@u@r@e                                    { constoken (AtomicPseudoClassT Future) }
+  @psc @h@a@s "-" @s@l@o@t@t@e@d                       { constoken (AtomicPseudoClassT HasSlotted) }
+  @psc @h@e@a@d@i@n@g                                  { constoken (AtomicPseudoClassT Heading) }
+  @psc @h@o@s@t                                        { constoken (AtomicPseudoClassT Host) }
+  @psc @h@o@v@e@r                                      { constoken (AtomicPseudoClassT Hover) }
+  @psc @i@n@d@e@t@e@r@m@i@n@a@t@e                      { constoken (AtomicPseudoClassT Indeterminate) }
+  @psc @i@n "-" @r@a@n@g@e                             { constoken (AtomicPseudoClassT InRange) }
+  @psc @i@n@t@e@r@e@s@t "-" @s@o@u@r@c@e               { constoken (AtomicPseudoClassT InterestSource) }
+  @psc @i@n@t@e@r@e@s@t "-" @t@a@r@g@e@t               { constoken (AtomicPseudoClassT InterestTarget) }
+  @psc @i@n@v@a@l@i@d                                  { constoken (AtomicPseudoClassT Invalid) }
+  @psc @l@a@s@t "-" @c@h@i@l@d                         { constoken (AtomicPseudoClassT LastChild) }
+  @psc @l@a@s@t "-" @o@f "-" @t@y@p@e                  { constoken (AtomicPseudoClassT LastOfType) }
+  @psc @l@e@f@t                                        { constoken (AtomicPseudoClassT P.Left) }
+  @psc @l@i@n@k                                        { constoken (AtomicPseudoClassT Link) }
+  @psc @l@o@c@a@l "-" @l@i@n@k                         { constoken (AtomicPseudoClassT LocalLink) }
+  @psc @m@o@d@a@l                                      { constoken (AtomicPseudoClassT Modal) }
+  @psc @m@u@t@e@d                                      { constoken (AtomicPseudoClassT Muted) }
+  @psc @o@n@l@y "-" @c@h@i@l@d                         { constoken (AtomicPseudoClassT OnlyChild) }
+  @psc @o@n@l@y "-" @o@f "-" @t@y@p@e                  { constoken (AtomicPseudoClassT OnlyOfType) }
+  @psc @o@p@e@n                                        { constoken (AtomicPseudoClassT Open) }
+  @psc @o@p@t@i@o@n@a@l                                { constoken (AtomicPseudoClassT Optional) }
+  @psc @o@u@t "-" @o@f "-" @r@a@n@g@e                  { constoken (AtomicPseudoClassT OutOfRange) }
+  @psc @p@a@s@t                                        { constoken (AtomicPseudoClassT Past) }
+  @psc @p@a@u@s@e@d                                    { constoken (AtomicPseudoClassT Paused) }
+  @psc @p@i@c@t@u@r@e "-" @i@n "-" @p@i@c@t@u@r@e      { constoken (AtomicPseudoClassT PictureInPicture) }
+  @psc @p@l@a@c@e@h@o@l@d@e@r "-" @s@h@o@w@n           { constoken (AtomicPseudoClassT PlaceholderShown) }
+  @psc @p@l@a@y@i@n@g                                  { constoken (AtomicPseudoClassT Playing) }
+  @psc @p@o@p@o@v@e@r "-" @o@p@e@n                     { constoken (AtomicPseudoClassT PopoverOpen) }
+  @psc @r@e@a@d "-" @o@n@l@y                           { constoken (AtomicPseudoClassT ReadOnly) }
+  @psc @r@e@a@d "-" @w@r@i@t@e                         { constoken (AtomicPseudoClassT ReadWrite) }
+  @psc @r@e@q@u@i@r@e@d                                { constoken (AtomicPseudoClassT Required) }
+  @psc @r@i@g@h@t                                      { constoken (AtomicPseudoClassT P.Right) }
+  @psc @r@o@o@t                                        { constoken (AtomicPseudoClassT Root) }
+  @psc @s@c@o@p@e                                      { constoken (AtomicPseudoClassT Scope) }
+  @psc @s@e@e@k@i@n@g                                  { constoken (AtomicPseudoClassT Seeking) }
+  @psc @s@t@a@l@l@e@d                                  { constoken (AtomicPseudoClassT Stalled) }
+  @psc @t@a@r@g@e@t                                    { constoken (AtomicPseudoClassT Target) }
+  @psc @t@a@r@g@e@t "-" @a@f@t@e@r                     { constoken (AtomicPseudoClassT TargetAfter) }
+  @psc @t@a@r@g@e@t "-" @b@e@f@o@r@e                   { constoken (AtomicPseudoClassT TargetBefore) }
+  @psc @t@a@r@g@e@t "-" @c@u@r@r@e@n@t                 { constoken (AtomicPseudoClassT TargetCurrent) }
+  @psc @u@s@e@r "-" @i@n@v@a@l@i@d                     { constoken (AtomicPseudoClassT UserInvalid) }
+  @psc @u@s@e@r "-" @v@a@l@i@d                         { constoken (AtomicPseudoClassT UserValid) }
+  @psc @v@a@l@i@d                                      { constoken (AtomicPseudoClassT Valid) }
+  @psc @v@i@s@i@t@e@d                                  { constoken (AtomicPseudoClassT Visited) }
+  @psc @v@o@l@u@m@e "-" @l@o@c@k@e@d                   { constoken (AtomicPseudoClassT VolumeLocked) }
+  @psc @x@r "-" @o@v@e@r@l@a@y                         { constoken (AtomicPseudoClassT XrOverlay) }
+
   @psc @l@a@n@g "("                       { constAndBegin TLang lang_state }
   @psc @nthh@child "("                    { constAndBegin (PseudoFunction NthFChild) nth_state }
   @psc @nthh@lasth@child "("              { constAndBegin (PseudoFunction NthFLastChild) nth_state }
@@ -286,24 +352,8 @@ tokens :-
   @psc @is                                { constoken TIs }
   @wo ")"                                 { constoken TClose }
   "("                                     { constoken TOpen }
-  @psc @onlyh@oftype                      { constoken (AtomicPseudoClassT OnlyOfType) }
-  @psc @onlyh@child                       { constoken (AtomicPseudoClassT OnlyChild) }
-  @psc @o@p@t@i@o@n@a@l                   { constoken (AtomicPseudoClassT Optional) }
-  @psc @o@u@t@hyphen@o@f@hyphen@r@a@n@g@e { constoken (AtomicPseudoClassT OutOfRange) }
-  @psc @r@e@a@d@hyphen@o@n@l@y            { constoken (AtomicPseudoClassT ReadOnly) }
-  @psc @r@e@a@d@hyphen@w@r@i@t@e          { constoken (AtomicPseudoClassT ReadWrite) }
-  @psc @r@e@q@u@i@r@e@d                   { constoken (AtomicPseudoClassT Required) }
-  @psc @r@o@o@t                           { constoken (AtomicPseudoClassT Root) }
-  @psc @scope                             { constoken (AtomicPseudoClassT Scope) }
-  @psc @t@a@r@g@e@t                       { constoken (AtomicPseudoClassT Target) }
-  @psc @v@a@l@i@d                         { constoken (AtomicPseudoClassT Valid) }
-  @psc @v@i@s@i@t@e@d                     { constoken (AtomicPseudoClassT Visited) }
 
-  @psc @left                              { constoken (PseudoPageT LeftPp) }
-  @psc @right                             { constoken (PseudoPageT RightPp) }
-  @psc @blank                             { constoken (PseudoPageT BlankPp) }
-  @psc @first                             { constoken (PseudoPageT FirstPp) }
-
+  @psc @wo                                { constoken Colon }
   $w @wo                                  { constoken Space }
   @cmo                                    { begin comment }
   "<!--"                                  { begin htmlComment }
@@ -424,7 +474,6 @@ data Token
     | COpen
     | CClose
     | AtomicPseudoClassT AtomicPseudoClass
-    | PseudoPageT PseudoPage
     | PseudoFunction NthF
     | PseudoElementT PseudoElement
     | TN

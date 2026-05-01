@@ -2,24 +2,8 @@ module CssParser.At.Page where
 
 import CssParser.Ident ( Ident(..) )
 import CssParser.Prelude
-import CssParser.Show ( CssShow(..), ShowSpaceBetween(..) )
-
-data PseudoPage
-  = LeftPp
-  | RightPp
-  | BlankPp
-  | FirstPp
-  deriving (Eq, Show, Ord, Generic)
-
-instance ShowSpaceBetween PseudoPage PseudoPage where
-  cssSpace _ _ = ""
-
-instance CssShow PseudoPage where
-  toCssText = \case
-    LeftPp -> ":left"
-    RightPp -> ":right"
-    BlankPp -> ":blank"
-    FirstPp -> ":first"
+import CssParser.Rule.Pseudo ( AtomicPseudoClass )
+import CssParser.Show ( CssShow(..) )
 
 data PageMargin
   = TopLeftCorner
@@ -61,7 +45,7 @@ instance CssShow PageMargin where
 
 newtype PageName = PageName Ident deriving newtype (Show, Eq, Ord, CssShow, IsString) deriving (Generic)
 
-data PageSelector = PageSelector (Maybe PageName) [PseudoPage]
+data PageSelector = PageSelector (Maybe PageName) [AtomicPseudoClass]
   deriving (Show, Eq, Ord, Generic)
 
 instance CssShow PageSelector where

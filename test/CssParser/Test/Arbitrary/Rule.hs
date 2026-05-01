@@ -8,8 +8,7 @@ import CssParser.Ident ( TagName(NoTag, AsteriskTag) )
 import CssParser.Norm ( normUntilConst, Norm(..) )
 import CssParser.Prelude
 import CssParser.Rule
-import CssParser.Rule.Pseudo
-    ( AtomicPseudoClass, Language(..), Nth, PseudoElement )
+import CssParser.Rule.Pseudo ( Language(..), Nth, PseudoElement )
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.At ()
 import CssParser.Test.Arbitrary.Container ()
@@ -59,8 +58,6 @@ deriving via (GenericArbitrary Nth) instance Arbitrary Nth
 deriving via (GenericArbitrary AttrOp) instance Arbitrary AttrOp
 deriving via (GenericArbitrary PseudoElement) instance Arbitrary PseudoElement
 
-instance Arbitrary AtomicPseudoClass where
-  arbitrary = arbitraryBoundedEnum
 
 deriving via (GenericArbitrary (FqFun SelectorList)) instance Arbitrary (FqFun SelectorList)
 

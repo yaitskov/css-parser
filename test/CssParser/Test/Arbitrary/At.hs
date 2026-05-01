@@ -9,10 +9,14 @@ import CssParser.At.Namespace
 import CssParser.At.Keyframe
 import CssParser.At.Page
 import CssParser.Norm
+import CssParser.Rule.Pseudo
 import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Value ()
+
+instance Arbitrary AtomicPseudoClass where
+  arbitrary = arbitraryBoundedEnum
 
 instance Arbitrary Charset where
   arbitrary = Charset <$> elements ["UTF-8", "iso-8859-15"]
@@ -30,13 +34,13 @@ deriving via (GenericArbitrary LayerStmt) instance Arbitrary LayerStmt
 deriving via (GenericArbitrary Import) instance Arbitrary Import
 
 deriving via (GenericArbitrary PageMargin) instance Arbitrary PageMargin
-deriving via (GenericArbitrary PseudoPage) instance Arbitrary PseudoPage
+
 deriving via (GenericArbitrary PageName) instance Arbitrary PageName
 deriving via (GenericArbitrary PageSelectorList) instance Arbitrary PageSelectorList
 
 instance Norm PageSelector where
   normalize = \case
-    PageSelector Nothing [] -> PageSelector Nothing [BlankPp]
+    PageSelector Nothing [] -> PageSelector Nothing [Blank]
     o -> o
 
 instance Arbitrary PageSelector where

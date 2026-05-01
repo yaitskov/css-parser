@@ -15,7 +15,7 @@ import CssParser.At.Namespace
 import CssParser.At.Page
 import CssParser.At.Supports hiding (FeatureQuery)
 import CssParser.Norm
-import CssParser.Rule.Pseudo
+import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition)
 import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em, Deg, Grad, Rad, Turn, Rem)
 import CssParser.Rule.Value qualified as Vl
 import CssParser.Fun
@@ -36,8 +36,7 @@ import CssParser.Lexer
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
     , RatioT, Percents, Pixels
-    , UrlT, TWhere, THas, TIs
-    , PseudoPageT, PageT, PageMarginT
+    , UrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
     , StartingStyleT, ViewTransitionT, ScopeT, ToT, SupportsT, SelectorFunT
@@ -110,7 +109,7 @@ import Prelude
 
     pageMargin  { TokenLoc (PageMarginT $$) _ _ }
 
-    pseudoPage  { TokenLoc (PseudoPageT $$) _ _ }
+--     pseudoPage  { TokenLoc (PseudoPageT $$) _ _ }
     'media'     { TokenLoc MediaT _ _ }
 -- media start
     'only'      { TokenLoc OnlyT _ _ }
@@ -338,8 +337,8 @@ PageSelector
     | IdKwd                                       { PageSelector (Just (PageName $1)) [] }
     | PseudoPageList                              { PageSelector Nothing $1 }
 PseudoPageList
-    : pseudoPage                                  { [$1] }
-    | pseudoPage PseudoPageList                   { $1 : $2 }
+    : pseudc                                      { [$1] }
+    | pseudc PseudoPageList                       { $1 : $2 }
 IdKwdMb
     :                                             { Nothing }
     | IdKwd                                       { Just $1 }
