@@ -4,10 +4,13 @@ module CssParser.TextMarshal
   ) where
 
 import CssParser.Prelude
+import CssParser.Utils (dropEnd)
+import Data.List qualified as Li
 import Data.Text.Lazy qualified as L
 import Data.Text.Lazy.Builder (toLazyText)
 import Data.Text.Lazy.Builder.Int (decimal)
 import Text.Read (readEither)
+
 
 numToText :: Integral a => a -> LText
 numToText = toLazyText . decimal
@@ -35,3 +38,6 @@ readHex :: String -> Either String Integer
 readHex = \case
   [a, b, c] -> readEither ['0', 'x', a, a, b, b, c, c]
   o -> readEither $ '0':'x':o
+
+readUnquotedUrl :: String -> String
+readUnquotedUrl = Li.dropWhileEnd isSpace . dropEnd 1  . drop 4 . dropWhile isSpace

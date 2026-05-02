@@ -46,7 +46,13 @@ instance Arbitrary Unsigned where
   arbitrary = normalize <$> genericArbitrary
   shrink = normalize <$> genericShrink
 instance Arbitrary Url where
-  arbitrary = pure $ Url "https://ooo.com/aoeu/style.css"
+  arbitrary = oneof
+    [ pure $ Url "https://ooo.com/aoeu/style.css"
+    , pure $ UnquotedUrl "https://ooo.com:443/aoeu/style.css?y=3&x=ok#eoeu"
+    , pure $ UnquotedUrl "./file.css"
+    , pure $ UnquotedUrl "/style.css"
+    , pure $ UnquotedUrl "/../style.css"
+    ]
 
 deriving via Ident instance Arbitrary LiteralString
 deriving via (GenericArbitrary Ratio) instance Arbitrary Ratio

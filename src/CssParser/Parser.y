@@ -37,7 +37,7 @@ import CssParser.Lexer
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
     , RatioT
-    , UrlT, TWhere, THas, TIs, PageT, PageMarginT
+    , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
     , StartingStyleT, ViewTransitionT, ScopeT, ToT, SupportsT, SelectorFunT
@@ -123,6 +123,7 @@ import Prelude
     'and'       { TokenLoc AndT _ _ }
 -- media end
     'url('      { TokenLoc UrlT _ _ }
+    'uqUrl'     { TokenLoc (UnquotedUrlT $$) _ _ }
     'selector(' { TokenLoc SelectorFunT _ _ }
     '^='        { TokenLoc TPrefixMatch _ _ }
     '$='        { TokenLoc TSuffixMatch _ _ }
@@ -258,6 +259,7 @@ Namespace
     : namespace IdKwdMb Os Source                 { Namespace $2 $4 }
 Source
     : 'url(' Str ')'                              { UrlSource (Url $2) }
+    | 'uqUrl'                                     { UrlSource (UnquotedUrl (pack $1)) }
     | Str                                         { StrSource $1 }
 LayerNames :: { NonEmpty LayerName }
     : IdKwd                                       { LayerName $1 :| [] }
@@ -533,6 +535,7 @@ PropVal :: { PropVal }
     | PropertyName Op PropVals ')'                { AppFun $1 $3 }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
+    | 'uqUrl'                                     { UrlVal (UnquotedUrl (pack $1)) }
     | hash                                        { HexColor (HC (pack $1)) }
 Unsigned :: { Unsigned }
     : unitLessNum                                 {% fmap Unsigned (fromEitherM failP (readEither $1)) }
@@ -781,9 +784,9 @@ MediaKeywordAsIdent
     | 'or'                                            { R.Ident "or" }
     | 'and'                                           { R.Ident "and" }
     | 'only'                                          { R.Ident "only" }
-Ident
+Ident :: { R.Ident }
     : ident                                           { R.Ident (pack $1) }
-IdTxt
+IdTxt :: { Text }
     : ident                                           { pack $1 }
 Str :: { Text }
     : string                                          { pack $1 }

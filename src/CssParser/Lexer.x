@@ -5,12 +5,13 @@ module CssParser.Lexer where
 import Control.Monad ((<=<))
 import CssParser.At.Page
 import CssParser.Fun
+
 import CssParser.Rule hiding (Heading, Host)
 import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition)
 import CssParser.Rule.Pseudo qualified as P
 import CssParser.Rule.Value (Ratio(..), readRatio)
+import CssParser.TextMarshal
 import CssParser.Utils(readCssString, readIdentifier, readDecimalE, dropEnd)
-import Data.Decimal(Decimal)
 import Data.Text (pack)
 import Prelude
 import Text.Read (readEither)
@@ -38,7 +39,6 @@ $pm       = [\-\+]
 @hexdig  = [0-9a-fA-F]
 @updig  = [0-9a-fA-F\?]
 @hexdigs = @hexdig+
-@float   = [0-9]*[\.][0-9]+
 @string1 = \'([^\n\r\f\\\'] | \\@nl | @nonaesc )*\'   -- strings with single quote
 @string2 = \"([^\n\r\f\\\"] | \\@nl | @nonaesc )*\"   -- strings with double quotes
 @string  = @string1 | @string2
@@ -214,7 +214,8 @@ tokens :-
   @or @wo                                 { constoken OrT }
   @and @wo                                { constoken AndT }
   @selector "("                           { constoken SelectorFunT }
-  @wo @url @wo "("                        { constoken UrlT }
+  @url "("                                { constoken UrlT }
+  @url "(" @wo [^\"\'][^\)]* ")"          { tokenize (UnquotedUrlT . readUnquotedUrl) }
   "."                                     { constoken Dot }
   "*"                                     { constoken Asterisk }
   "&"                                     { constoken Ampersand }
@@ -567,6 +568,7 @@ data Token
     | AndT
     | OrT
     | UrlT
+    | UnquotedUrlT String
     | Asterisk
     | Space
     | BOpen
