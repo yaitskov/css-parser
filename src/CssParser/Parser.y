@@ -36,7 +36,7 @@ import CssParser.Lexer
     , NotT, OrT, AndT, OnlyT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
-    , RatioT, Percents, Pixels
+    , RatioT
     , UrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
@@ -156,19 +156,61 @@ import Prelude
     int         { TokenLoc (TInt $$) _ _ }
     integer     { TokenLoc (Integer $$) _ _ }
     'ratio'     { TokenLoc (RatioT $$) _ _ }
-    turn        { TokenLoc (L.Turn $$) _ _ }
-    grad        { TokenLoc (L.Grad $$) _ _ }
-    deg         { TokenLoc (L.Deg $$) _ _ }
-    rad         { TokenLoc (L.Rad $$) _ _ }
-    mm          { TokenLoc (L.Mm $$) _ _ }
-    em          { TokenLoc (L.Em $$) _ _ }
+    cap         { TokenLoc (L.Cap $$) _ _ }
+    ch          { TokenLoc (L.Ch $$) _ _ }
     cm          { TokenLoc (L.Cm $$) _ _ }
-    vw          { TokenLoc (L.Vw $$) _ _ }
-    vh          { TokenLoc (L.Vh $$) _ _ }
+    cqb         { TokenLoc (L.Cqb $$) _ _ }
+    cqh         { TokenLoc (L.Cqh $$) _ _ }
+    cqi         { TokenLoc (L.Cqi $$) _ _ }
+    cqmax       { TokenLoc (L.Cqmax $$) _ _ }
+    cqmin       { TokenLoc (L.Cqmin $$) _ _ }
+    cqw         { TokenLoc (L.Cqw $$) _ _ }
+    deg         { TokenLoc (L.Deg $$) _ _ }
     dpi         { TokenLoc (L.Dpi $$) _ _ }
+    dvb         { TokenLoc (L.Dvb $$) _ _ }
+    dvh         { TokenLoc (L.Dvh $$) _ _ }
+    dvi         { TokenLoc (L.Dvi $$) _ _ }
+    dvmax       { TokenLoc (L.Dvmax $$) _ _ }
+    dvmin       { TokenLoc (L.Dvmin $$) _ _ }
+    em          { TokenLoc (L.Em $$) _ _ }
+    ex          { TokenLoc (L.Ex $$) _ _ }
+    grad        { TokenLoc (L.Grad $$) _ _ }
+    ic          { TokenLoc (L.Ic $$) _ _ }
+    in          { TokenLoc (L.In $$) _ _ }
+    lh          { TokenLoc (L.Lh $$) _ _ }
+    lvb         { TokenLoc (L.Lvb $$) _ _ }
+    lvh         { TokenLoc (L.Lvh $$) _ _ }
+    lvi         { TokenLoc (L.Lvi $$) _ _ }
+    lvmax       { TokenLoc (L.Lvmax $$) _ _ }
+    lvmin       { TokenLoc (L.Lvmin $$) _ _ }
+    mm          { TokenLoc (L.Mm $$) _ _ }
+    ms          { TokenLoc (L.Ms $$) _ _ }
+    pc          { TokenLoc (L.Pc $$) _ _ }
+    pt          { TokenLoc (L.Pt $$) _ _ }
+    percent     { TokenLoc (L.Percents $$) _ _ }
+    px          { TokenLoc (L.Px $$) _ _ }
+    q           { TokenLoc (L.Q $$) _ _ }
+    rad         { TokenLoc (L.Rad $$) _ _ }
+    rcap        { TokenLoc (L.Rcap $$) _ _ }
+    rch         { TokenLoc (L.Rch $$) _ _ }
     rem         { TokenLoc (L.Rem $$) _ _ }
-    percents    { TokenLoc (Percents $$) _ _ }
-    px          { TokenLoc (Pixels $$) _ _ }
+    rex         { TokenLoc (L.Rex $$) _ _ }
+    ric         { TokenLoc (L.Ric $$) _ _ }
+    rlh         { TokenLoc (L.Rlh $$) _ _ }
+    second      { TokenLoc (L.Second $$) _ _ }
+    svb         { TokenLoc (L.Svb $$) _ _ }
+    svh         { TokenLoc (L.Svh $$) _ _ }
+    svi         { TokenLoc (L.Svi $$) _ _ }
+    svmax       { TokenLoc (L.Svmax $$) _ _ }
+    svmin       { TokenLoc (L.Svmin $$) _ _ }
+    turn        { TokenLoc (L.Turn $$) _ _ }
+    vb          { TokenLoc (L.Vb $$) _ _ }
+    vh          { TokenLoc (L.Vh $$) _ _ }
+    vi          { TokenLoc (L.Vi $$) _ _ }
+    vmax        { TokenLoc (L.Vmax $$) _ _ }
+    vmin        { TokenLoc (L.Vmin $$) _ _ }
+    vw          { TokenLoc (L.Vw $$) _ _ }
+
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
     ':not'      { TokenLoc TNot _ _ }
@@ -346,7 +388,7 @@ Keyframe
     : KeyframeAdr Ocb PropEntries '}'             { Keyframe $1 $3 }
 KeyframeAdr
     : IdKwd                                       { KeyframeLabel $1 }
-    | percents                                    { KeyframePercentAdr (Unsigned $1) }
+    | percent                                     { KeyframePercentAdr (Unsigned $1) }
 PropEntries :: { [PropEntry] }
     :                                             { [] }
     | PropEntry PropEntries                       { $1 : $2 }
@@ -426,20 +468,63 @@ MfRel :: { MfRelation }
     | '<='                                        { MfLe }
     | '>='                                        { MfGe }
     | '='                                         { MfEq }
+
 PropVal :: { PropVal }
-    : mm                                          { IntVal (Unsigned $1) Vl.Mm }
-    | deg                                         { IntVal (Unsigned $1) Vl.Deg }
-    | rad                                         { IntVal (Unsigned $1) Vl.Rad }
-    | grad                                        { IntVal (Unsigned $1) Vl.Grad }
-    | turn                                        { IntVal (Unsigned $1) Vl.Turn }
-    | em                                          { IntVal (Unsigned $1) Vl.Em }
+    : cap                                         { IntVal (Unsigned $1) Vl.Cap }
+    | ch                                          { IntVal (Unsigned $1) Vl.Ch }
     | cm                                          { IntVal (Unsigned $1) Vl.Cm }
-    | vw                                          { IntVal (Unsigned $1) Vl.Vw }
-    | vh                                          { IntVal (Unsigned $1) Vl.Vh }
+    | cqb                                         { IntVal (Unsigned $1) Vl.Cqb }
+    | cqh                                         { IntVal (Unsigned $1) Vl.Cqh }
+    | cqi                                         { IntVal (Unsigned $1) Vl.Cqi }
+    | cqmax                                       { IntVal (Unsigned $1) Vl.Cqmax }
+    | cqmin                                       { IntVal (Unsigned $1) Vl.Cqmin }
+    | cqw                                         { IntVal (Unsigned $1) Vl.Cqw }
+    | deg                                         { IntVal (Unsigned $1) Vl.Deg }
     | dpi                                         { IntVal (Unsigned $1) Vl.Dpi }
-    | rem                                         { IntVal (Unsigned $1) Vl.Rem }
-    | percents                                    { IntVal (Unsigned $1) Vl.Percent }
+    | dvb                                         { IntVal (Unsigned $1) Vl.Dvb }
+    | dvh                                         { IntVal (Unsigned $1) Vl.Dvh }
+    | dvi                                         { IntVal (Unsigned $1) Vl.Dvi }
+    | dvmax                                       { IntVal (Unsigned $1) Vl.Dvmax }
+    | dvmin                                       { IntVal (Unsigned $1) Vl.Dvmin }
+    | em                                          { IntVal (Unsigned $1) Vl.Em }
+    | ex                                          { IntVal (Unsigned $1) Vl.Ex }
+    | grad                                        { IntVal (Unsigned $1) Vl.Grad }
+    | ic                                          { IntVal (Unsigned $1) Vl.Ic }
+    | in                                          { IntVal (Unsigned $1) Vl.In }
+    | lh                                          { IntVal (Unsigned $1) Vl.Lh }
+    | lvb                                         { IntVal (Unsigned $1) Vl.Lvb }
+    | lvh                                         { IntVal (Unsigned $1) Vl.Lvh }
+    | lvi                                         { IntVal (Unsigned $1) Vl.Lvi }
+    | lvmax                                       { IntVal (Unsigned $1) Vl.Lvmax }
+    | lvmin                                       { IntVal (Unsigned $1) Vl.Lvmin }
+    | mm                                          { IntVal (Unsigned $1) Vl.Mm }
+    | ms                                          { IntVal (Unsigned $1) Vl.Ms }
+    | pc                                          { IntVal (Unsigned $1) Vl.Pc }
+    | pt                                          { IntVal (Unsigned $1) Vl.Pt }
+    | percent                                     { IntVal (Unsigned $1) Vl.Percent }
     | px                                          { IntVal (Unsigned $1) Vl.Px }
+    | q                                           { IntVal (Unsigned $1) Vl.Q }
+    | rad                                         { IntVal (Unsigned $1) Vl.Rad }
+    | rcap                                        { IntVal (Unsigned $1) Vl.Rcap }
+    | rch                                         { IntVal (Unsigned $1) Vl.Rch }
+    | rem                                         { IntVal (Unsigned $1) Vl.Rem }
+    | rex                                         { IntVal (Unsigned $1) Vl.Rex }
+    | ric                                         { IntVal (Unsigned $1) Vl.Ric }
+    | rlh                                         { IntVal (Unsigned $1) Vl.Rlh }
+    | second                                      { IntVal (Unsigned $1) Vl.Second }
+    | svb                                         { IntVal (Unsigned $1) Vl.Svb }
+    | svh                                         { IntVal (Unsigned $1) Vl.Svh }
+    | svi                                         { IntVal (Unsigned $1) Vl.Svi }
+    | svmax                                       { IntVal (Unsigned $1) Vl.Svmax }
+    | svmin                                       { IntVal (Unsigned $1) Vl.Svmin }
+    | turn                                        { IntVal (Unsigned $1) Vl.Turn }
+    | vb                                          { IntVal (Unsigned $1) Vl.Vb }
+    | vh                                          { IntVal (Unsigned $1) Vl.Vh }
+    | vi                                          { IntVal (Unsigned $1) Vl.Vi }
+    | vmax                                        { IntVal (Unsigned $1) Vl.Vmax }
+    | vmin                                        { IntVal (Unsigned $1) Vl.Vmin }
+    | vw                                          { IntVal (Unsigned $1) Vl.Vw }
+
     | Unsigned                                    { IntVal $1 Vl.K }
     | 'ratio'                                     { RatioVal $1 }
     | PropertyName Os                             { propRef $1 }

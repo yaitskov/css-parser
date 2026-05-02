@@ -37,25 +37,120 @@ instance CssShow Source where
     StrSource t -> encodeStringLiteral t
 
 data PropValType
-  = Px | Dpi | Percent | K | Em | Mm | Cm | Vh | Vw | Rem | Rad | Deg | Grad | Turn
+  = Cap
+  | Ch
+  | Cm
+  | Cqb
+  | Cqh
+  | Cqi
+  | Cqmax
+  | Cqmin
+  | Cqw
+  | Deg
+  | Dpi
+  | Dvb
+  | Dvh
+  | Dvi
+  | Dvmax
+  | Dvmin
+  | Em
+  | Ex
+  | Grad
+  | Ic
+  | In
+  | Lh
+  | Lvb
+  | Lvh
+  | Lvi
+  | Lvmax
+  | Lvmin
+  | Mm
+  | Ms
+  | Pc
+  | Pt
+  | Percent
+  | Px
+  | Q
+  | Rad
+  | Rcap
+  | Rch
+  | Rem
+  | Rex
+  | Ric
+  | Rlh
+  | Second
+  | Svb
+  | Svh
+  | Svi
+  | Svmax
+  | Svmin
+  | Turn
+  | Vb
+  | Vh
+  | Vi
+  | Vmax
+  | Vmin
+  | Vw
+  | K
   deriving (Eq, Ord, Show, Enum, Bounded, Generic)
 
 instance CssShow PropValType where
   toCssText = \case
-    Px -> "px"
-    Dpi -> "dpi"
-    Percent -> "%"
-    K -> ""
-    Em -> "em"
-    Mm -> "mm"
-    Vw -> "vw"
-    Vh -> "vh"
+    Cap -> "cap"
+    Ch -> "ch"
     Cm -> "cm"
-    Rem -> "rem"
-    Rad -> "rad"
+    Cqb -> "cqb"
+    Cqh -> "cqh"
+    Cqi -> "cqi"
+    Cqmax -> "cqmax"
+    Cqmin -> "cqmin"
+    Cqw -> "cqw"
     Deg -> "deg"
+    Dpi -> "dpi"
+    Dvb -> "dvb"
+    Dvh -> "dvh"
+    Dvi -> "dvi"
+    Dvmax -> "dvmax"
+    Dvmin -> "dvmin"
+    Em -> "em"
+    Ex -> "ex"
     Grad -> "grad"
+    Ic -> "ic"
+    In -> "in"
+    Lh -> "lh"
+    Lvb -> "lvb"
+    Lvh -> "lvh"
+    Lvi -> "lvi"
+    Lvmax -> "lvmax"
+    Lvmin -> "lvmin"
+    Mm -> "mm"
+    Ms -> "ms"
+    Pc -> "pc"
+    Pt -> "pt"
+    Percent -> "%"
+    Px -> "px"
+    Q -> "q"
+    Rad -> "rad"
+    Rcap -> "rcap"
+    Rch -> "rch"
+    Rem -> "rem"
+    Rex -> "rex"
+    Ric -> "ric"
+    Rlh -> "rlh"
+    Second -> "s"
+    Svb -> "svb"
+    Svh -> "svh"
+    Svi -> "svi"
+    Svmax -> "svmax"
+    Svmin -> "svmin"
     Turn -> "turn"
+    Vb -> "vb"
+    Vh -> "vh"
+    Vi -> "vi"
+    Vmax -> "vmax"
+    Vmin -> "vmin"
+    Vw -> "vw"
+    K -> ""
 
 newtype HexColor = HC Text deriving (Eq, Ord, Show, Generic)
 

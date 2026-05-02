@@ -226,21 +226,62 @@ tokens :-
 
   @float                                  { tokenizeE Decimal readDecimalE }
 
-  @wo @uint @deg                          { tokenize (Deg . read . dropEnd 3) }
-  @wo @uint @rad                          { tokenize (Rad . read . dropEnd 3) }
-  @wo @uint @grad                         { tokenize (Grad. read . dropEnd 4) }
-  @wo @uint @turn                         { tokenize (Turn . read . dropEnd 4) }
-
-  @wo @uint @px                           { tokenize (Pixels . read . dropEnd 2) }
-  @wo @uint @mm                           { tokenize (Mm . read . dropEnd 2) }
-  @wo @uint @cm                           { tokenize (Cm . read . dropEnd 2) }
-  @wo @uint @em                           { tokenize (Em . read . dropEnd 2) }
-  @wo @uint @vh                           { tokenize (Vh . read . dropEnd 2) }
-  @wo @uint @vw                           { tokenize (Vw . read . dropEnd 2) }
-  @wo @uint @rem                          { tokenize (Rem . read . dropEnd 3) }
-  @wo @uint @dpi                          { tokenize (Dpi . read . dropEnd 3) }
-  @wo @uint "/" @uint                     { tokenize2 ((pure . RatioT) <=< readRatio) }
+  @wo @uint @c@a@p                        { tokenize (Cap      . read . dropEnd 3) }
+  @wo @uint @c@h                          { tokenize (Ch       . read . dropEnd 2) }
+  @wo @uint @c@m                          { tokenize (Cm       . read . dropEnd 2) }
+  @wo @uint @c@q@b                        { tokenize (Cqb      . read . dropEnd 3) }
+  @wo @uint @c@q@h                        { tokenize (Cqh      . read . dropEnd 3) }
+  @wo @uint @c@q@i                        { tokenize (Cqi      . read . dropEnd 3) }
+  @wo @uint @c@q@m@a@x                    { tokenize (Cqmax    . read . dropEnd 5) }
+  @wo @uint @c@q@m@i@n                    { tokenize (Cqmin    . read . dropEnd 5) }
+  @wo @uint @c@q@w                        { tokenize (Cqw      . read . dropEnd 3) }
+  @wo @uint @d@e@g                        { tokenize (Deg      . read . dropEnd 3) }
+  @wo @uint @d@p@i                        { tokenize (Dpi      . read . dropEnd 3) }
+  @wo @uint @d@v@b                        { tokenize (Dvb      . read . dropEnd 3) }
+  @wo @uint @d@v@h                        { tokenize (Dvh      . read . dropEnd 3) }
+  @wo @uint @d@v@i                        { tokenize (Dvi      . read . dropEnd 3) }
+  @wo @uint @d@v@m@a@x                    { tokenize (Dvmax    . read . dropEnd 5) }
+  @wo @uint @d@v@m@i@n                    { tokenize (Dvmin    . read . dropEnd 5) }
+  @wo @uint @e@m                          { tokenize (Em       . read . dropEnd 2) }
+  @wo @uint @e@x                          { tokenize (Ex       . read . dropEnd 2) }
+  @wo @uint @g@r@a@d                      { tokenize (Grad     . read . dropEnd 4) }
+  @wo @uint @i@c                          { tokenize (Ic       . read . dropEnd 2) }
+  @wo @uint @i@n                          { tokenize (In       . read . dropEnd 2) }
+  @wo @uint @l@h                          { tokenize (Lh       . read . dropEnd 2) }
+  @wo @uint @l@v@b                        { tokenize (Lvb      . read . dropEnd 3) }
+  @wo @uint @l@v@h                        { tokenize (Lvh      . read . dropEnd 3) }
+  @wo @uint @l@v@i                        { tokenize (Lvi      . read . dropEnd 3) }
+  @wo @uint @l@v@m@a@x                    { tokenize (Lvmax    . read . dropEnd 5) }
+  @wo @uint @l@v@m@i@n                    { tokenize (Lvmin    . read . dropEnd 5) }
+  @wo @uint @m@m                          { tokenize (Mm       . read . dropEnd 2) }
+  @wo @uint @m@s                          { tokenize (Ms       . read . dropEnd 2) }
+  @wo @uint @p@c                          { tokenize (Pc       . read . dropEnd 2) }
+  @wo @uint @p@t                          { tokenize (Pt       . read . dropEnd 2) }
   @wo @uint @percent                      { tokenize (Percents . read . dropEnd 1) }
+  @wo @uint @p@x                          { tokenize (Px       . read . dropEnd 2) }
+  @wo @uint @q                            { tokenize (Q        . read . dropEnd 1) }
+  @wo @uint @r@a@d                        { tokenize (Rad      . read . dropEnd 3) }
+  @wo @uint @r@c@a@p                      { tokenize (Rcap     . read . dropEnd 4) }
+  @wo @uint @r@c@h                        { tokenize (Rch      . read . dropEnd 3) }
+  @wo @uint @r@e@m                        { tokenize (Rem      . read . dropEnd 3) }
+  @wo @uint @r@e@x                        { tokenize (Rex      . read . dropEnd 3) }
+  @wo @uint @r@i@c                        { tokenize (Ric      . read . dropEnd 3) }
+  @wo @uint @r@l@h                        { tokenize (Rlh      . read . dropEnd 3) }
+  @wo @uint @s                            { tokenize (Second   . read . dropEnd 1) }
+  @wo @uint @s@v@b                        { tokenize (Svb      . read . dropEnd 3) }
+  @wo @uint @s@v@h                        { tokenize (Svh      . read . dropEnd 3) }
+  @wo @uint @s@v@i                        { tokenize (Svi      . read . dropEnd 3) }
+  @wo @uint @s@v@m@a@x                    { tokenize (Svmax    . read . dropEnd 5) }
+  @wo @uint @s@v@m@i@n                    { tokenize (Svmin    . read . dropEnd 5) }
+  @wo @uint @t@u@r@n                      { tokenize (Turn     . read . dropEnd 4) }
+  @wo @uint @v@b                          { tokenize (Vb       . read . dropEnd 2) }
+  @wo @uint @v@h                          { tokenize (Vh       . read . dropEnd 2) }
+  @wo @uint @v@i                          { tokenize (Vi       . read . dropEnd 2) }
+  @wo @uint @v@m@a@x                      { tokenize (Vmax     . read . dropEnd 4) }
+  @wo @uint @v@m@i@n                      { tokenize (Vmin     . read . dropEnd 4) }
+  @wo @uint @v@w                          { tokenize (Vw       . read . dropEnd 2) }
+
+  @wo @uint "/" @uint                     { tokenize2 ((pure . RatioT) <=< readRatio) }
   @int                                    { tokenize (Integer . read) }
   @wo "+"                                 { constoken Plus }
   @wo ">" @wo                             { constoken Greater }
@@ -431,14 +472,55 @@ data Token
     | Grad Integer
     | Turn Integer
 
-    | Pixels Integer
+    | Px Integer
     | Mm Integer
+    | Ms Integer
     | Cm Integer
     | Em Integer
     | Vh Integer
     | Vw Integer
     | Rem Integer
     | Dpi Integer
+    | Rcap Integer
+    | Cap Integer
+    | Ch Integer
+    | Rch Integer
+    | Ex Integer
+    | Rex Integer
+    | Lh Integer
+    | Rlh Integer
+    | Ic Integer
+    | Ric Integer
+    | Pc Integer
+    | In Integer
+    | Pt Integer
+    | Q Integer
+    | Second Integer
+    | Svh Integer
+    | Dvh Integer
+    | Lvh Integer
+    | Vb Integer
+    | Lvb Integer
+    | Dvb Integer
+    | Svb Integer
+    | Vi Integer
+    | Lvi Integer
+    | Dvi Integer
+    | Svi Integer
+    | Vmax Integer
+    | Lvmax Integer
+    | Dvmax Integer
+    | Svmax Integer
+    | Vmin Integer
+    | Lvmin Integer
+    | Dvmin Integer
+    | Svmin Integer
+    | Cqw Integer
+    | Cqh Integer
+    | Cqi Integer
+    | Cqb Integer
+    | Cqmax Integer
+    | Cqmin Integer
 
     | RatioT Ratio
     | Percents Integer
