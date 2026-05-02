@@ -9,6 +9,30 @@ import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
 import Data.Text qualified as T
 
+data Anum
+  = IntAnum Int
+  | PositiveIntAnum Word
+  | FloatAnum Int Word
+  | EAnum Int Int
+  | NoWholeAnum Word
+  | EAnum2 Int Word Int
+  deriving (Eq, Generic)
+
+instance Show Anum where
+  show = \case
+    IntAnum x -> show x
+    PositiveIntAnum x -> "+" <> show x
+    FloatAnum x y -> show x <> "." <> show y
+    EAnum x y -> show x <> "e" <> show y
+    EAnum2 x y z -> show x <> "." <> show y <> "e" <> show z
+    NoWholeAnum x -> "." <> show x
+
+deriving via (GenericArbitrary Anum) instance Arbitrary Anum
+
+instance Arbitrary RawNum where
+  arbitrary = mkRawNum . show <$> (arbitrary :: Gen Anum)
+  shrink _ = []
+
 instance Arbitrary HexColor where
   arbitrary = HC . pack <$> vectorOf 6 arbitraryHex
   shrink (HC x)

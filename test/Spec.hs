@@ -171,6 +171,11 @@ unknown =
 properties :: [String]
 properties =
   [ "margin: 20px;"
+  , "margin: 2.0px;"
+  , "margin: 10e2px;"
+  , "margin: -0.0px;"
+  , "margin: -3.4e-2;"
+  , "--c: 0.0lvmax +0svmin; "
   , "--my-prop: 20px;"
   , "padding: 12em 20mm;"
   , "padding: 12rem 25pt 2px 20mm;"

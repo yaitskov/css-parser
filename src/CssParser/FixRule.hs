@@ -28,16 +28,30 @@ tagAndAttrRule tn atr body =
 
 prependIdent :: MonadFail m => Ident -> TagRelation -> Selector -> m Selector
 prependIdent tn tr = \case
-  Selector Nothing fts ots ->
-    pure $ Selector Nothing (tagSelectorOnly tn) ((tr, fts) : ots)
-  ndsnd@Selector {} ->
-    fail $ "Head tag relation is already set: " <> show tn <> ", " <> show tr <> ", " <> show ndsnd
-  PeSelector Nothing fts ots pe ->
-    pure $ PeSelector Nothing (tagSelectorOnly tn) ((tr, fts) : ots) pe
-  ndsnd@PeSelector {} ->
-    fail $ "Head tag relation is already set: " <> show tn <> ", " <> show tr <> ", " <> show ndsnd
+  ndsnd@(Selector mtr fts ots) ->
+    case mtr of
+      Nothing ->
+        pure $ Selector Nothing (tagSelectorOnly tn) ((tr, fts) : ots)
+      Just Descendant ->
+        pure $ Selector Nothing (tagSelectorOnly tn) ((tr, fts) : ots)
+      Just ftr
+        | tr == Descendant ->
+          pure $ Selector Nothing (tagSelectorOnly tn) ((ftr, fts) : ots)
+        | otherwise ->
+          fail $ "Head tag relation is already set: " <> show tn <> ", " <> show tr <> ", " <> show ndsnd
+  ndsnd@(PeSelector mtr fts ots pe) ->
+    case mtr of
+      Nothing ->
+        pure $ PeSelector Nothing (tagSelectorOnly tn) ((tr, fts) : ots) pe
+      Just Descendant ->
+        pure $ PeSelector Nothing (tagSelectorOnly tn) ((tr, fts) : ots) pe
+      Just ftr
+        | tr == Descendant ->
+          pure $ PeSelector Nothing (tagSelectorOnly tn) ((ftr, fts) : ots) pe
+        | otherwise ->
+          fail $ "Head tag relation is already set: " <> show tn <> ", " <> show tr <> ", " <> show ndsnd
   PeSelectorOnly pe ->
-    pure $ PeSelector Nothing (tagSelectorOnly tn) [] pe
+    pure $ PeSelector (Just tr) (tagSelectorOnly tn) [] pe
 
 nullTagSelector :: TagSelector
 nullTagSelector = TagSelector NoBar NoTag [] Nothing []

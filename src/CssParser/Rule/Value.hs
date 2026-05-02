@@ -3,6 +3,7 @@ module CssParser.Rule.Value where
 import CssParser.Ident
 import CssParser.Prelude
 import CssParser.Show
+import Data.Text qualified as C8
 
 newtype Unsigned = Unsigned Integer
   deriving newtype (Eq, Show, Ord, Num, Enum, Real, Read, Integral, CssShow)
@@ -162,8 +163,16 @@ propRef = \case
   PropertyName i -> IdentRef i
   VarProp v -> VarRef v
 
+newtype RawNum = RawNum Text deriving newtype (Eq, Ord, Show) deriving (Generic)
+
+mkRawNum :: String -> RawNum
+mkRawNum = RawNum . C8.pack
+
+instance CssShow RawNum where
+  toCssText (RawNum x) = fromStrict x
+
 data PropVal
-  = IntVal Unsigned PropValType
+  = IntVal RawNum PropValType
   | RatioVal Ratio
   | IdentRef Ident
   | VarRef Var
@@ -181,7 +190,7 @@ instance CssShow LiteralString where
 
 instance CssShow PropVal where
   toCssText = \case
-    IntVal i pvt -> numToText i <> toCssText pvt
+    IntVal i pvt -> toCssText i <> toCssText pvt
     RatioVal rv -> toCssText rv
     VarRef v -> toCssText v
     IdentRef i -> toCssText i

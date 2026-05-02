@@ -6,7 +6,7 @@ import CssParser.Prelude
 import CssParser.Show ( CssShow(..), ShowSpaceBetween(..) )
 
 data KeyframeAdr
-  = KeyframePercentAdr Unsigned
+  = KeyframePercentAdr RawNum
   | KeyframeLabel Ident
   deriving (Show, Eq, Ord, Generic)
 

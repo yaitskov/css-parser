@@ -29,8 +29,8 @@ import CssParser.Lexer
   ( AlexPosn(AlexPn), TokenLoc(TokenLoc)
   , Token
     ( TIncludes, TEqual, TDashMatch, TPrefixMatch, TSuffixMatch, TSubstringMatch, Ident
-    , Integer, Comma, Plus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
-    , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, Decimal, String, THash
+    , Comma, Plus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
+    , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
     , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
     , NotT, OrT, AndT, OnlyT
@@ -154,7 +154,7 @@ import Prelude
     pm          { TokenLoc (TPM $$) _ _ }
     'n'         { TokenLoc TN _ _ }
     int         { TokenLoc (TInt $$) _ _ }
-    integer     { TokenLoc (Integer $$) _ _ }
+    --     integer     { TokenLoc (Integer $$) _ _ }
     'ratio'     { TokenLoc (RatioT $$) _ _ }
     cap         { TokenLoc (L.Cap $$) _ _ }
     ch          { TokenLoc (L.Ch $$) _ _ }
@@ -210,6 +210,7 @@ import Prelude
     vmax        { TokenLoc (L.Vmax $$) _ _ }
     vmin        { TokenLoc (L.Vmin $$) _ _ }
     vw          { TokenLoc (L.Vw $$) _ _ }
+    unitLessNum { TokenLoc (L.UnitLessNum $$) _ _ }
 
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
@@ -388,7 +389,7 @@ Keyframe
     : KeyframeAdr Ocb PropEntries '}'             { Keyframe $1 $3 }
 KeyframeAdr
     : IdKwd                                       { KeyframeLabel $1 }
-    | percent                                     { KeyframePercentAdr (Unsigned $1) }
+    | percent                                     { KeyframePercentAdr (mkRawNum $1) }
 PropEntries :: { [PropEntry] }
     :                                             { [] }
     | PropEntry PropEntries                       { $1 : $2 }
@@ -470,62 +471,62 @@ MfRel :: { MfRelation }
     | '='                                         { MfEq }
 
 PropVal :: { PropVal }
-    : cap                                         { IntVal (Unsigned $1) Vl.Cap }
-    | ch                                          { IntVal (Unsigned $1) Vl.Ch }
-    | cm                                          { IntVal (Unsigned $1) Vl.Cm }
-    | cqb                                         { IntVal (Unsigned $1) Vl.Cqb }
-    | cqh                                         { IntVal (Unsigned $1) Vl.Cqh }
-    | cqi                                         { IntVal (Unsigned $1) Vl.Cqi }
-    | cqmax                                       { IntVal (Unsigned $1) Vl.Cqmax }
-    | cqmin                                       { IntVal (Unsigned $1) Vl.Cqmin }
-    | cqw                                         { IntVal (Unsigned $1) Vl.Cqw }
-    | deg                                         { IntVal (Unsigned $1) Vl.Deg }
-    | dpi                                         { IntVal (Unsigned $1) Vl.Dpi }
-    | dvb                                         { IntVal (Unsigned $1) Vl.Dvb }
-    | dvh                                         { IntVal (Unsigned $1) Vl.Dvh }
-    | dvi                                         { IntVal (Unsigned $1) Vl.Dvi }
-    | dvmax                                       { IntVal (Unsigned $1) Vl.Dvmax }
-    | dvmin                                       { IntVal (Unsigned $1) Vl.Dvmin }
-    | em                                          { IntVal (Unsigned $1) Vl.Em }
-    | ex                                          { IntVal (Unsigned $1) Vl.Ex }
-    | grad                                        { IntVal (Unsigned $1) Vl.Grad }
-    | ic                                          { IntVal (Unsigned $1) Vl.Ic }
-    | in                                          { IntVal (Unsigned $1) Vl.In }
-    | lh                                          { IntVal (Unsigned $1) Vl.Lh }
-    | lvb                                         { IntVal (Unsigned $1) Vl.Lvb }
-    | lvh                                         { IntVal (Unsigned $1) Vl.Lvh }
-    | lvi                                         { IntVal (Unsigned $1) Vl.Lvi }
-    | lvmax                                       { IntVal (Unsigned $1) Vl.Lvmax }
-    | lvmin                                       { IntVal (Unsigned $1) Vl.Lvmin }
-    | mm                                          { IntVal (Unsigned $1) Vl.Mm }
-    | ms                                          { IntVal (Unsigned $1) Vl.Ms }
-    | pc                                          { IntVal (Unsigned $1) Vl.Pc }
-    | pt                                          { IntVal (Unsigned $1) Vl.Pt }
-    | percent                                     { IntVal (Unsigned $1) Vl.Percent }
-    | px                                          { IntVal (Unsigned $1) Vl.Px }
-    | q                                           { IntVal (Unsigned $1) Vl.Q }
-    | rad                                         { IntVal (Unsigned $1) Vl.Rad }
-    | rcap                                        { IntVal (Unsigned $1) Vl.Rcap }
-    | rch                                         { IntVal (Unsigned $1) Vl.Rch }
-    | rem                                         { IntVal (Unsigned $1) Vl.Rem }
-    | rex                                         { IntVal (Unsigned $1) Vl.Rex }
-    | ric                                         { IntVal (Unsigned $1) Vl.Ric }
-    | rlh                                         { IntVal (Unsigned $1) Vl.Rlh }
-    | second                                      { IntVal (Unsigned $1) Vl.Second }
-    | svb                                         { IntVal (Unsigned $1) Vl.Svb }
-    | svh                                         { IntVal (Unsigned $1) Vl.Svh }
-    | svi                                         { IntVal (Unsigned $1) Vl.Svi }
-    | svmax                                       { IntVal (Unsigned $1) Vl.Svmax }
-    | svmin                                       { IntVal (Unsigned $1) Vl.Svmin }
-    | turn                                        { IntVal (Unsigned $1) Vl.Turn }
-    | vb                                          { IntVal (Unsigned $1) Vl.Vb }
-    | vh                                          { IntVal (Unsigned $1) Vl.Vh }
-    | vi                                          { IntVal (Unsigned $1) Vl.Vi }
-    | vmax                                        { IntVal (Unsigned $1) Vl.Vmax }
-    | vmin                                        { IntVal (Unsigned $1) Vl.Vmin }
-    | vw                                          { IntVal (Unsigned $1) Vl.Vw }
+    : cap                                         { IntVal (mkRawNum $1) Vl.Cap }
+    | ch                                          { IntVal (mkRawNum $1) Vl.Ch }
+    | cm                                          { IntVal (mkRawNum $1) Vl.Cm }
+    | cqb                                         { IntVal (mkRawNum $1) Vl.Cqb }
+    | cqh                                         { IntVal (mkRawNum $1) Vl.Cqh }
+    | cqi                                         { IntVal (mkRawNum $1) Vl.Cqi }
+    | cqmax                                       { IntVal (mkRawNum $1) Vl.Cqmax }
+    | cqmin                                       { IntVal (mkRawNum $1) Vl.Cqmin }
+    | cqw                                         { IntVal (mkRawNum $1) Vl.Cqw }
+    | deg                                         { IntVal (mkRawNum $1) Vl.Deg }
+    | dpi                                         { IntVal (mkRawNum $1) Vl.Dpi }
+    | dvb                                         { IntVal (mkRawNum $1) Vl.Dvb }
+    | dvh                                         { IntVal (mkRawNum $1) Vl.Dvh }
+    | dvi                                         { IntVal (mkRawNum $1) Vl.Dvi }
+    | dvmax                                       { IntVal (mkRawNum $1) Vl.Dvmax }
+    | dvmin                                       { IntVal (mkRawNum $1) Vl.Dvmin }
+    | em                                          { IntVal (mkRawNum $1) Vl.Em }
+    | ex                                          { IntVal (mkRawNum $1) Vl.Ex }
+    | grad                                        { IntVal (mkRawNum $1) Vl.Grad }
+    | ic                                          { IntVal (mkRawNum $1) Vl.Ic }
+    | in                                          { IntVal (mkRawNum $1) Vl.In }
+    | lh                                          { IntVal (mkRawNum $1) Vl.Lh }
+    | lvb                                         { IntVal (mkRawNum $1) Vl.Lvb }
+    | lvh                                         { IntVal (mkRawNum $1) Vl.Lvh }
+    | lvi                                         { IntVal (mkRawNum $1) Vl.Lvi }
+    | lvmax                                       { IntVal (mkRawNum $1) Vl.Lvmax }
+    | lvmin                                       { IntVal (mkRawNum $1) Vl.Lvmin }
+    | mm                                          { IntVal (mkRawNum $1) Vl.Mm }
+    | ms                                          { IntVal (mkRawNum $1) Vl.Ms }
+    | pc                                          { IntVal (mkRawNum $1) Vl.Pc }
+    | pt                                          { IntVal (mkRawNum $1) Vl.Pt }
+    | percent                                     { IntVal (mkRawNum $1) Vl.Percent }
+    | px                                          { IntVal (mkRawNum $1) Vl.Px }
+    | q                                           { IntVal (mkRawNum $1) Vl.Q }
+    | rad                                         { IntVal (mkRawNum $1) Vl.Rad }
+    | rcap                                        { IntVal (mkRawNum $1) Vl.Rcap }
+    | rch                                         { IntVal (mkRawNum $1) Vl.Rch }
+    | rem                                         { IntVal (mkRawNum $1) Vl.Rem }
+    | rex                                         { IntVal (mkRawNum $1) Vl.Rex }
+    | ric                                         { IntVal (mkRawNum $1) Vl.Ric }
+    | rlh                                         { IntVal (mkRawNum $1) Vl.Rlh }
+    | second                                      { IntVal (mkRawNum $1) Vl.Second }
+    | svb                                         { IntVal (mkRawNum $1) Vl.Svb }
+    | svh                                         { IntVal (mkRawNum $1) Vl.Svh }
+    | svi                                         { IntVal (mkRawNum $1) Vl.Svi }
+    | svmax                                       { IntVal (mkRawNum $1) Vl.Svmax }
+    | svmin                                       { IntVal (mkRawNum $1) Vl.Svmin }
+    | turn                                        { IntVal (mkRawNum $1) Vl.Turn }
+    | vb                                          { IntVal (mkRawNum $1) Vl.Vb }
+    | vh                                          { IntVal (mkRawNum $1) Vl.Vh }
+    | vi                                          { IntVal (mkRawNum $1) Vl.Vi }
+    | vmax                                        { IntVal (mkRawNum $1) Vl.Vmax }
+    | vmin                                        { IntVal (mkRawNum $1) Vl.Vmin }
+    | vw                                          { IntVal (mkRawNum $1) Vl.Vw }
 
-    | Unsigned                                    { IntVal $1 Vl.K }
+    | unitLessNum                                 { IntVal (mkRawNum $1) Vl.K }
     | 'ratio'                                     { RatioVal $1 }
     | PropertyName Os                             { propRef $1 }
     | PropertyName Os '/' Os PropertyName         { Div $1 $5 }
@@ -533,8 +534,8 @@ PropVal :: { PropVal }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
     | hash                                        { HexColor (HC (pack $1)) }
-Unsigned
-    : integer                                     { Unsigned $1 }
+Unsigned :: { Unsigned }
+    : unitLessNum                                 {% fmap Unsigned (fromEitherM failP (readEither $1)) }
 ContinueRule :: { CssRule }
     : SelectorList '{' CssRuleBody '}'            { CssRule $1 $3 }
 CssRuleBody :: { [ CssRuleBodyItem ] }
@@ -637,8 +638,8 @@ PropVals :: { PropVals }
     : CssPropertyVals                             { PropVals $1 }
 CssPropertyVals :: { NonEmpty PropVal }
     : PropVal                                     { $1 :| [] }
-    | PropVal ' ' CssPropertyVals                 { $1 <| $3 }
-    | PropVal CssPropertyVals                     { $1 <| $2 }
+    | PropVal Os CssPropertyVals                  { $1 <| $3 }
+--     | PropVal CssPropertyVals                     { $1 <| $2 }
 SelectorList :: { NonEmpty Selector }
     : Selector                                    { $1 :| [] }
     | Selector ',' SelectorList                   { $1 <| $3 }
@@ -725,10 +726,14 @@ ZipTagRelAndTagSel :: { [ (TagRelation, TagSelector) ] }
     :                                                 { [] }
     | TagRelation TagSelector ZipTagRelAndTagSel      { ($1, $2) : $3 }
 TagRelation :: { TagRelation }
-    : '+' Os { NextSibling }
-    | '>' Os { Child }
-    | '~' Os { GeneralSibling }
-    | ' ' Os { Descendant }
+    : ' ' '+' Os                                      { NextSibling }
+    | ' ' '>' Os                                      { Child }
+    | ' ' '~' Os                                      { GeneralSibling }
+    | ' ' Os                                          { Descendant }
+
+    | '+' Os                                          { NextSibling }
+    | '>' Os                                          { Child }
+    | '~' Os                                          { GeneralSibling }
 Nth
     : nth Os ')'                                      { $1 }
     | PMOpt IntOpt 'n' Os ')'                         { Nth (call $1 $2) 0 }

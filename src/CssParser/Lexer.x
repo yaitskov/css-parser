@@ -69,6 +69,9 @@ $pm       = [\-\+]
 @x       = x|X|\\0{0,4}(58|78)(\r\n|[ \t\r\n\f])?
 @y       = y|Y|\\0{0,4}(59|79)(\r\n|[ \t\r\n\f])?
 @z       = z|Z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?
+
+@anum    = [\-\+]? ( @dec+ ([\.]@dec+)? (@e [\-\+]? @dec+)? | [\.]@dec+ )
+
 @hyphen  = [\-]|\\0{0,4}2d
 @var     = [\-][\-]
 @starting = @s@t@a@r@t@i@n@g
@@ -224,66 +227,64 @@ tokens :-
   @var @name                              { tokenize (Var . readIdentifier . drop 2) }
   "#" @name                               { tokenize (THash . readIdentifier . drop 1) }
 
-  @float                                  { tokenizeE Decimal readDecimalE }
+  @anum                               { tokenize UnitLessNum }
+  @anum @c@a@p                        { tokenize (Cap      . dropEnd 3) }
+  @anum @c@h                          { tokenize (Ch       . dropEnd 2) }
+  @anum @c@m                          { tokenize (Cm       . dropEnd 2) }
+  @anum @c@q@b                        { tokenize (Cqb      . dropEnd 3) }
+  @anum @c@q@h                        { tokenize (Cqh      . dropEnd 3) }
+  @anum @c@q@i                        { tokenize (Cqi      . dropEnd 3) }
+  @anum @c@q@m@a@x                    { tokenize (Cqmax    . dropEnd 5) }
+  @anum @c@q@m@i@n                    { tokenize (Cqmin    . dropEnd 5) }
+  @anum @c@q@w                        { tokenize (Cqw      . dropEnd 3) }
+  @anum @d@e@g                        { tokenize (Deg      . dropEnd 3) }
+  @anum @d@p@i                        { tokenize (Dpi      . dropEnd 3) }
+  @anum @d@v@b                        { tokenize (Dvb      . dropEnd 3) }
+  @anum @d@v@h                        { tokenize (Dvh      . dropEnd 3) }
+  @anum @d@v@i                        { tokenize (Dvi      . dropEnd 3) }
+  @anum @d@v@m@a@x                    { tokenize (Dvmax    . dropEnd 5) }
+  @anum @d@v@m@i@n                    { tokenize (Dvmin    . dropEnd 5) }
+  @anum @e@m                          { tokenize (Em       . dropEnd 2) }
+  @anum @e@x                          { tokenize (Ex       . dropEnd 2) }
+  @anum @g@r@a@d                      { tokenize (Grad     . dropEnd 4) }
+  @anum @i@c                          { tokenize (Ic       . dropEnd 2) }
+  @anum @i@n                          { tokenize (In       . dropEnd 2) }
+  @anum @l@h                          { tokenize (Lh       . dropEnd 2) }
+  @anum @l@v@b                        { tokenize (Lvb      . dropEnd 3) }
+  @anum @l@v@h                        { tokenize (Lvh      . dropEnd 3) }
+  @anum @l@v@i                        { tokenize (Lvi      . dropEnd 3) }
+  @anum @l@v@m@a@x                    { tokenize (Lvmax    . dropEnd 5) }
+  @anum @l@v@m@i@n                    { tokenize (Lvmin    . dropEnd 5) }
+  @anum @m@m                          { tokenize (Mm       . dropEnd 2) }
+  @anum @m@s                          { tokenize (Ms       . dropEnd 2) }
+  @anum @p@c                          { tokenize (Pc       . dropEnd 2) }
+  @anum @p@t                          { tokenize (Pt       . dropEnd 2) }
+  @anum @percent                      { tokenize (Percents . dropEnd 1) }
+  @anum @p@x                          { tokenize (Px       . dropEnd 2) }
+  @anum @q                            { tokenize (Q        . dropEnd 1) }
+  @anum @r@a@d                        { tokenize (Rad      . dropEnd 3) }
+  @anum @r@c@a@p                      { tokenize (Rcap     . dropEnd 4) }
+  @anum @r@c@h                        { tokenize (Rch      . dropEnd 3) }
+  @anum @r@e@m                        { tokenize (Rem      . dropEnd 3) }
+  @anum @r@e@x                        { tokenize (Rex      . dropEnd 3) }
+  @anum @r@i@c                        { tokenize (Ric      . dropEnd 3) }
+  @anum @r@l@h                        { tokenize (Rlh      . dropEnd 3) }
+  @anum @s                            { tokenize (Second   . dropEnd 1) }
+  @anum @s@v@b                        { tokenize (Svb      . dropEnd 3) }
+  @anum @s@v@h                        { tokenize (Svh      . dropEnd 3) }
+  @anum @s@v@i                        { tokenize (Svi      . dropEnd 3) }
+  @anum @s@v@m@a@x                    { tokenize (Svmax    . dropEnd 5) }
+  @anum @s@v@m@i@n                    { tokenize (Svmin    . dropEnd 5) }
+  @anum @t@u@r@n                      { tokenize (Turn     . dropEnd 4) }
+  @anum @v@b                          { tokenize (Vb       . dropEnd 2) }
+  @anum @v@h                          { tokenize (Vh       . dropEnd 2) }
+  @anum @v@i                          { tokenize (Vi       . dropEnd 2) }
+  @anum @v@m@a@x                      { tokenize (Vmax     . dropEnd 4) }
+  @anum @v@m@i@n                      { tokenize (Vmin     . dropEnd 4) }
+  @anum @v@w                          { tokenize (Vw       . dropEnd 2) }
 
-  @wo @uint @c@a@p                        { tokenize (Cap      . read . dropEnd 3) }
-  @wo @uint @c@h                          { tokenize (Ch       . read . dropEnd 2) }
-  @wo @uint @c@m                          { tokenize (Cm       . read . dropEnd 2) }
-  @wo @uint @c@q@b                        { tokenize (Cqb      . read . dropEnd 3) }
-  @wo @uint @c@q@h                        { tokenize (Cqh      . read . dropEnd 3) }
-  @wo @uint @c@q@i                        { tokenize (Cqi      . read . dropEnd 3) }
-  @wo @uint @c@q@m@a@x                    { tokenize (Cqmax    . read . dropEnd 5) }
-  @wo @uint @c@q@m@i@n                    { tokenize (Cqmin    . read . dropEnd 5) }
-  @wo @uint @c@q@w                        { tokenize (Cqw      . read . dropEnd 3) }
-  @wo @uint @d@e@g                        { tokenize (Deg      . read . dropEnd 3) }
-  @wo @uint @d@p@i                        { tokenize (Dpi      . read . dropEnd 3) }
-  @wo @uint @d@v@b                        { tokenize (Dvb      . read . dropEnd 3) }
-  @wo @uint @d@v@h                        { tokenize (Dvh      . read . dropEnd 3) }
-  @wo @uint @d@v@i                        { tokenize (Dvi      . read . dropEnd 3) }
-  @wo @uint @d@v@m@a@x                    { tokenize (Dvmax    . read . dropEnd 5) }
-  @wo @uint @d@v@m@i@n                    { tokenize (Dvmin    . read . dropEnd 5) }
-  @wo @uint @e@m                          { tokenize (Em       . read . dropEnd 2) }
-  @wo @uint @e@x                          { tokenize (Ex       . read . dropEnd 2) }
-  @wo @uint @g@r@a@d                      { tokenize (Grad     . read . dropEnd 4) }
-  @wo @uint @i@c                          { tokenize (Ic       . read . dropEnd 2) }
-  @wo @uint @i@n                          { tokenize (In       . read . dropEnd 2) }
-  @wo @uint @l@h                          { tokenize (Lh       . read . dropEnd 2) }
-  @wo @uint @l@v@b                        { tokenize (Lvb      . read . dropEnd 3) }
-  @wo @uint @l@v@h                        { tokenize (Lvh      . read . dropEnd 3) }
-  @wo @uint @l@v@i                        { tokenize (Lvi      . read . dropEnd 3) }
-  @wo @uint @l@v@m@a@x                    { tokenize (Lvmax    . read . dropEnd 5) }
-  @wo @uint @l@v@m@i@n                    { tokenize (Lvmin    . read . dropEnd 5) }
-  @wo @uint @m@m                          { tokenize (Mm       . read . dropEnd 2) }
-  @wo @uint @m@s                          { tokenize (Ms       . read . dropEnd 2) }
-  @wo @uint @p@c                          { tokenize (Pc       . read . dropEnd 2) }
-  @wo @uint @p@t                          { tokenize (Pt       . read . dropEnd 2) }
-  @wo @uint @percent                      { tokenize (Percents . read . dropEnd 1) }
-  @wo @uint @p@x                          { tokenize (Px       . read . dropEnd 2) }
-  @wo @uint @q                            { tokenize (Q        . read . dropEnd 1) }
-  @wo @uint @r@a@d                        { tokenize (Rad      . read . dropEnd 3) }
-  @wo @uint @r@c@a@p                      { tokenize (Rcap     . read . dropEnd 4) }
-  @wo @uint @r@c@h                        { tokenize (Rch      . read . dropEnd 3) }
-  @wo @uint @r@e@m                        { tokenize (Rem      . read . dropEnd 3) }
-  @wo @uint @r@e@x                        { tokenize (Rex      . read . dropEnd 3) }
-  @wo @uint @r@i@c                        { tokenize (Ric      . read . dropEnd 3) }
-  @wo @uint @r@l@h                        { tokenize (Rlh      . read . dropEnd 3) }
-  @wo @uint @s                            { tokenize (Second   . read . dropEnd 1) }
-  @wo @uint @s@v@b                        { tokenize (Svb      . read . dropEnd 3) }
-  @wo @uint @s@v@h                        { tokenize (Svh      . read . dropEnd 3) }
-  @wo @uint @s@v@i                        { tokenize (Svi      . read . dropEnd 3) }
-  @wo @uint @s@v@m@a@x                    { tokenize (Svmax    . read . dropEnd 5) }
-  @wo @uint @s@v@m@i@n                    { tokenize (Svmin    . read . dropEnd 5) }
-  @wo @uint @t@u@r@n                      { tokenize (Turn     . read . dropEnd 4) }
-  @wo @uint @v@b                          { tokenize (Vb       . read . dropEnd 2) }
-  @wo @uint @v@h                          { tokenize (Vh       . read . dropEnd 2) }
-  @wo @uint @v@i                          { tokenize (Vi       . read . dropEnd 2) }
-  @wo @uint @v@m@a@x                      { tokenize (Vmax     . read . dropEnd 4) }
-  @wo @uint @v@m@i@n                      { tokenize (Vmin     . read . dropEnd 4) }
-  @wo @uint @v@w                          { tokenize (Vw       . read . dropEnd 2) }
-
-  @wo @uint "/" @uint                     { tokenize2 ((pure . RatioT) <=< readRatio) }
-  @int                                    { tokenize (Integer . read) }
-  @wo "+"                                 { constoken Plus }
+  @uint "/" @uint                     { tokenize2 ((pure . RatioT) <=< readRatio) }
+  "+"                                     { constoken Plus }
   @wo ">" @wo                             { constoken Greater }
   @wo ">=" @wo                            { constoken GreaterEqual }
   @wo "<" @wo                             { constoken Less }
@@ -448,6 +449,7 @@ getToken :: TokenLoc -> Token
 getToken (TokenLoc t _ _) = t
 
 type AlexUserState = ()
+type NumberStr = String
 
 data Token
     = TIncludes
@@ -464,66 +466,65 @@ data Token
     | UnicodeRangeT
     | Var String
     | THash String
-    | Decimal Decimal
-    | Integer Integer
+    | UnitLessNum String
 
-    | Deg Integer
-    | Rad Integer
-    | Grad Integer
-    | Turn Integer
+    | Deg NumberStr
+    | Rad NumberStr
+    | Grad NumberStr
+    | Turn NumberStr
 
-    | Px Integer
-    | Mm Integer
-    | Ms Integer
-    | Cm Integer
-    | Em Integer
-    | Vh Integer
-    | Vw Integer
-    | Rem Integer
-    | Dpi Integer
-    | Rcap Integer
-    | Cap Integer
-    | Ch Integer
-    | Rch Integer
-    | Ex Integer
-    | Rex Integer
-    | Lh Integer
-    | Rlh Integer
-    | Ic Integer
-    | Ric Integer
-    | Pc Integer
-    | In Integer
-    | Pt Integer
-    | Q Integer
-    | Second Integer
-    | Svh Integer
-    | Dvh Integer
-    | Lvh Integer
-    | Vb Integer
-    | Lvb Integer
-    | Dvb Integer
-    | Svb Integer
-    | Vi Integer
-    | Lvi Integer
-    | Dvi Integer
-    | Svi Integer
-    | Vmax Integer
-    | Lvmax Integer
-    | Dvmax Integer
-    | Svmax Integer
-    | Vmin Integer
-    | Lvmin Integer
-    | Dvmin Integer
-    | Svmin Integer
-    | Cqw Integer
-    | Cqh Integer
-    | Cqi Integer
-    | Cqb Integer
-    | Cqmax Integer
-    | Cqmin Integer
+    | Px NumberStr
+    | Mm NumberStr
+    | Ms NumberStr
+    | Cm NumberStr
+    | Em NumberStr
+    | Vh NumberStr
+    | Vw NumberStr
+    | Rem NumberStr
+    | Dpi NumberStr
+    | Rcap NumberStr
+    | Cap NumberStr
+    | Ch NumberStr
+    | Rch NumberStr
+    | Ex NumberStr
+    | Rex NumberStr
+    | Lh NumberStr
+    | Rlh NumberStr
+    | Ic NumberStr
+    | Ric NumberStr
+    | Pc NumberStr
+    | In NumberStr
+    | Pt NumberStr
+    | Q NumberStr
+    | Second NumberStr
+    | Svh NumberStr
+    | Dvh NumberStr
+    | Lvh NumberStr
+    | Vb NumberStr
+    | Lvb NumberStr
+    | Dvb NumberStr
+    | Svb NumberStr
+    | Vi NumberStr
+    | Lvi NumberStr
+    | Dvi NumberStr
+    | Svi NumberStr
+    | Vmax NumberStr
+    | Lvmax NumberStr
+    | Dvmax NumberStr
+    | Svmax NumberStr
+    | Vmin NumberStr
+    | Lvmin NumberStr
+    | Dvmin NumberStr
+    | Svmin NumberStr
+    | Cqw NumberStr
+    | Cqh NumberStr
+    | Cqi NumberStr
+    | Cqb NumberStr
+    | Cqmax NumberStr
+    | Cqmin NumberStr
+    | Percents NumberStr
 
     | RatioT Ratio
-    | Percents Integer
     | Comma
     | Ampersand
     | Colon
