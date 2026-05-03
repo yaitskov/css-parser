@@ -245,8 +245,7 @@ Charset
     :                                             { Nothing }
     | 'charset' Str ';'                           { Just (Charset $2) }
 Headers :: { [ Either CssRule FileHeader ] }
-    :                                             { [] }
-    | Header Headers                              { $1 : $2 }
+    : List(Header)                                { $1 }
 Header :: { Either CssRule FileHeader }
     : 'import' Source ';'                         { Right (HeaderImport (Import $2)) }
     | 'layer' LayerNames ';'                      { Right (HeaderLayers (LayerStmt $2)) }
@@ -315,8 +314,7 @@ SelectorPair :: { MonoPair SelectorList }
 ERB :: { [CssRuleBodyItem] } -- Embraced Rule Body
     : '{' CssRuleBody '}'                         { $2 }
 ContainerQueryMap :: { NonEmpty (These R.Ident ContainerQuery) }
-    : IdContainerQuery                            { $1 :| [] }
-    | IdContainerQuery ',' ContainerQueryMap      { $1 <| $3 }
+    : NonEmpty(',', IdContainerQuery)             { $1 }
 IdContainerQuery :: { These R.Ident ContainerQuery }
     : Ident                                       { This $1 }
     | Ident ' ' Ident Os Op CQ ')'                { These $1 (CqFeature (AsIs (CqApp $3 $6))) }
@@ -363,10 +361,7 @@ FontFeatureValBlock
     : '@' Ident Os Ocb PropEntries '}'            { FontFeatureValuesSubBlock $2 $5 }
 StrEitherIds :: { Either LiteralString IdentList }
     : Str                                         { Left (LiteralString $1) }
-    | IdentList                                   { Right (IdentList $1) }
-IdentList :: { NonEmpty R.Ident }
-    : Ident                                       { $1 :| [] }
-    | Ident ' ' IdentList                         { $1 <| $3 }
+    | NonEmpty(' ', Ident)                        { Right (IdentList $1) }
 ColorPropEntries
     : srcProp ':' PropVals ';' ColorPropEntries   { PropEntry (PropertyName "src") $3 : $5 }
     | PropEntry ColorPropEntries                  { $1 : $2 }
@@ -380,22 +375,19 @@ FontFacePropEntries :: { NonEmpty (Either SrcVal FontFacePropEntry) }
     | FontFaceProp FontFacePropEntries            { $1 <| $2 }
 FontFaceProp
     : srcProp ':' CommaSeparatedList ';'          { Left (CommaSeparatedList $3) }
-    | unRange ':' UnicodeRangeList ';'            { Right (UnicodeRangePropEntry $3) }
+    | unRange ':' NonEmpty(',', UnicodeRange) ';' { Right (UnicodeRangePropEntry $3) }
     | PropEntry                                   { Right (FontFaceCommonEntry $1) }
-UnicodeRangeList
-    : unRangeVal                                  { UnicodeRange (pack $1) :| [] }
-    | unRangeVal ',' UnicodeRangeList             { UnicodeRange (pack $1) <| $3 }
+UnicodeRange :: { UnicodeRange }
+    : unRangeVal                                  { UnicodeRange (pack $1) }
 KeyframeList
-    :                                             { [] }
-    | Keyframe KeyframeList                       { $1 : $2 }
+    : List(Keyframe)                              { $1 }
 Keyframe
     : KeyframeAdr Ocb PropEntries '}'             { Keyframe $1 $3 }
 KeyframeAdr
     : IdKwd                                       { KeyframeLabel $1 }
     | percent                                     { KeyframePercentAdr (mkRawNum $1) }
 PropEntries :: { [PropEntry] }
-    :                                             { [] }
-    | PropEntry PropEntries                       { $1 : $2 }
+    : List(PropEntry)                             { $1 }
 PropertyName :: { PropertyName }
     : IdKwd                                       { PropertyName $1 }
     | Var                                         { VarProp (R.Var $1) }
@@ -640,19 +632,16 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | IdKwd PsTgSel ',' ContinueRule CssRuleBody  { CssNestedRule (pushPeSelector (setTag $1) $2 $4) : $5 }
     | CssRule CssRuleBody                         { CssNestedRule $1 : $2 }
 PropValsList :: { NonEmpty PropVals }
-    : PropVals                                    { $1 :| [] }
-    | PropVals ',' PropValsList                   { $1 <| $3 }
+    : NonEmpty(',', PropVals)                     { $1 }
 PropVals :: { PropVals }
     : CssPropertyVals Important                   { PropVals $1 $2 }
 Important :: { Maybe Important }
-    :                                             { Nothing }
-    | Os important                                { Just Important }
+    : Os Maybe(important)                         { fmap (const Important) $2 }
 CssPropertyVals :: { NonEmpty PropVal }
     : PropVal Os                                  { $1 :| [] }
     | PropVal Os CssPropertyVals                  { $1 <| $3 }
 SelectorList :: { NonEmpty Selector }
-    : Selector                                    { $1 :| [] }
-    | Selector ',' SelectorList                   { $1 <| $3 }
+    : NonEmpty(',', Selector)                     { $1 }
 Selector :: { Selector }
     : TagRelMb TagSel ZipTagRelAndTagSel          { Selector $1 $2 $3 }
     | TagRelMb TagSel ZipTagRelAndTagSel PsTgSel  { PeSelector $1 $2 $3 $4 }
@@ -670,10 +659,8 @@ CompositePe :: { CompositePe }
     | viewTransitionImagePair ESL                 { ViewTransitionImagePair (Embraced $2) }
     | viewTransitionNew ESL                       { ViewTransitionNew (Embraced $2) }
     | viewTransitionOld ESL                       { ViewTransitionOld (Embraced $2) }
-
 TagRelMb :: { Maybe TagRelation }
-    : TagRelation                                 { Just $1 }
-    |                                             { Nothing }
+    : Maybe(TagRelation)                          { $1 }
 TagSel :: { TagSelector }
     : Ident '|' TagName TagAttrs TagId TagClasses { TagSelector (R.Namespace $1) $3 $4 $5 $6 }
     | Ident TagAttrs TagId TagClasses             { TagSelector NoBar (TagName $1) $2 $3 $4 }
@@ -688,19 +675,13 @@ TagName :: { TagName }
     | '*'                                         { AsteriskTag }
     | Ident                                       { TagName $1 }
 TagAttrs :: { [Attr] }
-    :                                             { [] }
-    | TagAttrsNe                                  { $1 }
-TagAttrsNe :: { [Attr] }
-    : AttrBox                                     { [ $1 ] }
-    | AttrBox TagAttrs                            { $1 : $2 }
+    : List(AttrBox)                               { $1 }
 TagId :: { Maybe Hash }
-    :                                             { Nothing }
-    | Hash                                        { Just $1 }
+    : Maybe(Hash)                                 { $1 }
 Hash :: { Hash }
     : hash                                        { Hash (pack $1) }
 TagClasses :: { [ Class ] }
-    :                                             { [] }
-    | TagClass TagClasses                         { $1 : $2 }
+    : List(TagClass)                              { $1 }
 TagClass :: { Class }
     : '.' Ident                                   { AtomicClass $2 }
     | pseudc                                      { AtomicPseudoClass $1 }
@@ -718,20 +699,11 @@ TagClass :: { Class }
     | has ESL                                     { Has $2 }
     | pseudf Os Nth                               { call $1 $3 }
 CslOfIdents :: { CslNe R.Ident }
-    : CslOfIdentsNe                               { CslNe $1 }
-CslOfIdentsNe :: { NonEmpty R.Ident }
-    : Ident                                       { $1 :| [] }
-    | Ident Os ',' Os CslOfIdentsNe               { $1 <| $5 }
+    : NonEmpty(',', Ident)                        { CslNe $1 }
 SslNeOfIdents :: { SslNe R.Ident }
-    : SslOfIdentsNe                               { SslNe $1 }
-SslOfIdentsNe :: { NonEmpty R.Ident }
-    : Ident                                       { $1 :| [] }
-    | Ident ' ' SslOfIdentsNe                     { $1 <| $3 }
+    : NonEmpty(' ', Ident)                        { SslNe $1 }
 CslOfInts :: { CslNe Unsigned }
-    : CslOfIntsNe                                 { CslNe $1 }
-CslOfIntsNe :: { NonEmpty Unsigned }
-    : Unsigned                                    { $1 :| [] }
-    | Unsigned Os ',' Os CslOfIntsNe              { $1 <| $5 }
+    : NonEmpty(Embraced(Os, ',', Os), Unsigned)   { CslNe $1 }
 ZipTagRelAndTagSel :: { [ (TagRelation, TagSelector) ] }
     :                                             { [] }
     | TagRelation TagSel ZipTagRelAndTagSel       { ($1, $2) : $3 }
@@ -755,7 +727,6 @@ PMOpt
 IntOpt
     :                                             { 1 }
     | int                                         { $1 }
--- Ccb : '}' Os                                      { () }
 Ocb : '{'                                         { () }
 Op  : '(' Os                                      { () }
 Os  :                                             { () }
@@ -799,7 +770,20 @@ Str :: { Text }
     : string                                      { pack $1 }
 Var :: { R.Ident }
     : var                                         { R.Ident (pack $1) }
-
+Embraced(o, p, c)
+    : o p c                                       { $2 }
+SepList(sep, elt)
+    :                                             { [] }
+    | elt sep List(elt)                           { $1 : $3 }
+List(elt)
+    :                                             { [] }
+    | elt List(elt)                               { $1 : $2 }
+Maybe(elt)
+    :                                             { Nothing }
+    | elt                                         { Just $1 }
+NonEmpty(sep, elt)
+    : elt                                         { $1 :| [] }
+    | elt sep NonEmpty(sep, elt)                  { $1 <| $3 }
 {
 happyError :: [TokenLoc] -> P a
 happyError (~(TokenLoc t s ~(Just (AlexPn _ l c))):_) =
