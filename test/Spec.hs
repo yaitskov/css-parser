@@ -96,13 +96,10 @@ checkParse :: String -> Bool
 checkParse x = y == y
   where y = parseCss x
 
-examples :: [String]
-examples = media <> validSelectors <> layer <> page
-
 at :: [String]
 at =
   colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <>
-  container <> misc <> supports <> unknown
+  container <> misc <> supports <> unknown <> media <> page <> layer
 
 colorProfile :: [String]
 colorProfile =
@@ -202,11 +199,11 @@ properties =
 
 page :: [String]
 page =
-  [ "@page"
-  , "@page one"
-  , "@page xxx:first"
-  , "@page :blank eee"
-  , "@top-left"
+  [ "@page {}"
+  , "@page one {}"
+  , "@page xxx:first{}"
+  , "@page :blank eee {}"
+  , "@page { @top-left {} }"
   ]
 
 layerStmt :: [String]
@@ -218,20 +215,20 @@ layerStmt =
 
 layer :: [String]
 layer =
-  [ "@layer"
-  , "@layer l1"
+  [ "@layer {}"
+  , "@layer l1 {}"
   ]
 
 media :: [String]
 media =
-  [ "@media screen and (width >= 900px)"
-  , "@media not all and (hover: hover)"
-  , "@media screen, print"
-  , "@media all "
-  , "@media  "
-  , "@media (max-width: 320px)"
-  , "@media (-webkit-transform-3d) "
-  , "@media (400px < width < 1000px) or (a)"
+  [ "@media screen and (width >= 900px) {}"
+  , "@media not all and (hover: hover) {}"
+  , "@media screen, print {}"
+  , "@media all {}"
+  , "@media {} "
+  , "@media (max-width: 320px){}"
+  , "@media (-webkit-transform-3d) {}"
+  , "@media (400px < width < 1000px) or (a) {}"
   ]
 
 -- Based on the w3c testkit: https://test.csswg.org/harness/suite/selectors-3_dev/
