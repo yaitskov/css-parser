@@ -111,6 +111,7 @@ data Attr
 
 data CssRuleBodyItem
   = CssLeafRule PropertyName PropVals
+  | CssEnumLeaf PropertyName PropValsList
   | CssNestedRule CssRule
   deriving (Show, Ord, Eq, Generic)
 

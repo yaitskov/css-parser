@@ -205,11 +205,20 @@ instance CssShow PropVal where
     Div a b -> toCssText a <> " / " <> toCssText b
     AppFun fn args -> toCssText fn <> "(" <> toCssText args <> ")"
 
-newtype PropVals = PropVals (NonEmpty PropVal) deriving (Show, Eq, Ord, Generic)
+data Important = Important deriving (Show, Eq, Ord, Generic)
+instance CssShow Important where
+  toCssText _  = " !important"
+
+data PropVals = PropVals (NonEmpty PropVal) (Maybe Important) deriving (Show, Eq, Ord, Generic)
 
 instance CssShow PropVals where
-  toCssText (PropVals ne) =
-    unwords . fmap toCssText $ toList ne
+  toCssText (PropVals ne mi) =
+    unwords $ (toCssText <$> toList ne) <> maybeToList (toCssText <$> mi)
 
 instance ShowSpaceBetween PropVals PropVals where
   cssSpace _ _ = ", "
+
+newtype PropValsList = PropValsList (NonEmpty PropVals) deriving (Show, Eq, Ord, Generic)
+
+instance CssShow PropValsList where
+  toCssText (PropValsList l) = toCssText l

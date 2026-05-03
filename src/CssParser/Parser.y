@@ -36,7 +36,7 @@ import CssParser.Lexer
     , NotT, OrT, AndT, OnlyT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
-    , RatioT
+    , RatioT, ImportantT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
@@ -87,6 +87,7 @@ import Prelude
     'charset'   { TokenLoc CharsetT _ _ }
     unRange     { TokenLoc UnicodeRangeT _ _ }
     '@'         { TokenLoc AtT _ _ }
+    important   { TokenLoc ImportantT _ _ }
     supports    { TokenLoc SupportsT _ _ }
     viewTransition
                 { TokenLoc ViewTransitionT _ _ }
@@ -114,14 +115,13 @@ import Prelude
 
     pageMargin  { TokenLoc (PageMarginT $$) _ _ }
 
---     pseudoPage  { TokenLoc (PseudoPageT $$) _ _ }
     'media'     { TokenLoc MediaT _ _ }
--- media start
+
     'only'      { TokenLoc OnlyT _ _ }
     'not'       { TokenLoc NotT _ _ }
     'or'        { TokenLoc OrT _ _ }
     'and'       { TokenLoc AndT _ _ }
--- media end
+
     'url('      { TokenLoc UrlT _ _ }
     'uqUrl'     { TokenLoc (UnquotedUrlT $$) _ _ }
     'selector(' { TokenLoc SelectorFunT _ _ }
@@ -155,7 +155,7 @@ import Prelude
     pm          { TokenLoc (TPM $$) _ _ }
     'n'         { TokenLoc TN _ _ }
     int         { TokenLoc (TInt $$) _ _ }
-    --     integer     { TokenLoc (Integer $$) _ _ }
+
     'ratio'     { TokenLoc (RatioT $$) _ _ }
     cap         { TokenLoc (L.Cap $$) _ _ }
     ch          { TokenLoc (L.Ch $$) _ _ }
@@ -372,8 +372,9 @@ ColorPropEntries
     | PropEntry ColorPropEntries                  { $1 : $2 }
     |                                             { [] }
 CommaSeparatedList :: { NonEmpty PropVals }
-    : CssPropertyVals                             { (PropVals $1) :| [] }
-    | CssPropertyVals ',' CommaSeparatedList      { (PropVals $1) <| $3 }
+    : CssPropertyVals Important                   { (PropVals $1 $2) :| [] }
+    | CssPropertyVals Important ',' CommaSeparatedList
+                                                  { (PropVals $1 $2) <| $4 }
 FontFacePropEntries :: { NonEmpty (Either SrcVal FontFacePropEntry) }
     : FontFaceProp                                { $1 :| [] }
     | FontFaceProp FontFacePropEntries            { $1 <| $2 }
@@ -530,8 +531,8 @@ PropVal :: { PropVal }
 
     | unitLessNum                                 { IntVal (mkRawNum $1) Vl.K }
     | 'ratio'                                     { RatioVal $1 }
-    | PropertyName Os                             { propRef $1 }
-    | PropertyName Os '/' Os PropertyName         { Div $1 $5 }
+    | PropertyName                                { propRef $1 }
+    | PropertyName '/' Os PropertyName            { Div $1 $4 }
     | PropertyName Op PropVals ')'                { AppFun $1 $3 }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
@@ -543,8 +544,9 @@ ContinueRule :: { CssRule }
     : SelectorList '{' CssRuleBody '}'            { CssRule $1 $3 }
 CssRuleBody :: { [ CssRuleBodyItem ] }
     :                                             { [] }
-    | PropertyName ':' PropVals ';' CssRuleBody   { CssLeafRule $1 $3 : $5 }
-    | PropertyName ':' PropVals                   { [ CssLeafRule $1 $3 ] }
+    | PropertyName ':' PropValsList ';' CssRuleBody
+                                                  { mkLeaf $1 $3 : $5 }
+    | PropertyName ':' PropValsList               { [ mkLeaf $1 $3 ] }
     | IdKwd '{' CssRuleBody '}' CssRuleBody       { CssNestedRule (tagNameRule $1 $3) : $5 }
     | IdKwd '>' Os ContinueRule CssRuleBody       {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 Child $4) }
     | IdKwd ' ' ContinueRule CssRuleBody          {% fmap ((: $4) . CssNestedRule) (prependIdentToRule $1 Descendant $3) }
@@ -637,161 +639,166 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | IdKwd PsTgSel ERB CssRuleBody               { newPseude (setTag $1) $2 $3 $4 }
     | IdKwd PsTgSel ',' ContinueRule CssRuleBody  { CssNestedRule (pushPeSelector (setTag $1) $2 $4) : $5 }
     | CssRule CssRuleBody                         { CssNestedRule $1 : $2 }
+PropValsList :: { NonEmpty PropVals }
+    : PropVals                                    { $1 :| [] }
+    | PropVals ',' PropValsList                   { $1 <| $3 }
 PropVals :: { PropVals }
-    : CssPropertyVals                             { PropVals $1 }
+    : CssPropertyVals Important                   { PropVals $1 $2 }
+Important :: { Maybe Important }
+    :                                             { Nothing }
+    | Os important                                { Just Important }
 CssPropertyVals :: { NonEmpty PropVal }
-    : PropVal                                     { $1 :| [] }
+    : PropVal Os                                  { $1 :| [] }
     | PropVal Os CssPropertyVals                  { $1 <| $3 }
---     | PropVal CssPropertyVals                     { $1 <| $2 }
 SelectorList :: { NonEmpty Selector }
     : Selector                                    { $1 :| [] }
     | Selector ',' SelectorList                   { $1 <| $3 }
 Selector :: { Selector }
-    : TagRelMb TagSelector ZipTagRelAndTagSel         { Selector $1 $2 $3 }
-    | TagRelMb TagSelector ZipTagRelAndTagSel PsTgSel { PeSelector $1 $2 $3 $4 }
-    | PsTgSel                                         { PeSelectorOnly $1 }
+    : TagRelMb TagSel ZipTagRelAndTagSel          { Selector $1 $2 $3 }
+    | TagRelMb TagSel ZipTagRelAndTagSel PsTgSel  { PeSelector $1 $2 $3 $4 }
+    | PsTgSel                                     { PeSelectorOnly $1 }
 PsTgSel :: { PseudeTagSelector }
-    : CompositePe TagAttrs TagClasses                 { PseudeTagSelector $1 $2 $3 }
+    : CompositePe TagAttrs TagClasses             { PseudeTagSelector $1 $2 $3 }
 CompositePe :: { CompositePe }
-    : pseude                                          { AtomicPe $1 }
-    | highlight Op Ident ')'                          { Highlight (Embraced $3) }
-    | part Op SslNeOfIdents ')'                       { Part (Embraced $3) }
-    | picker Op Ident Os ')'                          { Picker (Embraced $3) }
-    | scrollButton Op TagName Os ')'                  { ScrollButton (Embraced $3) }
-    | slotted ESL                                     { Slotted (Embraced $2) }
-    | viewTransitionGroup ESL                         { ViewTransitionGroup (Embraced $2) }
-    | viewTransitionImagePair ESL                     { ViewTransitionImagePair (Embraced $2) }
-    | viewTransitionNew ESL                           { ViewTransitionNew (Embraced $2) }
-    | viewTransitionOld ESL                           { ViewTransitionOld (Embraced $2) }
+    : pseude                                      { AtomicPe $1 }
+    | highlight Op Ident ')'                      { Highlight (Embraced $3) }
+    | part Op SslNeOfIdents ')'                   { Part (Embraced $3) }
+    | picker Op Ident Os ')'                      { Picker (Embraced $3) }
+    | scrollButton Op TagName Os ')'              { ScrollButton (Embraced $3) }
+    | slotted ESL                                 { Slotted (Embraced $2) }
+    | viewTransitionGroup ESL                     { ViewTransitionGroup (Embraced $2) }
+    | viewTransitionImagePair ESL                 { ViewTransitionImagePair (Embraced $2) }
+    | viewTransitionNew ESL                       { ViewTransitionNew (Embraced $2) }
+    | viewTransitionOld ESL                       { ViewTransitionOld (Embraced $2) }
 
 TagRelMb :: { Maybe TagRelation }
-    : TagRelation                                     { Just $1 }
-    |                                                 { Nothing }
-TagSelector :: { TagSelector }
-    : Ident '|' TagName TagAttrs TagId TagClasses     { TagSelector (R.Namespace $1) $3 $4 $5 $6 }
-    | Ident TagAttrs TagId TagClasses                 { TagSelector NoBar (TagName $1) $2 $3 $4 }
-    | '&' TagAttrs TagId TagClasses                   { TagSelector NoBar AmpersandTag $2 $3 $4 }
-    | '*' '|' TagName TagAttrs TagId TagClasses       { TagSelector AsteriskNs $3 $4 $5 $6 }
-    | '*' TagAttrs TagId TagClasses                   { TagSelector NoBar AsteriskTag $2 $3 $4 }
-    | '|' TagName TagAttrs TagId TagClasses           { TagSelector NoNs $2 $3 $4 $5 }
-    | TagAttrs TagId TagClasses                       { TagSelector NoBar NoTag $1 $2 $3 }
+    : TagRelation                                 { Just $1 }
+    |                                             { Nothing }
+TagSel :: { TagSelector }
+    : Ident '|' TagName TagAttrs TagId TagClasses { TagSelector (R.Namespace $1) $3 $4 $5 $6 }
+    | Ident TagAttrs TagId TagClasses             { TagSelector NoBar (TagName $1) $2 $3 $4 }
+    | '&' TagAttrs TagId TagClasses               { TagSelector NoBar AmpersandTag $2 $3 $4 }
+    | '*' '|' TagName TagAttrs TagId TagClasses   { TagSelector AsteriskNs $3 $4 $5 $6 }
+    | '*' TagAttrs TagId TagClasses               { TagSelector NoBar AsteriskTag $2 $3 $4 }
+    | '|' TagName TagAttrs TagId TagClasses       { TagSelector NoNs $2 $3 $4 $5 }
+    | TagAttrs TagId TagClasses                   { TagSelector NoBar NoTag $1 $2 $3 }
 TagName :: { TagName }
-    :                                                 { NoTag }
-    | '&'                                             { AmpersandTag }
-    | '*'                                             { AsteriskTag }
-    | Ident                                           { TagName $1 }
+    :                                             { NoTag }
+    | '&'                                         { AmpersandTag }
+    | '*'                                         { AsteriskTag }
+    | Ident                                       { TagName $1 }
 TagAttrs :: { [Attr] }
-    :                                                 { [] }
-    | TagAttrsNe                                      { $1 }
+    :                                             { [] }
+    | TagAttrsNe                                  { $1 }
 TagAttrsNe :: { [Attr] }
-    : AttrBox                                         { [ $1 ] }
-    | AttrBox TagAttrs                                { $1 : $2 }
+    : AttrBox                                     { [ $1 ] }
+    | AttrBox TagAttrs                            { $1 : $2 }
 TagId :: { Maybe Hash }
-    :                                                 { Nothing }
-    | Hash                                            { Just $1 }
+    :                                             { Nothing }
+    | Hash                                        { Just $1 }
 Hash :: { Hash }
-    : hash                                            { Hash (pack $1) }
+    : hash                                        { Hash (pack $1) }
 TagClasses :: { [ Class ] }
-    :                                                 { [] }
-    | TagClass TagClasses                             { $1 : $2 }
+    :                                             { [] }
+    | TagClass TagClasses                         { $1 : $2 }
 TagClass :: { Class }
-    : '.' Ident                                       { AtomicClass $2 }
-    | pseudc                                          { AtomicPseudoClass $1 }
-    | ':not' ESL                                      { NotClass $2 }
-    | 'lang(' Str ')'                                 { Lang (Language $2) }
+    : '.' Ident                                   { AtomicClass $2 }
+    | pseudc                                      { AtomicPseudoClass $1 }
+    | ':not' ESL                                  { NotClass $2 }
+    | 'lang(' Str ')'                             { Lang (Language $2) }
     | activeViewTransitionType Op CslOfIdents Os ')'  { ActiveViewTransitionType (Embraced $3) }
-    | dir Op Ident Os ')'                             { Dir (Embraced $3) }
-    | heading Op CslOfInts Os ')'                     { Heading (Embraced $3) }
-    | heading                                         { AtomicPseudoClass P.Heading }
-    | host ESL                                        { Host (Embraced $2) }
-    | host                                            { AtomicPseudoClass P.Host }
-    | state Op Ident Os ')'                           { State (Embraced $3) }
-    | where ESL                                       { Where $2 }
-    | is ESL                                          { Is $2 }
-    | has ESL                                         { Has $2 }
-    | pseudf Os Nth                                   { call $1 $3 }
+    | dir Op Ident Os ')'                         { Dir (Embraced $3) }
+    | heading Op CslOfInts Os ')'                 { Heading (Embraced $3) }
+    | heading                                     { AtomicPseudoClass P.Heading }
+    | host ESL                                    { Host (Embraced $2) }
+    | host                                        { AtomicPseudoClass P.Host }
+    | state Op Ident Os ')'                       { State (Embraced $3) }
+    | where ESL                                   { Where $2 }
+    | is ESL                                      { Is $2 }
+    | has ESL                                     { Has $2 }
+    | pseudf Os Nth                               { call $1 $3 }
 CslOfIdents :: { CslNe R.Ident }
-    : CslOfIdentsNe                                   { CslNe $1 }
+    : CslOfIdentsNe                               { CslNe $1 }
 CslOfIdentsNe :: { NonEmpty R.Ident }
-    : Ident                                           { $1 :| [] }
-    | Ident Os ',' Os CslOfIdentsNe                   { $1 <| $5 }
+    : Ident                                       { $1 :| [] }
+    | Ident Os ',' Os CslOfIdentsNe               { $1 <| $5 }
 SslNeOfIdents :: { SslNe R.Ident }
-    : SslOfIdentsNe                                   { SslNe $1 }
+    : SslOfIdentsNe                               { SslNe $1 }
 SslOfIdentsNe :: { NonEmpty R.Ident }
-    : Ident                                           { $1 :| [] }
-    | Ident ' ' SslOfIdentsNe                         { $1 <| $3 }
+    : Ident                                       { $1 :| [] }
+    | Ident ' ' SslOfIdentsNe                     { $1 <| $3 }
 CslOfInts :: { CslNe Unsigned }
-    : CslOfIntsNe                                     { CslNe $1 }
+    : CslOfIntsNe                                 { CslNe $1 }
 CslOfIntsNe :: { NonEmpty Unsigned }
-    : Unsigned                                        { $1 :| [] }
-    | Unsigned Os ',' Os CslOfIntsNe                  { $1 <| $5 }
+    : Unsigned                                    { $1 :| [] }
+    | Unsigned Os ',' Os CslOfIntsNe              { $1 <| $5 }
 ZipTagRelAndTagSel :: { [ (TagRelation, TagSelector) ] }
-    :                                                 { [] }
-    | TagRelation TagSelector ZipTagRelAndTagSel      { ($1, $2) : $3 }
+    :                                             { [] }
+    | TagRelation TagSel ZipTagRelAndTagSel       { ($1, $2) : $3 }
 TagRelation :: { TagRelation }
-    : ' ' '+' Os                                      { NextSibling }
-    | ' ' '>' Os                                      { Child }
-    | ' ' '~' Os                                      { GeneralSibling }
-    | ' ' Os                                          { Descendant }
+    : ' ' '+' Os                                  { NextSibling }
+    | ' ' '>' Os                                  { Child }
+    | ' ' '~' Os                                  { GeneralSibling }
+    | ' ' Os                                      { Descendant }
 
-    | '+' Os                                          { NextSibling }
-    | '>' Os                                          { Child }
-    | '~' Os                                          { GeneralSibling }
+    | '+' Os                                      { NextSibling }
+    | '>' Os                                      { Child }
+    | '~' Os                                      { GeneralSibling }
 Nth
-    : nth Os ')'                                      { $1 }
-    | PMOpt IntOpt 'n' Os ')'                         { Nth (call $1 $2) 0 }
-    | PMOpt IntOpt 'n' Os pm Os int Os ')'            { Nth (call $1 $2) (call $5 $7) }
-    | PMOpt int Os ')'                                { Nth 0 (call $1 $2) }
+    : nth Os ')'                                  { $1 }
+    | PMOpt IntOpt 'n' Os ')'                     { Nth (call $1 $2) 0 }
+    | PMOpt IntOpt 'n' Os pm Os int Os ')'        { Nth (call $1 $2) (call $5 $7) }
+    | PMOpt int Os ')'                            { Nth 0 (call $1 $2) }
 PMOpt
-    :                                                 { TpmIdF }
-    | pm                                              { $1 }
+    :                                             { TpmIdF }
+    | pm                                          { $1 }
 IntOpt
-    :                                                 { 1 }
-    | int                                             { $1 }
--- Ccb : '}' Os                                          { () }
-Ocb : '{'                                             { () }
-Op  : '(' Os                                          { () }
-Os  :                                                 { () }
-    | ' '                                             { () }
+    :                                             { 1 }
+    | int                                         { $1 }
+-- Ccb : '}' Os                                      { () }
+Ocb : '{'                                         { () }
+Op  : '(' Os                                      { () }
+Os  :                                             { () }
+    | ' '                                         { () }
 AttrBox
-    : '[' Attr                                        { $2 }
+    : '[' Attr                                    { $2 }
 Attr
-    : Ident ']'                                       { HasAttr (AttrName NoBar $1) }
-    | Ident '|' Ident ']'                             { HasAttr (AttrName (R.Namespace $1) $3) }
+    : Ident ']'                                   { HasAttr (AttrName NoBar $1) }
+    | Ident '|' Ident ']'                         { HasAttr (AttrName (R.Namespace $1) $3) }
     | Ident '|' Ident AttrOp IdTxt ']'
-                                                      { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
-    | Ident '|' Ident AttrOp Str ']'                  { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
-    | Ident AttrOp IdTxt ']'                          { Attr (AttrName NoBar $1) $2 $3 }
-    | Ident AttrOp Str ']'                            { Attr (AttrName NoBar $1) $2 $3 }
-    | '|' Ident ']'                                   { HasAttr (AttrName NoNs $2) }
-    | '|' Ident AttrOp IdTxt ']'                      { Attr (AttrName NoNs $2) $3 $4 }
-    | '|' Ident AttrOp Str ']'                        { Attr (AttrName NoNs $2) $3 $4 }
-    | '*' '|' Ident ']'                               { HasAttr (AttrName AsteriskNs $3) }
-    | '*' '|' Ident AttrOp IdTxt ']'                  { Attr (AttrName AsteriskNs $3) $4 $5 }
-    | '*' '|' Ident AttrOp Str ']'                    { Attr (AttrName AsteriskNs $3) $4 $5 }
+                                                  { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
+    | Ident '|' Ident AttrOp Str ']'              { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
+    | Ident AttrOp IdTxt ']'                      { Attr (AttrName NoBar $1) $2 $3 }
+    | Ident AttrOp Str ']'                        { Attr (AttrName NoBar $1) $2 $3 }
+    | '|' Ident ']'                               { HasAttr (AttrName NoNs $2) }
+    | '|' Ident AttrOp IdTxt ']'                  { Attr (AttrName NoNs $2) $3 $4 }
+    | '|' Ident AttrOp Str ']'                    { Attr (AttrName NoNs $2) $3 $4 }
+    | '*' '|' Ident ']'                           { HasAttr (AttrName AsteriskNs $3) }
+    | '*' '|' Ident AttrOp IdTxt ']'              { Attr (AttrName AsteriskNs $3) $4 $5 }
+    | '*' '|' Ident AttrOp Str ']'                { Attr (AttrName AsteriskNs $3) $4 $5 }
 AttrOp ::  { AttrOp }
-    : '='                                             { Exact }
-    | '~='                                            { Include }
-    | '|='                                            { DashMatch }
-    | '^='                                            { PrefixMatch }
-    | '$='                                            { SuffixMatch }
-    | '*='                                            { SubstringMatch }
+    : '='                                         { Exact }
+    | '~='                                        { Include }
+    | '|='                                        { DashMatch }
+    | '^='                                        { PrefixMatch }
+    | '$='                                        { SuffixMatch }
+    | '*='                                        { SubstringMatch }
 IdKwd
-    : Ident                                           { $1 }
-    | MediaKeywordAsIdent                             { $1 }
+    : Ident                                       { $1 }
+    | MediaKeywordAsIdent                         { $1 }
 MediaKeywordAsIdent
-    : 'not'                                           { R.Ident "not" }
-    | 'or'                                            { R.Ident "or" }
-    | 'and'                                           { R.Ident "and" }
-    | 'only'                                          { R.Ident "only" }
+    : 'not'                                       { R.Ident "not" }
+    | 'or'                                        { R.Ident "or" }
+    | 'and'                                       { R.Ident "and" }
+    | 'only'                                      { R.Ident "only" }
 Ident :: { R.Ident }
-    : ident                                           { R.Ident (pack $1) }
+    : ident                                       { R.Ident (pack $1) }
 IdTxt :: { Text }
-    : ident                                           { pack $1 }
+    : ident                                       { pack $1 }
 Str :: { Text }
-    : string                                          { pack $1 }
+    : string                                      { pack $1 }
 Var :: { R.Ident }
-    : var                                             { R.Ident (pack $1) }
+    : var                                         { R.Ident (pack $1) }
 
 {
 happyError :: [TokenLoc] -> P a

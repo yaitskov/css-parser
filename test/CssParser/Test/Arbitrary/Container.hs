@@ -13,7 +13,7 @@ import CssParser.Test.Arbitrary.Media ()
 
 instance Norm CqOp where
   normalize = \case
-    CqOpFeature mf -> CqOpFeature (toPlainMf (PropVals $ pure (IntVal (RawNum "0") Mm)) mf)
+    CqOpFeature mf -> CqOpFeature (toPlainMf (PropVals (pure (IntVal (RawNum "0") Mm)) Nothing) mf)
     o -> o
 
 deriving via (GenericArbitrary (Not ContainerQuery CqOp)) instance Arbitrary (Not ContainerQuery CqOp)

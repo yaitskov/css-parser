@@ -40,7 +40,7 @@ instance CssShow s => CssShow (FeatureQuery s) where
 
 instance Norm (FeatureQuery s) where
   normalize = \case
-    FqMediaFeature mf -> FqMediaFeature $ toPlainMf (PropVals $ pure (IntVal (RawNum "1") Mm)) mf
+    FqMediaFeature mf -> FqMediaFeature $ toPlainMf (PropVals (pure (IntVal (RawNum "1") Mm)) Nothing) mf
     FqParen mf@FqMediaFeature {} -> mf
     FqParen fn@FqApp {} -> fn
     FqParen p@FqParen {} -> normalize p

@@ -75,9 +75,9 @@ data MediaFeature
 toPlainMf :: PropVals -> MediaFeature -> MediaFeature
 toPlainMf pvs = \case
   BooleanMf pn -> PlainMf pn pvs
-  OpenRangeFeature pn _ pv -> PlainMf pn . PropVals $ pure pv
-  OpenRangeFeatureFlipped pv _ pn -> PlainMf pn . PropVals $ pure pv
-  MfClosedRange pv _  pn _ _ -> PlainMf pn . PropVals $ pure pv
+  OpenRangeFeature pn _ pv -> PlainMf pn $ PropVals (pure pv) Nothing
+  OpenRangeFeatureFlipped pv _ pn -> PlainMf pn $ PropVals (pure pv) Nothing
+  MfClosedRange pv _  pn _ _ -> PlainMf pn $ PropVals (pure pv) Nothing
   o -> o
 
 instance CssShow MediaFeature where

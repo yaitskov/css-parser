@@ -29,6 +29,8 @@ instance Show Anum where
 
 deriving via (GenericArbitrary Anum) instance Arbitrary Anum
 
+deriving via (GenericArbitrary Important) instance Arbitrary Important
+
 instance Arbitrary RawNum where
   arbitrary = mkRawNum . show <$> (arbitrary :: Gen Anum)
   shrink _ = []
@@ -57,5 +59,6 @@ instance Arbitrary Url where
 deriving via Ident instance Arbitrary LiteralString
 deriving via (GenericArbitrary Ratio) instance Arbitrary Ratio
 deriving via (GenericArbitrary PropVals) instance Arbitrary PropVals
+deriving via (GenericArbitrary PropValsList) instance Arbitrary PropValsList
 deriving via (GenericArbitrary PropVal) instance Arbitrary PropVal
 deriving via (GenericArbitrary PropValType) instance Arbitrary PropValType

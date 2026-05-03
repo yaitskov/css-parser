@@ -60,6 +60,7 @@ instance CssShow CssRuleBodyItem where
   toCssText = \case
     CssNestedRule cr -> toCssText cr
     CssLeafRule pn pv -> toCssText pn <> ": " <> toCssText pv <> "; "
+    CssEnumLeaf pn pv -> toCssText pn <> ": " <> toCssText pv <> "; "
 
 instance CssShow TagRelation where
   toCssText = \case

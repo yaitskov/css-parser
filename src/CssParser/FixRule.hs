@@ -2,9 +2,22 @@
 module CssParser.FixRule where
 
 import CssParser.Ident
-    ( Ident, Namespace(Namespace, NoBar), TagName(TagName, NoTag) )
+    ( Ident,
+      Namespace(Namespace, NoBar),
+      PropertyName,
+      TagName(TagName, NoTag) )
 import CssParser.Prelude
 import CssParser.Rule
+    ( Attr,
+      Class(AtomicClass),
+      CssRule(MediaRule, LayerBlock, CssRule),
+      CssRuleBodyItem(..),
+      Hash,
+      PseudeTagSelector,
+      Selector(..),
+      TagRelation(Descendant),
+      TagSelector(..) )
+import CssParser.Rule.Value
 
 
 tagSelectorOnly :: Ident -> TagSelector
@@ -155,3 +168,8 @@ setTopTagName :: Ident -> CssRule -> CssRule
 setTopTagName tn = updateTopTagSelector go
   where
     go ts = ts { tagName = TagName tn }
+
+mkLeaf :: PropertyName -> NonEmpty PropVals -> CssRuleBodyItem
+mkLeaf pn = \case
+  (x :| []) -> CssLeafRule pn x
+  o -> CssEnumLeaf pn (PropValsList o)

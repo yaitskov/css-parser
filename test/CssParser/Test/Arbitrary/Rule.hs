@@ -9,6 +9,7 @@ import CssParser.Norm ( normUntilConst, Norm(..) )
 import CssParser.Prelude
 import CssParser.Rule
 import CssParser.Rule.Pseudo ( Language(..), Nth, PseudoElement )
+import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.At ()
 import CssParser.Test.Arbitrary.Container ()
@@ -19,6 +20,7 @@ import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Media ()
 import CssParser.Test.Arbitrary.MonoPair ()
 import Data.List ( null )
+
 instance Arbitrary Hash where
     arbitrary = Hash <$> arbitraryIdent
     shrink (Hash a) = Hash <$> shrinkIdent a
@@ -52,8 +54,18 @@ deriving via (GenericArbitrary TagRelation) instance Arbitrary TagRelation
 deriving via (GenericArbitrary Class) instance Arbitrary Class
 deriving via (GenericArbitrary Attr) instance Arbitrary Attr
 
+
+instance Norm CssRuleBodyItem where
+  normalize = \case
+    CssEnumLeaf pn (PropValsList (x :| [])) -> CssLeafRule pn x
+    o -> o
+
 deriving via (GenericArbitrary CssRule) instance Arbitrary CssRule
-deriving via (GenericArbitrary CssRuleBodyItem) instance Arbitrary CssRuleBodyItem
+
+instance Arbitrary CssRuleBodyItem where
+  arbitrary = normalize <$> genericArbitrary
+  shrink x = normalize <$>  genericShrink x
+
 deriving via (GenericArbitrary Nth) instance Arbitrary Nth
 deriving via (GenericArbitrary AttrOp) instance Arbitrary AttrOp
 deriving via (GenericArbitrary PseudoElement) instance Arbitrary PseudoElement

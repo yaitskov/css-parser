@@ -191,6 +191,7 @@ tokens :-
   @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
+  "!" @wo @i@m@p@o@r@t@a@n@t              { constoken ImportantT }
   "@" @supports                           { constoken SupportsT }
   "@" @scope                              { constoken ScopeT }
   "@" @view "-" @transition               { constoken ViewTransitionT }
@@ -220,7 +221,7 @@ tokens :-
   "*"                                     { constoken Asterisk }
   "&"                                     { constoken Ampersand }
   "|"                                     { constoken Pipe }
-  "/"                                     { constoken DivT }
+  @wo "/"                                 { constoken DivT }
   @ident                                  { tokenize (Ident . readIdentifier) }
   @string                                 { tokenize (String . readCssString) }
   "U+" ("?" | "1")? ("?" | "0")? @updig{1,4} ("-" ("?" | "1")? ("?" | "0")? @updig{1,4})?
@@ -543,6 +544,7 @@ data Token
     | PageMarginT PageMargin
 
     | SelectorFunT
+    | ImportantT
     | SupportsT
     | ScopeT
     | ViewTransitionT
