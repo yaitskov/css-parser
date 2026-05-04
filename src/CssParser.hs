@@ -9,9 +9,12 @@ module CssParser
 
 import CssParser.At as X
 import CssParser.At.MediaQuery as X
+import CssParser.At.Supports as X hiding (FeatureQuery)
 import CssParser.Rule.Value as X
 import CssParser.File as X
+import CssParser.Ident as X
 import CssParser.Lexer (TokenLoc, alexScanTokens, getToken)
+import CssParser.Norm as X (Norm (..))
 import CssParser.Parser.Monad as X
 import CssParser.Parser as X (cssParser)
 import CssParser.Prelude

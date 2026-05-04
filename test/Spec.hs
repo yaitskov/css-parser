@@ -99,7 +99,8 @@ checkParse x = y == y
 at :: [String]
 at =
   colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <>
-  container <> misc <> supports <> unknown <> media <> page <> layer
+  container <> misc <> supports <> unknown <> media <> page <> layer <>
+  atImport
 
 colorProfile :: [String]
 colorProfile =
@@ -217,6 +218,23 @@ layer :: [String]
 layer =
   [ "@layer {}"
   , "@layer l1 {}"
+  ]
+
+atImport :: [String]
+atImport =
+  [ "@import \"my-imported-styles.css\";"
+  , "@import url(\"chrome://communicator/skin/communicator.css\");"
+  , "@import url(chrome://communicator/skin/communicator.css);"
+  , "@import \"fine-print.css\" print;"
+  , "@import \"bluish.css\" print, screen;"
+  , "@import \"common.css\" screen;"
+  , "@import \"landscape.css\" screen and (orientation: landscape); "
+  , "@import \"grid.css\" supports(display: grid) screen and (width <= 400px);"
+  , "@import \"flex.css\" supports((not (display: grid)) and (display: flex)) screen and (width <= 400px);"
+  , "@import \"whatever.css\" supports((selector(h2 > p)) and (font-tech(color-COLRv1)));"
+  , "@import \"theme.css\" layer(utilities);"
+  , "@import \"theme.css\" layer();"
+  , "@import \"style.css\" layer;"
   ]
 
 media :: [String]

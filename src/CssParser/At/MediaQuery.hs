@@ -5,7 +5,17 @@ import CssParser.Prelude
 import CssParser.Rule.Value
 import CssParser.Show
 
-newtype MediaType = MediaType Ident deriving (Eq, Ord, Generic) deriving newtype (Show, CssShow)
+data MediaType
+  = AllMt
+  | Print
+  | Screen
+  deriving (Eq, Show, Ord, Enum, Bounded, Generic)
+
+instance CssShow MediaType where
+  toCssText = \case
+    AllMt -> "all"
+    Print -> "print"
+    Screen -> "screen"
 
 data MtModifier = MtNot | MtOnly deriving (Show, Eq, Ord, Enum, Bounded, Generic)
 

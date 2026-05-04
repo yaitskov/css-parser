@@ -124,6 +124,9 @@ $pm       = [\-\+]
 @to      = @t@o
 @is      = @i@s
 @has     = @h@a@s
+@all     = @a@l@l
+@screen  = @s@c@r@e@e@n
+@print   = @p@r@i@n@t
 @not     = @n@o@t
 @where   = @w@h@e@r@e
 @and     = @a@n@d
@@ -192,7 +195,7 @@ tokens :-
   @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
 
   "!" @wo @i@m@p@o@r@t@a@n@t              { constoken ImportantT }
-  "@" @supports                           { constoken SupportsT }
+  @supports                               { constoken SupportsT }
   "@" @scope                              { constoken ScopeT }
   "@" @view "-" @transition               { constoken ViewTransitionT }
   "@" @starting "-" @style                { constoken StartingStyleT }
@@ -207,10 +210,14 @@ tokens :-
 
   @wo "@" @import $w @wo                  { constoken ImportT }
   @wo "@" @keyframes $w @wo               { constoken KeyframesT }
-  @wo "@" @layer $w @wo                   { constoken LayerT }
+  @layer                                  { constoken LayerT }
+  @wo "@" @layer @wo                      { constoken LayerAtT }
   @wo "@" @media $w @wo                   { constoken MediaT }
   @to                                     { constoken ToT }
   @only @wo                               { constoken OnlyT }
+  @all                                    { constoken AllT }
+  @screen                                 { constoken ScreenT }
+  @print                                  { constoken PrintT }
   @not @wo                                { constoken NotT }
   @or @wo                                 { constoken OrT }
   @and @wo                                { constoken AndT }
@@ -563,6 +570,7 @@ data Token
     | ImportT
     | KeyframesT
     | LayerT
+    | LayerAtT
     | MediaT
     | DivT
     | OnlyT
@@ -570,6 +578,9 @@ data Token
     | AndT
     | OrT
     | UrlT
+    | AllT
+    | ScreenT
+    | PrintT
     | UnquotedUrlT String
     | Asterisk
     | Space

@@ -4,12 +4,14 @@
 module CssParser.Test.Arbitrary.Rule where
 
 import CssParser.At.Supports ( FqFun )
+import CssParser.At.Supports qualified as S
 import CssParser.Ident ( TagName(NoTag, AsteriskTag) )
 import CssParser.Norm ( normUntilConst, Norm(..) )
 import CssParser.Prelude
 import CssParser.Rule
 import CssParser.Rule.Pseudo ( Language(..), Nth, PseudoElement )
 import CssParser.Rule.Value
+import CssParser.At.Import
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.At ()
 import CssParser.Test.Arbitrary.Container ()
@@ -78,3 +80,18 @@ deriving via (GenericArbitrary (FqFun SelectorList)) instance Arbitrary (FqFun S
 instance Arbitrary FeatureQuery where
   arbitrary = normUntilConst <$> genericArbitrary
   shrink = normUntilConst <$> genericShrink
+
+expandToParen :: FeatureQuery ->  FeatureQuery
+expandToParen = \case
+  S.FqParen x -> expandToParen x
+  o -> o
+
+instance Norm (Import SelectorList) where
+  normalize = \case
+    ImportUrlLayer src ln mfq mqs -> ImportUrlLayer src ln (expandToParen <$> mfq) mqs
+    ImportUrlSupports src mfq mqs -> ImportUrlSupports src (expandToParen <$> mfq) mqs
+    o -> o
+
+instance Arbitrary (Import SelectorList) where
+  arbitrary = normalize <$> genericArbitrary
+  shrink = normalize <$> genericShrink

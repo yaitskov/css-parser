@@ -2,15 +2,15 @@ module CssParser.File where
 
 import CssParser.At ( Charset )
 import CssParser.At.Import ( Import )
-import CssParser.At.Namespace
+import CssParser.At.Namespace ( Namespace )
 import CssParser.Prelude
-import CssParser.Rule ( CssRule )
+import CssParser.Rule ( CssRule, SelectorList )
 import CssParser.Rule.Show ()
-import CssParser.Show
+import CssParser.Show ( CssShow(..) )
 import CssParser.At.Layer (LayerStmt)
 
 data FileHeader
-  = HeaderImport Import
+  = HeaderImport (Import SelectorList)
   | HeaderLayers LayerStmt
   deriving (Show, Eq, Generic)
 

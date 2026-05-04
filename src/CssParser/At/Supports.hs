@@ -25,6 +25,12 @@ data FeatureQuery s
   | FqApp (FqFun s)
   deriving (Show, Eq, Ord, Generic)
 
+hasOuterParens :: FeatureQuery s -> Bool
+hasOuterParens = \case
+    FqMediaFeature _ -> True
+    FqParen _ -> True
+    _ -> False
+
 instance CssShow s => CssShow (FeatureQuery s) where
   toCssText x = case x of
     FqMediaFeature mf -> "(" <> toCssText mf <> ")"

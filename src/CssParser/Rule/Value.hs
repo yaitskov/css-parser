@@ -168,7 +168,7 @@ propRef = \case
   PropertyName i -> IdentRef i
   VarProp v -> VarRef v
 
-newtype RawNum = RawNum Text deriving newtype (Eq, Ord, Show) deriving (Generic)
+newtype RawNum = RawNum Text deriving newtype (Eq, Ord, Show, IsString) deriving (Generic)
 
 mkRawNum :: String -> RawNum
 mkRawNum = RawNum . C8.pack

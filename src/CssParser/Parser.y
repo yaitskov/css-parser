@@ -32,11 +32,11 @@ import CssParser.Lexer
     , Comma, Plus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
-    , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
+    , CharsetT, ImportT, MediaT, LayerT, LayerAtT, NamespaceT, CounterStyleT, PropertyT
     , NotT, OrT, AndT, OnlyT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
-    , RatioT, ImportantT
+    , RatioT, ImportantT, PrintT, AllT, ScreenT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
@@ -84,6 +84,9 @@ import Prelude
     '{'         { TokenLoc COpen _ _ }
     '}'         { TokenLoc CClose _ _ }
     '='         { TokenLoc TEqual _ _ }
+    screen      { TokenLoc ScreenT _ _ }
+    print       { TokenLoc PrintT _ _ }
+    all         { TokenLoc AllT _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
     unRange     { TokenLoc UnicodeRangeT _ _ }
     '@'         { TokenLoc AtT _ _ }
@@ -110,7 +113,8 @@ import Prelude
     fontFace    { TokenLoc FontFaceT _ _ }
     srcProp     { TokenLoc SrcPropT _ _ }
     'import'    { TokenLoc ImportT _ _ }
-    'layer'     { TokenLoc LayerT _ _ }
+    layer       { TokenLoc LayerT _ _ }
+    '@layer'    { TokenLoc LayerAtT _ _ }
     'page'      { TokenLoc PageT _ _ }
 
     pageMargin  { TokenLoc (PageMarginT $$) _ _ }
@@ -247,10 +251,28 @@ Charset
 Headers :: { [ Either CssRule FileHeader ] }
     : List(Header)                                { $1 }
 Header :: { Either CssRule FileHeader }
-    : 'import' Source ';'                         { Right (HeaderImport (Import $2)) }
-    | 'layer' LayerNames ';'                      { Right (HeaderLayers (LayerStmt $2)) }
-    | 'layer' IdKwd '{' CssRuleBody '}'           { Left (LayerBlock (Just (LayerName $2)) $4) }
-    | 'layer' '{' CssRuleBody '}'                 { Left (LayerBlock Nothing $3) }
+    : 'import' Import ';'                         { Right (HeaderImport $2) }
+    | '@layer' LayerNames ';'                     { Right (HeaderLayers (LayerStmt $2)) }
+    | '@layer' IdKwd '{' CssRuleBody '}'          { Left (LayerBlock (Just (LayerName $2)) $4) }
+    | '@layer' '{' CssRuleBody '}'                { Left (LayerBlock Nothing $3) }
+Import -- :: { Import SelectorList }
+    : Source Os                                   { ImportUrlSupports $1 Nothing [] }
+    | Source Os layer Os                          { ImportDefaultLayer $1 }
+    | Source Os layer LayerNameMb Os              { ImportUrlLayer $1 $4 Nothing [] }
+    | Source Os layer LayerNameMb Os Supports Os
+                                                  { ImportUrlLayer $1 $4 (Just $6) [] }
+    | Source Os layer LayerNameMb Os Supports Os MediaQueryList Os
+                                                  { ImportUrlLayer $1 $4 (Just $6) $8 }
+    | Source Os layer LayerNameMb Os MediaQueryList Os
+                                                  { ImportUrlLayer $1 $4 Nothing $6 }
+    | Source Os Supports Os                       { ImportUrlSupports $1 (Just $3) [] }
+    | Source Os Supports Os MediaQueryList Os     { ImportUrlSupports $1 (Just $3) $5 }
+    | Source Os MediaQueryList Os                 { ImportUrlSupports $1 Nothing $3 }
+LayerNameMb :: { Maybe LayerName }
+    : P(Maybe(LayerName))                         { $1 }
+Supports :: { FeatureQuery }
+    : supports Op MediaFeature ')'                { FqMediaFeature $3 }
+    | supports Op FeatureQuery ')'                { normalize $3 }
 Namespaces
     :                                             { [] }
     | Namespace ';' Namespaces                    { $1 : $3 }
@@ -261,16 +283,16 @@ Source
     | 'uqUrl'                                     { UrlSource (UnquotedUrl (pack $1)) }
     | Str                                         { StrSource $1 }
 LayerNames :: { NonEmpty LayerName }
-    : IdKwd                                       { LayerName $1 :| [] }
-    | IdKwd ',' LayerNames                        { LayerName $1 <| $3 }
+    : NonEmpty(',', LayerName)                    { $1 }
+LayerName :: { LayerName }
+    : IdKwd                                       { LayerName $1 }
 CssFileBody
-    :                                             { [] }
-    | CssRule CssFileBody                         { $1 : $2 }
+    : List(CssRule)                               { $1 }
 CssRule :: { CssRule }
     : SelectorList '{' CssRuleBody '}'            { CssRule $1 $3 }
     | 'media' '{' CssRuleBody '}'                 { MediaRule (MediaQueryList []) $3 }
     | 'media' MediaQueryList '{' CssRuleBody '}'  { MediaRule (MediaQueryList $2) $4 }
-    | 'layer' IdKwdMb '{' CssRuleBody '}'         { LayerBlock (fmap LayerName $2) $4 }
+    | '@layer' IdKwdMb '{' CssRuleBody '}'        { LayerBlock (fmap LayerName $2) $4 }
     | 'page' '{' CssRuleBody '}'                  { Page (PageSelectorList []) $3 }
     | 'page' PageSelectorList '{' CssRuleBody '}' { Page (PageSelectorList $2) $4 }
     | pageMargin '{' CssRuleBody '}'              { PageMarginBlock $1 $3 }
@@ -294,7 +316,7 @@ CssRule :: { CssRule }
     | startingStyle Os ERB                        { StartingStyle $3 }
     | viewTransition Os ERB                       { ViewTransition $3 }
     | scope Os SelectorPair ERB                   { ScopeBlock $3 $4 }
-    | supports Os FeatureQuery ERB                { Supports (normalize $3) $4 }
+    | '@' supports Os FeatureQuery ERB            { Supports (normalize $4) $5 }
     | '@' Ident Os CommaSeparatedList Os ERB      { UnknownGramma $2 (Just (CommaSeparatedList $4)) $6 }
     | '@' Ident Os ERB                            { UnknownGramma $2 Nothing $4 }
 FeatureQuery :: { FeatureQuery }
@@ -422,10 +444,12 @@ MediaQuery :: { MediaQuery }
                                                       $2
                                                       (Just $6)
                                                   }
-    | MtModifier MediaType                        { MediaQueryWithMt $1 $2 Nothing }
+    | MtModifier MediaType Os                     { MediaQueryWithMt $1 $2 Nothing }
     | MediaCondition                              { MediaQueryConditionOnly $1 }
-MediaType
-    : Ident                                       { MediaType $1 }
+MediaType :: { MediaType }
+    : all                                         { AllMt }
+    | screen                                      { Screen }
+    | print                                       { Print }
 MtModifier :: { Maybe MtModifier }
     :                                             { Nothing }
     | 'not'                                       { Just MtNot }
@@ -757,6 +781,7 @@ AttrOp ::  { AttrOp }
 IdKwd
     : Ident                                       { $1 }
     | MediaKeywordAsIdent                         { $1 }
+    | layer                                       { R.Ident "layer" }
 MediaKeywordAsIdent
     : 'not'                                       { R.Ident "not" }
     | 'or'                                        { R.Ident "or" }
@@ -772,6 +797,8 @@ Var :: { R.Ident }
     : var                                         { R.Ident (pack $1) }
 Embraced(o, p, c)
     : o p c                                       { $2 }
+Clp : ')'                                         { $1 }
+P(p): Embraced(Op, p, Clp)                        { $1 }
 SepList(sep, elt)
     :                                             { [] }
     | elt sep List(elt)                           { $1 : $3 }

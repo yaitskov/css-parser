@@ -2,15 +2,14 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.At where
 
-import CssParser.At
-import CssParser.At.Import
-import CssParser.At.Layer
-import CssParser.At.Namespace
+import CssParser.At ( Charset(..) )
+import CssParser.At.Layer ( LayerName(..), LayerStmt(..) )
+import CssParser.At.Namespace ( Namespace )
 import CssParser.At.Keyframe
 import CssParser.At.Page
 import CssParser.Norm
-import CssParser.Rule.Pseudo
-import CssParser.Rule.Value
+import CssParser.Rule.Pseudo ( AtomicPseudoClass(Blank) )
+import CssParser.Rule.Value ( Source(..) )
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Value ()
@@ -31,7 +30,7 @@ instance Arbitrary Source where
 
 deriving via (GenericArbitrary LayerName) instance Arbitrary LayerName
 deriving via (GenericArbitrary LayerStmt) instance Arbitrary LayerStmt
-deriving via (GenericArbitrary Import) instance Arbitrary Import
+
 
 deriving via (GenericArbitrary PageMargin) instance Arbitrary PageMargin
 
