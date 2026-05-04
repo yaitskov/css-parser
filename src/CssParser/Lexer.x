@@ -3,15 +3,15 @@
 module CssParser.Lexer where
 
 import Control.Monad ((<=<))
+import CssParser.At.MediaQuery (MediaType(..))
 import CssParser.At.Page
 import CssParser.Fun
-
 import CssParser.Rule hiding (Heading, Host)
 import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition)
 import CssParser.Rule.Pseudo qualified as P
 import CssParser.Rule.Value (Ratio(..), readRatio)
 import CssParser.TextMarshal
-import CssParser.Utils(readCssString, readIdentifier, readDecimalE, dropEnd)
+import CssParser.Utils(readCssString, readIdentifier, dropEnd)
 import Data.Text (pack)
 import Prelude
 import Text.Read (readEither)
@@ -215,9 +215,18 @@ tokens :-
   @wo "@" @media $w @wo                   { constoken MediaT }
   @to                                     { constoken ToT }
   @only @wo                               { constoken OnlyT }
-  @all                                    { constoken AllT }
-  @screen                                 { constoken ScreenT }
-  @print                                  { constoken PrintT }
+  @all                                    { constoken (MediaTypeT AllMt     ) }
+  @print                                  { constoken (MediaTypeT Print     ) }
+  @screen                                 { constoken (MediaTypeT Screen    ) }
+  @t@t@y                                  { constoken (MediaTypeT Tty       ) }
+  @t@v                                    { constoken (MediaTypeT Tv        ) }
+  @p@r@o@j@e@c@t@i@o@n                    { constoken (MediaTypeT Projection) }
+  @h@a@n@d@h@e@l@d                        { constoken (MediaTypeT Handheld  ) }
+  @b@r@a@i@l@l@e                          { constoken (MediaTypeT Braille   ) }
+  @e@m@b@o@s@s@e@d                        { constoken (MediaTypeT Embossed  ) }
+  @a@u@r@a@l                              { constoken (MediaTypeT Aural     ) }
+  @s@p@e@e@c@h                            { constoken (MediaTypeT Speech    ) }
+
   @not @wo                                { constoken NotT }
   @or @wo                                 { constoken OrT }
   @and @wo                                { constoken AndT }
@@ -578,9 +587,7 @@ data Token
     | AndT
     | OrT
     | UrlT
-    | AllT
-    | ScreenT
-    | PrintT
+    | MediaTypeT MediaType
     | UnquotedUrlT String
     | Asterisk
     | Space

@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fconstraint-solver-iterations=24 #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 module CssParser.Test.Arbitrary
   ( module X
   , pack
@@ -7,15 +8,20 @@ module CssParser.Test.Arbitrary
   )where
 
 import Data.List qualified as L
-import Data.Set
+import Data.HashSet
 import Data.Text (pack, tails, inits)
 import Data.Text qualified as T
+import Data.Text.Lazy (toStrict)
+import CssParser.At.MediaQuery
 import CssParser.Prelude as X
 import CssParser.Show
 import Test.QuickCheck as X
 import Test.QuickCheck.Gen as X
 import Test.QuickCheck.Instances as X ()
 import Test.QuickCheck.Arbitrary.Generic as X
+
+enumDomain :: forall a. (Enum a, Bounded a) => [a]
+enumDomain = enumFromTo (minBound @a) (maxBound @a)
 
 arbitraryLetter :: Gen Char
 arbitraryLetter = elements [ 'a' .. 'z' ]
@@ -26,8 +32,11 @@ arbitraryHex = elements $ ['0' .. '9'] <> [ 'a' .. 'f' ] <> [ 'A' .. 'F' ]
 arbitraryWord :: Gen Text
 arbitraryWord = pack <$> listOf1 arbitraryLetter
 
-keywords :: Set Text
-keywords = fromList $ T.words "not or and only src false true from to url"
+keywords :: HashSet Text
+keywords = fromList $! initL <> fmap toTxt (enumDomain @MediaType)
+  where
+    toTxt = toStrict . toCssText
+    initL = T.words "not or and only src false true from to url"
 
 arbitraryIdent :: Gen Text
 arbitraryIdent = do
@@ -50,7 +59,9 @@ shrinkText = liftA2 (zipWith (<>)) inits (tails . T.drop 1)
 shrinkIdent :: Text -> [Text]
 shrinkIdent t
     | T.length t < 2 = []
-    | otherwise = L.filter (`notMember` keywords) $ shrinkText t
+    | otherwise = L.filter (`isMissing` keywords) $ shrinkText t
+  where
+    isMissing a b = not (a `member` b)
 
 instance Arbitrary a => Arbitrary (Embraced a) where
   arbitrary = Embraced <$> arbitrary

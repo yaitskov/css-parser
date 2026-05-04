@@ -2,11 +2,9 @@ module CssParser.Utils where
 
 import Control.Arrow (first)
 import Data.Char (chr, digitToInt, intToDigit, isAsciiLower, isAsciiUpper, isHexDigit, ord)
-import Data.Decimal ( Decimal )
 import Data.Text (Text, cons, pack, singleton)
 import qualified Data.Text.Lazy as LT
 import Prelude
-import Text.Read ( readEither )
 
 dropEnd :: Int -> [a] -> [a]
 dropEnd i xs
@@ -58,16 +56,7 @@ _readCssString c' = go
       | x == c' = error "The string can not contain a " ++ show x ++ ", you should escape it."
       | otherwise = x : go xs
 
-readDecimalE :: String -> Either String Decimal
-readDecimalE s@('.' : _) = readEither $ '0' : s
-readDecimalE o = readEither o
-
--- | Parse a given css identifier to the content of the identifier.
-readIdentifier ::
-  -- | The given css identifier to parse.
-  String ->
-  -- | The result of the parsing: the content of the identifier.
-  String
+readIdentifier :: String -> String
 readIdentifier = _readCssString '\\'
 
 _notEncode :: Char -> Bool

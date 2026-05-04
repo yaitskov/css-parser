@@ -36,7 +36,7 @@ import CssParser.Lexer
     , NotT, OrT, AndT, OnlyT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
-    , RatioT, ImportantT, PrintT, AllT, ScreenT
+    , RatioT, ImportantT, MediaTypeT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
@@ -54,7 +54,7 @@ import CssParser.Prelude
 import CssParser.Rule
 import CssParser.Show
 import Data.Text (Text, pack)
-
+import Data.Text.Lazy (toStrict)
 import Prelude
 
 }
@@ -84,9 +84,7 @@ import Prelude
     '{'         { TokenLoc COpen _ _ }
     '}'         { TokenLoc CClose _ _ }
     '='         { TokenLoc TEqual _ _ }
-    screen      { TokenLoc ScreenT _ _ }
-    print       { TokenLoc PrintT _ _ }
-    all         { TokenLoc AllT _ _ }
+    mediaType   { TokenLoc (MediaTypeT $$) _ _ }
     'charset'   { TokenLoc CharsetT _ _ }
     unRange     { TokenLoc UnicodeRangeT _ _ }
     '@'         { TokenLoc AtT _ _ }
@@ -317,8 +315,8 @@ CssRule :: { CssRule }
     | viewTransition Os ERB                       { ViewTransition $3 }
     | scope Os SelectorPair ERB                   { ScopeBlock $3 $4 }
     | '@' supports Os FeatureQuery ERB            { Supports (normalize $4) $5 }
-    | '@' Ident Os CommaSeparatedList Os ERB      { UnknownGramma $2 (Just (CommaSeparatedList $4)) $6 }
-    | '@' Ident Os ERB                            { UnknownGramma $2 Nothing $4 }
+    | '@' IdKwd Os CommaSeparatedList Os ERB      { UnknownGramma $2 (Just (CommaSeparatedList $4)) $6 }
+    | '@' IdKwd Os ERB                            { UnknownGramma $2 Nothing $4 }
 FeatureQuery :: { FeatureQuery }
     : Op MediaFeature ')'                         { FqMediaFeature $2 }
     | Op FeatureQuery ')'                         { FqParen $2 }
@@ -380,10 +378,10 @@ FontFeatureValBlocks :: { [ Either PropEntry FontFeatureValuesSubBlock ] }
     | FontFeatureValBlock FontFeatureValBlocks    { Right $1 : $2 }
     | PropEntry FontFeatureValBlocks              { Left $1 : $2 }
 FontFeatureValBlock
-    : '@' Ident Os Ocb PropEntries '}'            { FontFeatureValuesSubBlock $2 $5 }
+    : '@' IdKwd Os Ocb PropEntries '}'            { FontFeatureValuesSubBlock $2 $5 }
 StrEitherIds :: { Either LiteralString IdentList }
     : Str                                         { Left (LiteralString $1) }
-    | NonEmpty(' ', Ident)                        { Right (IdentList $1) }
+    | NonEmpty(' ', IdKwd)                        { Right (IdentList $1) }
 ColorPropEntries
     : srcProp ':' PropVals ';' ColorPropEntries   { PropEntry (PropertyName "src") $3 : $5 }
     | PropEntry ColorPropEntries                  { $1 : $2 }
@@ -447,9 +445,7 @@ MediaQuery :: { MediaQuery }
     | MtModifier MediaType Os                     { MediaQueryWithMt $1 $2 Nothing }
     | MediaCondition                              { MediaQueryConditionOnly $1 }
 MediaType :: { MediaType }
-    : all                                         { AllMt }
-    | screen                                      { Screen }
-    | print                                       { Print }
+    : mediaType                                   { $1 }
 MtModifier :: { Maybe MtModifier }
     :                                             { Nothing }
     | 'not'                                       { Just MtNot }
@@ -604,12 +600,12 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       . addClass (ActiveViewTransitionType (Embraced $4)))
                                                       $7 $8
                                                   }
-    | IdKwd dir Op Ident Os ')' ContinueRule CssRuleBody
+    | IdKwd dir Op IdKwd Os ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector
                                                       (setTag $1 . addClass (Dir (Embraced $4)))
                                                       $7 $8
                                                   }
-    | IdKwd dir Op Ident Os ')' ERB CssRuleBody   { newRule
+    | IdKwd dir Op IdKwd Os ')' ERB CssRuleBody   { newRule
                                                       ( setTag $1
                                                       . addClass (Dir (Embraced $4)))
                                                       $7 $8
@@ -641,12 +637,12 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       (setTag $1 . addClass (AtomicPseudoClass P.Host)) $3 $4 }
     | IdKwd host ERB CssRuleBody                  { newRule (addClass (AtomicPseudoClass P.Host) . setTag $1) $3 $4 }
 
-    | IdKwd state Op Ident Os ')' ContinueRule CssRuleBody
+    | IdKwd state Op IdKwd Os ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector
                                                       (setTag $1 . addClass (State (Embraced $4)))
                                                       $7 $8
                                                   }
-    | IdKwd state Op Ident Os ')' ERB CssRuleBody { newRule
+    | IdKwd state Op IdKwd Os ')' ERB CssRuleBody { newRule
                                                       ( setTag $1
                                                       . addClass (State (Embraced $4)))
                                                       $7 $8
@@ -674,9 +670,9 @@ PsTgSel :: { PseudeTagSelector }
     : CompositePe TagAttrs TagClasses             { PseudeTagSelector $1 $2 $3 }
 CompositePe :: { CompositePe }
     : pseude                                      { AtomicPe $1 }
-    | highlight Op Ident ')'                      { Highlight (Embraced $3) }
+    | highlight Op IdKwd ')'                      { Highlight (Embraced $3) }
     | part Op SslNeOfIdents ')'                   { Part (Embraced $3) }
-    | picker Op Ident Os ')'                      { Picker (Embraced $3) }
+    | picker Op IdKwd Os ')'                      { Picker (Embraced $3) }
     | scrollButton Op TagName Os ')'              { ScrollButton (Embraced $3) }
     | slotted ESL                                 { Slotted (Embraced $2) }
     | viewTransitionGroup ESL                     { ViewTransitionGroup (Embraced $2) }
@@ -707,25 +703,25 @@ Hash :: { Hash }
 TagClasses :: { [ Class ] }
     : List(TagClass)                              { $1 }
 TagClass :: { Class }
-    : '.' Ident                                   { AtomicClass $2 }
+    : '.' IdKwd                                   { AtomicClass $2 }
     | pseudc                                      { AtomicPseudoClass $1 }
     | ':not' ESL                                  { NotClass $2 }
     | 'lang(' Str ')'                             { Lang (Language $2) }
     | activeViewTransitionType Op CslOfIdents Os ')'  { ActiveViewTransitionType (Embraced $3) }
-    | dir Op Ident Os ')'                         { Dir (Embraced $3) }
+    | dir Op IdKwd Os ')'                         { Dir (Embraced $3) }
     | heading Op CslOfInts Os ')'                 { Heading (Embraced $3) }
     | heading                                     { AtomicPseudoClass P.Heading }
     | host ESL                                    { Host (Embraced $2) }
     | host                                        { AtomicPseudoClass P.Host }
-    | state Op Ident Os ')'                       { State (Embraced $3) }
+    | state Op IdKwd Os ')'                       { State (Embraced $3) }
     | where ESL                                   { Where $2 }
     | is ESL                                      { Is $2 }
     | has ESL                                     { Has $2 }
     | pseudf Os Nth                               { call $1 $3 }
 CslOfIdents :: { CslNe R.Ident }
-    : NonEmpty(',', Ident)                        { CslNe $1 }
+    : NonEmpty(',', IdKwd)                        { CslNe $1 }
 SslNeOfIdents :: { SslNe R.Ident }
-    : NonEmpty(' ', Ident)                        { SslNe $1 }
+    : NonEmpty(' ', IdKwd)                        { SslNe $1 }
 CslOfInts :: { CslNe Unsigned }
     : NonEmpty(Embraced(Os, ',', Os), Unsigned)   { CslNe $1 }
 ZipTagRelAndTagSel :: { [ (TagRelation, TagSelector) ] }
@@ -758,19 +754,19 @@ Os  :                                             { () }
 AttrBox
     : '[' Attr                                    { $2 }
 Attr
-    : Ident ']'                                   { HasAttr (AttrName NoBar $1) }
-    | Ident '|' Ident ']'                         { HasAttr (AttrName (R.Namespace $1) $3) }
-    | Ident '|' Ident AttrOp IdTxt ']'
+    : IdKwd ']'                                   { HasAttr (AttrName NoBar $1) }
+    | IdKwd '|' IdKwd ']'                         { HasAttr (AttrName (R.Namespace $1) $3) }
+    | IdKwd '|' IdKwd AttrOp IdTxt ']'
                                                   { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
-    | Ident '|' Ident AttrOp Str ']'              { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
-    | Ident AttrOp IdTxt ']'                      { Attr (AttrName NoBar $1) $2 $3 }
-    | Ident AttrOp Str ']'                        { Attr (AttrName NoBar $1) $2 $3 }
-    | '|' Ident ']'                               { HasAttr (AttrName NoNs $2) }
-    | '|' Ident AttrOp IdTxt ']'                  { Attr (AttrName NoNs $2) $3 $4 }
-    | '|' Ident AttrOp Str ']'                    { Attr (AttrName NoNs $2) $3 $4 }
-    | '*' '|' Ident ']'                           { HasAttr (AttrName AsteriskNs $3) }
-    | '*' '|' Ident AttrOp IdTxt ']'              { Attr (AttrName AsteriskNs $3) $4 $5 }
-    | '*' '|' Ident AttrOp Str ']'                { Attr (AttrName AsteriskNs $3) $4 $5 }
+    | IdKwd '|' IdKwd AttrOp Str ']'              { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
+    | IdKwd AttrOp IdTxt ']'                      { Attr (AttrName NoBar $1) $2 $3 }
+    | IdKwd AttrOp Str ']'                        { Attr (AttrName NoBar $1) $2 $3 }
+    | '|' IdKwd ']'                               { HasAttr (AttrName NoNs $2) }
+    | '|' IdKwd AttrOp IdTxt ']'                  { Attr (AttrName NoNs $2) $3 $4 }
+    | '|' IdKwd AttrOp Str ']'                    { Attr (AttrName NoNs $2) $3 $4 }
+    | '*' '|' IdKwd ']'                           { HasAttr (AttrName AsteriskNs $3) }
+    | '*' '|' IdKwd AttrOp IdTxt ']'              { Attr (AttrName AsteriskNs $3) $4 $5 }
+    | '*' '|' IdKwd AttrOp Str ']'                { Attr (AttrName AsteriskNs $3) $4 $5 }
 AttrOp ::  { AttrOp }
     : '='                                         { Exact }
     | '~='                                        { Include }
@@ -778,10 +774,11 @@ AttrOp ::  { AttrOp }
     | '^='                                        { PrefixMatch }
     | '$='                                        { SuffixMatch }
     | '*='                                        { SubstringMatch }
-IdKwd
+IdKwd :: { R.Ident }
     : Ident                                       { $1 }
     | MediaKeywordAsIdent                         { $1 }
     | layer                                       { R.Ident "layer" }
+    | mediaType                                   { R.Ident (toStrict (toCssText $1)) }
 MediaKeywordAsIdent
     : 'not'                                       { R.Ident "not" }
     | 'or'                                        { R.Ident "or" }

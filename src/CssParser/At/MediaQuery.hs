@@ -9,6 +9,14 @@ data MediaType
   = AllMt
   | Print
   | Screen
+  | Tty
+  | Tv
+  | Projection
+  | Handheld
+  | Braille
+  | Embossed
+  | Aural
+  | Speech
   deriving (Eq, Show, Ord, Enum, Bounded, Generic)
 
 instance CssShow MediaType where
@@ -16,6 +24,14 @@ instance CssShow MediaType where
     AllMt -> "all"
     Print -> "print"
     Screen -> "screen"
+    Tty -> "tty"
+    Tv -> "tv"
+    Projection -> "projection"
+    Handheld -> "handheld"
+    Braille -> "braille"
+    Embossed -> "embossed"
+    Aural -> "aural"
+    Speech -> "speech"
 
 data MtModifier = MtNot | MtOnly deriving (Show, Eq, Ord, Enum, Bounded, Generic)
 
