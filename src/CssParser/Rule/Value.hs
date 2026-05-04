@@ -176,6 +176,31 @@ mkRawNum = RawNum . C8.pack
 instance CssShow RawNum where
   toCssText (RawNum x) = fromStrict x
 
+data CalcOp = PlusCe | MinusCe | DivCe | ProdCe deriving (Eq, Ord, Show, Enum, Bounded, Generic)
+
+instance CssShow CalcOp where
+  toCssText = \case
+    PlusCe -> " + "
+    MinusCe -> " - "
+    DivCe -> " / "
+    ProdCe -> " * "
+
+data CalcExpr
+  = ParCe CalcExpr
+  | BinOpCe CalcExpr CalcOp CalcExpr
+  | ValCe RawNum PropValType
+  | VarCe PropertyName
+  | AppCe PropertyName CalcExpr
+  deriving (Eq, Ord, Show, Generic)
+
+instance CssShow CalcExpr where
+  toCssText = \case
+    ParCe e -> "(" <> toCssText e <> ")"
+    BinOpCe a op b -> toCssText a <> toCssText op <> toCssText b
+    ValCe n t -> toCssText n <> toCssText t
+    VarCe v -> toCssText v
+    AppCe f a -> toCssText f <> "(" <> toCssText a <> ")"
+
 data PropVal
   = IntVal RawNum PropValType
   | RatioVal Ratio
@@ -184,6 +209,7 @@ data PropVal
   | UrlVal Url
   | StrVal Text
   | AppFun PropertyName PropVals
+  | CalcFun CalcExpr
   | Div PropertyName PropertyName
   | HexColor HexColor
   deriving (Eq, Ord, Show, Generic)
@@ -202,6 +228,7 @@ instance CssShow PropVal where
     UrlVal u -> toCssText u
     StrVal s -> encodeStringLiteral s
     HexColor c -> toCssText c
+    CalcFun ce -> "calc(" <> toCssText ce <> ")"
     Div a b -> toCssText a <> " / " <> toCssText b
     AppFun fn args -> toCssText fn <> "(" <> toCssText args <> ")"
 

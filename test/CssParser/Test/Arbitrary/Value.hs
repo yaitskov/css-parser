@@ -62,3 +62,6 @@ deriving via (GenericArbitrary PropVals) instance Arbitrary PropVals
 deriving via (GenericArbitrary PropValsList) instance Arbitrary PropValsList
 deriving via (GenericArbitrary PropVal) instance Arbitrary PropVal
 deriving via (GenericArbitrary PropValType) instance Arbitrary PropValType
+
+deriving via (GenericArbitrary CalcOp) instance Arbitrary CalcOp
+deriving via (GenericArbitrary CalcExpr) instance Arbitrary CalcExpr

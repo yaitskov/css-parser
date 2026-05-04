@@ -31,7 +31,7 @@ $pm       = [\-\+]
 @nonaesc = $nonascii | @escape
 @nmstart = [_a-zA-Z] | @nonaesc
 @nmchar  = [_\-a-zA-Z0-9] | @nonaesc
-@ident   = [\-]? @nmstart @nmchar*
+
 @name    = @nmchar+
 @dec     = [0-9]
 @int     = @dec+
@@ -69,6 +69,8 @@ $pm       = [\-\+]
 @x       = x|X|\\0{0,4}(58|78)(\r\n|[ \t\r\n\f])?
 @y       = y|Y|\\0{0,4}(59|79)(\r\n|[ \t\r\n\f])?
 @z       = z|Z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?
+
+@ident   = ([\-] (@m@o@z|@w@e@b@k@i@t|@m@s)[\-])? @nmstart @nmchar*
 
 @anum    = [\-\+]? ( @dec+ ([\.]@dec+)? (@e [\-\+]? @dec+)? | [\.]@dec+ )
 
@@ -159,159 +161,161 @@ $pm       = [\-\+]
 
 tokens :-
  <0> {
-  @wo "=" @wo                             { constoken TEqual }
-  @wo "~=" @wo                            { constoken TIncludes }
-  @wo "|=" @wo                            { constoken TDashMatch }
-  @wo "^=" @wo                            { constoken TPrefixMatch }
-  @wo "$=" @wo                            { constoken TSuffixMatch }
-  @wo "*=" @wo                            { constoken TSubstringMatch }
-  @wo ","  @wo                            { constoken Comma }
-  (@wo ";" @wo)+                          { constoken Semicolon }
+  @wo "=" @wo                                          { constoken TEqual }
+  @wo "~=" @wo                                         { constoken TIncludes }
+  @wo "|=" @wo                                         { constoken TDashMatch }
+  @wo "^=" @wo                                         { constoken TPrefixMatch }
+  @wo "$=" @wo                                         { constoken TSuffixMatch }
+  @wo "*=" @wo                                         { constoken TSubstringMatch }
+  @wo ","  @wo                                         { constoken Comma }
+  (@wo ";" @wo)+                                       { constoken Semicolon }
 
-  @unicode "-" @range                     { constoken UnicodeRangeT }
-  @src                                    { constoken SrcPropT }
-  "@"                                     { constoken AtT }
-  "@" @font "-" @face                     { constoken FontFaceT }
-  "@" @position "-" @try                  { constoken PositionTryT }
-  @wo "@" @page $w @wo                    { constoken PageT }
+  @unicode "-" @range                                  { constoken UnicodeRangeT }
+  @src                                                 { constoken SrcPropT }
+  "@"                                                  { constoken AtT }
+  "@" @font "-" @face                                  { constoken FontFaceT }
+  "@" @position "-" @try                               { constoken PositionTryT }
+  @wo "@" @page $w @wo                                 { constoken PageT }
 
-  @wo "@" @top "-" @left "-" @corner      { constoken (PageMarginT TopLeftCorner) }
-  @wo "@" @bottom "-" @right "-" @corner  { constoken (PageMarginT BottomRightCorner) }
-  @wo "@" @top "-" @right "-" @corner     { constoken (PageMarginT TopRightCorner) }
-  @wo "@" @bottom "-" @left "-" @corner   { constoken (PageMarginT BottomLeftCorner) }
+  @wo "@" @top "-" @left "-" @corner                   { constoken (PageMarginT TopLeftCorner) }
+  @wo "@" @bottom "-" @right "-" @corner               { constoken (PageMarginT BottomRightCorner) }
+  @wo "@" @top "-" @right "-" @corner                  { constoken (PageMarginT TopRightCorner) }
+  @wo "@" @bottom "-" @left "-" @corner                { constoken (PageMarginT BottomLeftCorner) }
 
-  @wo "@" @top "-" @left                  { constoken (PageMarginT TopLeft) }
-  @wo "@" @top "-" @center                { constoken (PageMarginT TopCenter) }
-  @wo "@" @top "-" @right                 { constoken (PageMarginT TopRight) }
-  @wo "@" @bottom "-" @left               { constoken (PageMarginT BottomLeft) }
-  @wo "@" @bottom "-" @center             { constoken (PageMarginT BottomCenter) }
-  @wo "@" @bottom "-" @right              { constoken (PageMarginT BottomRight) }
+  @wo "@" @top "-" @left                               { constoken (PageMarginT TopLeft) }
+  @wo "@" @top "-" @center                             { constoken (PageMarginT TopCenter) }
+  @wo "@" @top "-" @right                              { constoken (PageMarginT TopRight) }
+  @wo "@" @bottom "-" @left                            { constoken (PageMarginT BottomLeft) }
+  @wo "@" @bottom "-" @center                          { constoken (PageMarginT BottomCenter) }
+  @wo "@" @bottom "-" @right                           { constoken (PageMarginT BottomRight) }
 
-  @wo "@" @left "-" @top                  { constoken (PageMarginT LeftTop) }
-  @wo "@" @left "-" @middle               { constoken (PageMarginT LeftMiddle) }
-  @wo "@" @left "-" @bottom               { constoken (PageMarginT LeftBottom) }
-  @wo "@" @right "-" @top                 { constoken (PageMarginT RightTop) }
-  @wo "@" @right "-" @middle              { constoken (PageMarginT RightMiddle) }
-  @wo "@" @right "-" @bottom              { constoken (PageMarginT RightBottom) }
+  @wo "@" @left "-" @top                               { constoken (PageMarginT LeftTop) }
+  @wo "@" @left "-" @middle                            { constoken (PageMarginT LeftMiddle) }
+  @wo "@" @left "-" @bottom                            { constoken (PageMarginT LeftBottom) }
+  @wo "@" @right "-" @top                              { constoken (PageMarginT RightTop) }
+  @wo "@" @right "-" @middle                           { constoken (PageMarginT RightMiddle) }
+  @wo "@" @right "-" @bottom                           { constoken (PageMarginT RightBottom) }
 
-  "!" @wo @i@m@p@o@r@t@a@n@t              { constoken ImportantT }
-  @supports                               { constoken SupportsT }
-  "@" @scope                              { constoken ScopeT }
-  "@" @view "-" @transition               { constoken ViewTransitionT }
-  "@" @starting "-" @style                { constoken StartingStyleT }
-  "@" @container                          { constoken ContainerT }
-  "@" @font "-" @palette "-" @values      { constoken FontPaletteValuesT }
-  "@" @font "-" @feature "-" @values      { constoken FontFeatureValuesT }
-  "@" @color "-" @profile                 { constoken ColorProfileT }
-  @wo "@" @property $w @wo                { constoken PropertyT }
-  @wo "@" @counter "-" @style $w @wo      { constoken CounterStyleT }
-  @wo "@" @charset $w @wo                 { constoken CharsetT }
-  @wo "@" @namespace $w @wo               { constoken NamespaceT }
+  "!" @wo @i@m@p@o@r@t@a@n@t                           { constoken ImportantT }
+  @supports                                            { constoken SupportsT }
+  "@" @scope                                           { constoken ScopeT }
+  "@" @view "-" @transition                            { constoken ViewTransitionT }
+  "@" @starting "-" @style                             { constoken StartingStyleT }
+  "@" @container                                       { constoken ContainerT }
+  "@" @font "-" @palette "-" @values                   { constoken FontPaletteValuesT }
+  "@" @font "-" @feature "-" @values                   { constoken FontFeatureValuesT }
+  "@" @color "-" @profile                              { constoken ColorProfileT }
+  @wo "@" @property $w @wo                             { constoken PropertyT }
+  @wo "@" @counter "-" @style $w @wo                   { constoken CounterStyleT }
+  @wo "@" @charset $w @wo                              { constoken CharsetT }
+  @wo "@" @namespace $w @wo                            { constoken NamespaceT }
 
-  @wo "@" @import $w @wo                  { constoken ImportT }
-  @wo "@" @keyframes $w @wo               { constoken KeyframesT }
-  @layer                                  { constoken LayerT }
-  @wo "@" @layer @wo                      { constoken LayerAtT }
-  @wo "@" @media $w @wo                   { constoken MediaT }
-  @to                                     { constoken ToT }
-  @only @wo                               { constoken OnlyT }
-  @all                                    { constoken (MediaTypeT AllMt     ) }
-  @print                                  { constoken (MediaTypeT Print     ) }
-  @screen                                 { constoken (MediaTypeT Screen    ) }
-  @t@t@y                                  { constoken (MediaTypeT Tty       ) }
-  @t@v                                    { constoken (MediaTypeT Tv        ) }
-  @p@r@o@j@e@c@t@i@o@n                    { constoken (MediaTypeT Projection) }
-  @h@a@n@d@h@e@l@d                        { constoken (MediaTypeT Handheld  ) }
-  @b@r@a@i@l@l@e                          { constoken (MediaTypeT Braille   ) }
-  @e@m@b@o@s@s@e@d                        { constoken (MediaTypeT Embossed  ) }
-  @a@u@r@a@l                              { constoken (MediaTypeT Aural     ) }
-  @s@p@e@e@c@h                            { constoken (MediaTypeT Speech    ) }
+  @wo "@" @import $w @wo                               { constoken ImportT }
+  @wo "@" @keyframes $w @wo                            { constoken KeyframesT }
+  @layer                                               { constoken LayerT }
+  @wo "@" @layer @wo                                   { constoken LayerAtT }
+  @wo "@" @media $w @wo                                { constoken MediaT }
+  @to                                                  { constoken ToT }
+  @only @wo                                            { constoken OnlyT }
+  @all                                                 { constoken (MediaTypeT AllMt     ) }
+  @print                                               { constoken (MediaTypeT Print     ) }
+  @screen                                              { constoken (MediaTypeT Screen    ) }
+  @t@t@y                                               { constoken (MediaTypeT Tty       ) }
+  @t@v                                                 { constoken (MediaTypeT Tv        ) }
+  @p@r@o@j@e@c@t@i@o@n                                 { constoken (MediaTypeT Projection) }
+  @h@a@n@d@h@e@l@d                                     { constoken (MediaTypeT Handheld  ) }
+  @b@r@a@i@l@l@e                                       { constoken (MediaTypeT Braille   ) }
+  @e@m@b@o@s@s@e@d                                     { constoken (MediaTypeT Embossed  ) }
+  @a@u@r@a@l                                           { constoken (MediaTypeT Aural     ) }
+  @s@p@e@e@c@h                                         { constoken (MediaTypeT Speech    ) }
 
-  @not @wo                                { constoken NotT }
-  @or @wo                                 { constoken OrT }
-  @and @wo                                { constoken AndT }
-  @selector "("                           { constoken SelectorFunT }
-  @url "("                                { constoken UrlT }
-  @url "(" @wo [^\"\'][^\)]* ")"          { tokenize (UnquotedUrlT . readUnquotedUrl) }
-  "."                                     { constoken Dot }
-  "*"                                     { constoken Asterisk }
-  "&"                                     { constoken Ampersand }
-  "|"                                     { constoken Pipe }
-  @wo "/"                                 { constoken DivT }
-  @ident                                  { tokenize (Ident . readIdentifier) }
-  @string                                 { tokenize (String . readCssString) }
+  @not @wo                                             { constoken NotT }
+  @or @wo                                              { constoken OrT }
+  @and @wo                                             { constoken AndT }
+  @selector "("                                        { constoken SelectorFunT }
+  @c@a@l@c "("                                         { constoken CalcFunT }
+  @url "("                                             { constoken UrlT }
+  @url "(" @wo [^\"\'][^\)]* ")"                       { tokenize (UnquotedUrlT . readUnquotedUrl) }
+  "."                                                  { constoken Dot }
+  "*"                                                  { constoken Asterisk }
+  "&"                                                  { constoken Ampersand }
+  "|"                                                  { constoken Pipe }
+  @wo "/"                                              { constoken DivT }
+  @ident                                               { tokenize (Ident . readIdentifier) }
+  @string                                              { tokenize (String . readCssString) }
   "U+" ("?" | "1")? ("?" | "0")? @updig{1,4} ("-" ("?" | "1")? ("?" | "0")? @updig{1,4})?
-                                          { tokenize (UnicodeRangeVal . drop 2) }
-  @var @name                              { tokenize (Var . readIdentifier . drop 2) }
-  "#" @name                               { tokenize (THash . readIdentifier . drop 1) }
+                                                       { tokenize (UnicodeRangeVal . drop 2) }
+  @var @name                                           { tokenize (Var . readIdentifier . drop 2) }
+  "#" @name                                            { tokenize (THash . readIdentifier . drop 1) }
 
-  @anum                               { tokenize UnitLessNum }
-  @anum @c@a@p                        { tokenize (Cap      . dropEnd 3) }
-  @anum @c@h                          { tokenize (Ch       . dropEnd 2) }
-  @anum @c@m                          { tokenize (Cm       . dropEnd 2) }
-  @anum @c@q@b                        { tokenize (Cqb      . dropEnd 3) }
-  @anum @c@q@h                        { tokenize (Cqh      . dropEnd 3) }
-  @anum @c@q@i                        { tokenize (Cqi      . dropEnd 3) }
-  @anum @c@q@m@a@x                    { tokenize (Cqmax    . dropEnd 5) }
-  @anum @c@q@m@i@n                    { tokenize (Cqmin    . dropEnd 5) }
-  @anum @c@q@w                        { tokenize (Cqw      . dropEnd 3) }
-  @anum @d@e@g                        { tokenize (Deg      . dropEnd 3) }
-  @anum @d@p@i                        { tokenize (Dpi      . dropEnd 3) }
-  @anum @d@v@b                        { tokenize (Dvb      . dropEnd 3) }
-  @anum @d@v@h                        { tokenize (Dvh      . dropEnd 3) }
-  @anum @d@v@i                        { tokenize (Dvi      . dropEnd 3) }
-  @anum @d@v@m@a@x                    { tokenize (Dvmax    . dropEnd 5) }
-  @anum @d@v@m@i@n                    { tokenize (Dvmin    . dropEnd 5) }
-  @anum @e@m                          { tokenize (Em       . dropEnd 2) }
-  @anum @e@x                          { tokenize (Ex       . dropEnd 2) }
-  @anum @g@r@a@d                      { tokenize (Grad     . dropEnd 4) }
-  @anum @i@c                          { tokenize (Ic       . dropEnd 2) }
-  @anum @i@n                          { tokenize (In       . dropEnd 2) }
-  @anum @l@h                          { tokenize (Lh       . dropEnd 2) }
-  @anum @l@v@b                        { tokenize (Lvb      . dropEnd 3) }
-  @anum @l@v@h                        { tokenize (Lvh      . dropEnd 3) }
-  @anum @l@v@i                        { tokenize (Lvi      . dropEnd 3) }
-  @anum @l@v@m@a@x                    { tokenize (Lvmax    . dropEnd 5) }
-  @anum @l@v@m@i@n                    { tokenize (Lvmin    . dropEnd 5) }
-  @anum @m@m                          { tokenize (Mm       . dropEnd 2) }
-  @anum @m@s                          { tokenize (Ms       . dropEnd 2) }
-  @anum @p@c                          { tokenize (Pc       . dropEnd 2) }
-  @anum @p@t                          { tokenize (Pt       . dropEnd 2) }
-  @anum @percent                      { tokenize (Percents . dropEnd 1) }
-  @anum @p@x                          { tokenize (Px       . dropEnd 2) }
-  @anum @q                            { tokenize (Q        . dropEnd 1) }
-  @anum @r@a@d                        { tokenize (Rad      . dropEnd 3) }
-  @anum @r@c@a@p                      { tokenize (Rcap     . dropEnd 4) }
-  @anum @r@c@h                        { tokenize (Rch      . dropEnd 3) }
-  @anum @r@e@m                        { tokenize (Rem      . dropEnd 3) }
-  @anum @r@e@x                        { tokenize (Rex      . dropEnd 3) }
-  @anum @r@i@c                        { tokenize (Ric      . dropEnd 3) }
-  @anum @r@l@h                        { tokenize (Rlh      . dropEnd 3) }
-  @anum @s                            { tokenize (Second   . dropEnd 1) }
-  @anum @s@v@b                        { tokenize (Svb      . dropEnd 3) }
-  @anum @s@v@h                        { tokenize (Svh      . dropEnd 3) }
-  @anum @s@v@i                        { tokenize (Svi      . dropEnd 3) }
-  @anum @s@v@m@a@x                    { tokenize (Svmax    . dropEnd 5) }
-  @anum @s@v@m@i@n                    { tokenize (Svmin    . dropEnd 5) }
-  @anum @t@u@r@n                      { tokenize (Turn     . dropEnd 4) }
-  @anum @v@b                          { tokenize (Vb       . dropEnd 2) }
-  @anum @v@h                          { tokenize (Vh       . dropEnd 2) }
-  @anum @v@i                          { tokenize (Vi       . dropEnd 2) }
-  @anum @v@m@a@x                      { tokenize (Vmax     . dropEnd 4) }
-  @anum @v@m@i@n                      { tokenize (Vmin     . dropEnd 4) }
-  @anum @v@w                          { tokenize (Vw       . dropEnd 2) }
+  @anum                                                { tokenize UnitLessNum }
+  @anum @c@a@p                                         { tokenize (Cap      . dropEnd 3) }
+  @anum @c@h                                           { tokenize (Ch       . dropEnd 2) }
+  @anum @c@m                                           { tokenize (Cm       . dropEnd 2) }
+  @anum @c@q@b                                         { tokenize (Cqb      . dropEnd 3) }
+  @anum @c@q@h                                         { tokenize (Cqh      . dropEnd 3) }
+  @anum @c@q@i                                         { tokenize (Cqi      . dropEnd 3) }
+  @anum @c@q@m@a@x                                     { tokenize (Cqmax    . dropEnd 5) }
+  @anum @c@q@m@i@n                                     { tokenize (Cqmin    . dropEnd 5) }
+  @anum @c@q@w                                         { tokenize (Cqw      . dropEnd 3) }
+  @anum @d@e@g                                         { tokenize (Deg      . dropEnd 3) }
+  @anum @d@p@i                                         { tokenize (Dpi      . dropEnd 3) }
+  @anum @d@v@b                                         { tokenize (Dvb      . dropEnd 3) }
+  @anum @d@v@h                                         { tokenize (Dvh      . dropEnd 3) }
+  @anum @d@v@i                                         { tokenize (Dvi      . dropEnd 3) }
+  @anum @d@v@m@a@x                                     { tokenize (Dvmax    . dropEnd 5) }
+  @anum @d@v@m@i@n                                     { tokenize (Dvmin    . dropEnd 5) }
+  @anum @e@m                                           { tokenize (Em       . dropEnd 2) }
+  @anum @e@x                                           { tokenize (Ex       . dropEnd 2) }
+  @anum @g@r@a@d                                       { tokenize (Grad     . dropEnd 4) }
+  @anum @i@c                                           { tokenize (Ic       . dropEnd 2) }
+  @anum @i@n                                           { tokenize (In       . dropEnd 2) }
+  @anum @l@h                                           { tokenize (Lh       . dropEnd 2) }
+  @anum @l@v@b                                         { tokenize (Lvb      . dropEnd 3) }
+  @anum @l@v@h                                         { tokenize (Lvh      . dropEnd 3) }
+  @anum @l@v@i                                         { tokenize (Lvi      . dropEnd 3) }
+  @anum @l@v@m@a@x                                     { tokenize (Lvmax    . dropEnd 5) }
+  @anum @l@v@m@i@n                                     { tokenize (Lvmin    . dropEnd 5) }
+  @anum @m@m                                           { tokenize (Mm       . dropEnd 2) }
+  @anum @m@s                                           { tokenize (Ms       . dropEnd 2) }
+  @anum @p@c                                           { tokenize (Pc       . dropEnd 2) }
+  @anum @p@t                                           { tokenize (Pt       . dropEnd 2) }
+  @anum @percent                                       { tokenize (Percents . dropEnd 1) }
+  @anum @p@x                                           { tokenize (Px       . dropEnd 2) }
+  @anum @q                                             { tokenize (Q        . dropEnd 1) }
+  @anum @r@a@d                                         { tokenize (Rad      . dropEnd 3) }
+  @anum @r@c@a@p                                       { tokenize (Rcap     . dropEnd 4) }
+  @anum @r@c@h                                         { tokenize (Rch      . dropEnd 3) }
+  @anum @r@e@m                                         { tokenize (Rem      . dropEnd 3) }
+  @anum @r@e@x                                         { tokenize (Rex      . dropEnd 3) }
+  @anum @r@i@c                                         { tokenize (Ric      . dropEnd 3) }
+  @anum @r@l@h                                         { tokenize (Rlh      . dropEnd 3) }
+  @anum @s                                             { tokenize (Second   . dropEnd 1) }
+  @anum @s@v@b                                         { tokenize (Svb      . dropEnd 3) }
+  @anum @s@v@h                                         { tokenize (Svh      . dropEnd 3) }
+  @anum @s@v@i                                         { tokenize (Svi      . dropEnd 3) }
+  @anum @s@v@m@a@x                                     { tokenize (Svmax    . dropEnd 5) }
+  @anum @s@v@m@i@n                                     { tokenize (Svmin    . dropEnd 5) }
+  @anum @t@u@r@n                                       { tokenize (Turn     . dropEnd 4) }
+  @anum @v@b                                           { tokenize (Vb       . dropEnd 2) }
+  @anum @v@h                                           { tokenize (Vh       . dropEnd 2) }
+  @anum @v@i                                           { tokenize (Vi       . dropEnd 2) }
+  @anum @v@m@a@x                                       { tokenize (Vmax     . dropEnd 4) }
+  @anum @v@m@i@n                                       { tokenize (Vmin     . dropEnd 4) }
+  @anum @v@w                                           { tokenize (Vw       . dropEnd 2) }
 
-  @uint "/" @uint                     { tokenize2 ((pure . RatioT) <=< readRatio) }
-  "+"                                     { constoken Plus }
-  @wo ">" @wo                             { constoken Greater }
-  @wo ">=" @wo                            { constoken GreaterEqual }
-  @wo "<" @wo                             { constoken Less }
-  @wo "<=" @wo                            { constoken LessEqual }
-  @wo $tl @wo                             { constoken Tilde }
-  "[" @wo                                 { constoken BOpen }
-  @wo "]"                                 { constoken BClose }
-  @wo "{" @wo                             { constoken COpen }
-  @wo "}" @wo                             { constoken CClose }
+  @uint "/" @uint                                      { tokenize2 ((pure . RatioT) <=< readRatio) }
+  "+"                                                  { constoken Plus }
+  "-"                                                  { constoken Minus }
+  @wo ">" @wo                                          { constoken Greater }
+  @wo ">=" @wo                                         { constoken GreaterEqual }
+  @wo "<" @wo                                          { constoken Less }
+  @wo "<=" @wo                                         { constoken LessEqual }
+  @wo $tl @wo                                          { constoken Tilde }
+  "[" @wo                                              { constoken BOpen }
+  @wo "]"                                              { constoken BClose }
+  @wo "{" @wo                                          { constoken COpen }
+  @wo "}" @wo                                          { constoken CClose }
   @pse @a@f@t@e@r                                      { constoken (PseudoElementT After) }
   @pse @b@a@c@k@d@r@o@p                                { constoken (PseudoElementT Backdrop) }
   @pse @b@e@f@o@r@e                                    { constoken (PseudoElementT Before) }
@@ -335,15 +339,17 @@ tokens :-
   @pse @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n               { constoken (PseudoElementT P.ViewTransition) }
 
 
-  @pse  @h@i@g@h@l@i@g@h@t                                            { constoken THighlight }
-  @pse  @p@a@r@t                                                      { constoken TPart }
-  @pse  @p@i@c@k@e@r                                                  { constoken TPicker }
-  @pse  @s@c@r@o@l@l "-" @b@u@t@t@o@n                                 { constoken TScrollButton }
-  @pse  @s@l@o@t@t@e@d                                                { constoken TSlotted }
-  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @g@r@o@u@p              { constoken TViewTransitionGroup }
-  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @i@m@a@g@e "-" @p@a@i@r { constoken TViewTransitionImagePair }
-  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @n@e@w                  { constoken TViewTransitionNew }
-  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @o@l@d                  { constoken TViewTransitionOld }
+  @pse  @h@i@g@h@l@i@g@h@t                             { constoken THighlight }
+  @pse  @p@a@r@t                                       { constoken TPart }
+  @pse  @p@i@c@k@e@r                                   { constoken TPicker }
+  @pse  @s@c@r@o@l@l "-" @b@u@t@t@o@n                  { constoken TScrollButton }
+  @pse  @s@l@o@t@t@e@d                                 { constoken TSlotted }
+  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @g@r@o@u@p
+                                                       { constoken TViewTransitionGroup }
+  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @i@m@a@g@e "-" @p@a@i@r
+                                                       { constoken TViewTransitionImagePair }
+  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @n@e@w   { constoken TViewTransitionNew }
+  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @o@l@d   { constoken TViewTransitionOld }
 
   @psc @active                                         { constoken (AtomicPseudoClassT Active) }
   @psc @active "-" @view "-" @t@r@a@n@s@i@t@i@o@n      { constoken (AtomicPseudoClassT ActiveViewTransition) }
@@ -410,53 +416,53 @@ tokens :-
   @psc @v@o@l@u@m@e "-" @l@o@c@k@e@d                   { constoken (AtomicPseudoClassT VolumeLocked) }
   @psc @x@r "-" @o@v@e@r@l@a@y                         { constoken (AtomicPseudoClassT XrOverlay) }
 
-  @psc @l@a@n@g "("                       { constAndBegin TLang lang_state }
-  @psc @nthh@child "("                    { constAndBegin (PseudoFunction NthFChild) nth_state }
-  @psc @nthh@lasth@child "("              { constAndBegin (PseudoFunction NthFLastChild) nth_state }
-  @psc @nthh@lasth@oftype "("             { constAndBegin (PseudoFunction NthFLastOfType) nth_state }
-  @psc @nthh@oftype "("                   { constAndBegin (PseudoFunction NthFOfType) nth_state }
-  @psc @not                               { constoken TNot }
-  @psc @where                             { constoken TWhere }
-  @psc @has                               { constoken THas }
-  @psc @is                                { constoken TIs }
+  @psc @l@a@n@g "("                                    { constAndBegin TLang lang_state }
+  @psc @nthh@child "("                                 { constAndBegin (PseudoFunction NthFChild) nth_state }
+  @psc @nthh@lasth@child "("                           { constAndBegin (PseudoFunction NthFLastChild) nth_state }
+  @psc @nthh@lasth@oftype "("                          { constAndBegin (PseudoFunction NthFLastOfType) nth_state }
+  @psc @nthh@oftype "("                                { constAndBegin (PseudoFunction NthFOfType) nth_state }
+  @psc @not                                            { constoken TNot }
+  @psc @where                                          { constoken TWhere }
+  @psc @has                                            { constoken THas }
+  @psc @is                                             { constoken TIs }
   @psc @a@c@t@i@v@e "-" @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @t@y@p@e
-                                          { constoken TActiveViewTransitionType }
-  @psc @d@i@r                             { constoken TDir }
-  @psc @h@e@a@d@i@n@g                     { constoken THeading }
-  @psc @h@o@s@t                           { constoken THost }
-  @psc @s@t@a@t@e                         { constoken TState }
+                                                       { constoken TActiveViewTransitionType }
+  @psc @d@i@r                                          { constoken TDir }
+  @psc @h@e@a@d@i@n@g                                  { constoken THeading }
+  @psc @h@o@s@t                                        { constoken THost }
+  @psc @s@t@a@t@e                                      { constoken TState }
 
 
-  @wo ")"                                 { constoken TClose }
-  "("                                     { constoken TOpen }
+  @wo ")"                                              { constoken TClose }
+  "("                                                  { constoken TOpen }
 
-  @psc @wo                                { constoken Colon }
-  $w @wo                                  { constoken Space }
-  @cmo                                    { begin comment }
-  "<!--"                                  { begin htmlComment }
+  @psc @wo                                             { constoken Colon }
+  $w @wo                                               { constoken Space }
+  @cmo                                                 { begin comment }
+  "<!--"                                               { begin htmlComment }
  }
  <comment> {
   .                                       ;
-  @cmc                                    { begin state_initial }
+  @cmc                                                 { begin state_initial }
  }
  <htmlComment> {
   .                                       ;
-  "-->"                                   { begin state_initial }
+  "-->"                                                { begin state_initial }
  }
  <nth_state> {
-  $w @wo                                  { constoken Space }
-  @e@v@e@n                                { constoken (TNth Even) }
-  @o@d@d                                  { constoken (TNth Odd) }
-  @n                                      { constoken TN }
-  "+"                                     { constoken (TPM TpmIdF) }
-  "-"                                     { constoken (TPM TpmNegF) }
-  @int                                    { tokenize (TInt . read) }
-  ")"                                     { constAndBegin TClose state_initial }
+  $w @wo                                               { constoken Space }
+  @e@v@e@n                                             { constoken (TNth Even) }
+  @o@d@d                                               { constoken (TNth Odd) }
+  @n                                                   { constoken TN }
+  "+"                                                  { constoken (TPM TpmIdF) }
+  "-"                                                  { constoken (TPM TpmNegF) }
+  @int                                                 { tokenize (TInt . read) }
+  ")"                                                  { constAndBegin TClose state_initial }
  }
  <lang_state> {
-  @lang                                   { tokenize String }
-  $w @wo                                  { skip }
-  ")"                                     { constAndBegin TClose state_initial }
+  @lang                                                { tokenize String }
+  $w @wo                                               { skip }
+  ")"                                                  { constAndBegin TClose state_initial }
  }
 
 {
@@ -549,6 +555,7 @@ data Token
     | Semicolon
     | Pipe
     | Plus
+    | Minus
     | Greater
     | GreaterEqual
     | Less
@@ -560,6 +567,7 @@ data Token
     | PageMarginT PageMargin
 
     | SelectorFunT
+    | CalcFunT
     | ImportantT
     | SupportsT
     | ScopeT

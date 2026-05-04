@@ -7,6 +7,7 @@ import CssParser.Ident
       PropertyName,
       TagName(TagName, NoTag) )
 import CssParser.Prelude
+import CssParser.Parser.Monad
 import CssParser.Rule
     ( Attr,
       Class(AtomicClass),
@@ -17,8 +18,9 @@ import CssParser.Rule
       Selector(..),
       TagRelation(Descendant),
       TagSelector(..) )
+import CssParser.Show ( CssShow(toCssText) )
 import CssParser.Rule.Value
-
+import Data.Text qualified as T
 
 tagSelectorOnly :: Ident -> TagSelector
 tagSelectorOnly tn = TagSelector NoBar (TagName tn) [] Nothing []
@@ -173,3 +175,27 @@ mkLeaf :: PropertyName -> NonEmpty PropVals -> CssRuleBodyItem
 mkLeaf pn = \case
   (x :| []) -> CssLeafRule pn x
   o -> CssEnumLeaf pn (PropValsList o)
+
+fmap2 :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
+fmap2 f = fmap (fmap f)
+
+chopOffLeftmostSign :: CalcExpr -> Maybe (CalcOp, CalcExpr)
+chopOffLeftmostSign = \case
+  BinOpCe a op b -> do
+    case chopOffLeftmostSign a of
+      Nothing -> Nothing
+      Just (lop, a') -> Just (lop, BinOpCe a' op b)
+  ValCe (RawNum rn) pt ->
+    case T.uncons rn of
+      Just ('-', absRn) -> pure (MinusCe, ValCe (RawNum absRn) pt)
+      Just ('+', absRn) -> pure (PlusCe, ValCe (RawNum absRn) pt)
+      _ -> Nothing
+  _ -> Nothing
+
+recoverCalcBinOp :: CalcExpr -> CalcExpr -> P CalcExpr
+recoverCalcBinOp fo so =
+  case chopOffLeftmostSign so of
+    Nothing ->
+      fail $ "Expected operator between " <> unpack (toCssText fo) <> " and " <> unpack (toCssText so)
+    Just (lop, so') ->
+      pure $ BinOpCe fo lop so'

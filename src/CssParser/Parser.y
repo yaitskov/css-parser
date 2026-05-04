@@ -29,14 +29,14 @@ import CssParser.Lexer
   ( AlexPosn(AlexPn), TokenLoc(TokenLoc)
   , Token
     ( TIncludes, TEqual, TDashMatch, TPrefixMatch, TSuffixMatch, TSubstringMatch, Ident
-    , Comma, Plus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
+    , Comma, Plus, Minus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
     , CharsetT, ImportT, MediaT, LayerT, LayerAtT, NamespaceT, CounterStyleT, PropertyT
     , NotT, OrT, AndT, OnlyT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
-    , RatioT, ImportantT, MediaTypeT
+    , RatioT, ImportantT, MediaTypeT, CalcFunT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
@@ -73,6 +73,7 @@ import Prelude
     '<'         { TokenLoc Less _ _ }
     '<='        { TokenLoc LessEqual _ _ }
     '+'         { TokenLoc Plus _ _ }
+    '-'         { TokenLoc Minus _ _ }
     '|'         { TokenLoc Pipe _ _ }
     '~'         { TokenLoc Tilde _ _ }
     '.'         { TokenLoc Dot _ _ }
@@ -127,6 +128,7 @@ import Prelude
     'url('      { TokenLoc UrlT _ _ }
     'uqUrl'     { TokenLoc (UnquotedUrlT $$) _ _ }
     'selector(' { TokenLoc SelectorFunT _ _ }
+    'calc('     { TokenLoc CalcFunT _ _ }
     '^='        { TokenLoc TPrefixMatch _ _ }
     '$='        { TokenLoc TSuffixMatch _ _ }
     '*='        { TokenLoc TSubstringMatch _ _ }
@@ -233,7 +235,9 @@ import Prelude
     '/'         { TokenLoc DivT _ _ }
 
 %right 'not'
+%left '+' '-' '*' '/'
 %left 'or' 'and'
+
 %%
 
 CssFile
@@ -485,63 +489,64 @@ MfRel :: { MfRelation }
     | '>='                                        { MfGe }
     | '='                                         { MfEq }
 
+Scalar :: { (String, PropValType) }
+    : cap                                         { ($1, Vl.Cap) }
+    | ch                                          { ($1, Vl.Ch) }
+    | cm                                          { ($1, Vl.Cm) }
+    | cqb                                         { ($1, Vl.Cqb) }
+    | cqh                                         { ($1, Vl.Cqh) }
+    | cqi                                         { ($1, Vl.Cqi) }
+    | cqmax                                       { ($1, Vl.Cqmax) }
+    | cqmin                                       { ($1, Vl.Cqmin) }
+    | cqw                                         { ($1, Vl.Cqw) }
+    | deg                                         { ($1, Vl.Deg) }
+    | dpi                                         { ($1, Vl.Dpi) }
+    | dvb                                         { ($1, Vl.Dvb) }
+    | dvh                                         { ($1, Vl.Dvh) }
+    | dvi                                         { ($1, Vl.Dvi) }
+    | dvmax                                       { ($1, Vl.Dvmax) }
+    | dvmin                                       { ($1, Vl.Dvmin) }
+    | em                                          { ($1, Vl.Em) }
+    | ex                                          { ($1, Vl.Ex) }
+    | grad                                        { ($1, Vl.Grad) }
+    | ic                                          { ($1, Vl.Ic) }
+    | in                                          { ($1, Vl.In) }
+    | lh                                          { ($1, Vl.Lh) }
+    | lvb                                         { ($1, Vl.Lvb) }
+    | lvh                                         { ($1, Vl.Lvh) }
+    | lvi                                         { ($1, Vl.Lvi) }
+    | lvmax                                       { ($1, Vl.Lvmax) }
+    | lvmin                                       { ($1, Vl.Lvmin) }
+    | mm                                          { ($1, Vl.Mm) }
+    | ms                                          { ($1, Vl.Ms) }
+    | pc                                          { ($1, Vl.Pc) }
+    | pt                                          { ($1, Vl.Pt) }
+    | percent                                     { ($1, Vl.Percent) }
+    | px                                          { ($1, Vl.Px) }
+    | q                                           { ($1, Vl.Q) }
+    | rad                                         { ($1, Vl.Rad) }
+    | rcap                                        { ($1, Vl.Rcap) }
+    | rch                                         { ($1, Vl.Rch) }
+    | rem                                         { ($1, Vl.Rem) }
+    | rex                                         { ($1, Vl.Rex) }
+    | ric                                         { ($1, Vl.Ric) }
+    | rlh                                         { ($1, Vl.Rlh) }
+    | second                                      { ($1, Vl.Second) }
+    | svb                                         { ($1, Vl.Svb) }
+    | svh                                         { ($1, Vl.Svh) }
+    | svi                                         { ($1, Vl.Svi) }
+    | svmax                                       { ($1, Vl.Svmax) }
+    | svmin                                       { ($1, Vl.Svmin) }
+    | turn                                        { ($1, Vl.Turn) }
+    | vb                                          { ($1, Vl.Vb) }
+    | vh                                          { ($1, Vl.Vh) }
+    | vi                                          { ($1, Vl.Vi) }
+    | vmax                                        { ($1, Vl.Vmax) }
+    | vmin                                        { ($1, Vl.Vmin) }
+    | vw                                          { ($1, Vl.Vw) }
+    | unitLessNum                                 { ($1, Vl.K) }
 PropVal :: { PropVal }
-    : cap                                         { IntVal (mkRawNum $1) Vl.Cap }
-    | ch                                          { IntVal (mkRawNum $1) Vl.Ch }
-    | cm                                          { IntVal (mkRawNum $1) Vl.Cm }
-    | cqb                                         { IntVal (mkRawNum $1) Vl.Cqb }
-    | cqh                                         { IntVal (mkRawNum $1) Vl.Cqh }
-    | cqi                                         { IntVal (mkRawNum $1) Vl.Cqi }
-    | cqmax                                       { IntVal (mkRawNum $1) Vl.Cqmax }
-    | cqmin                                       { IntVal (mkRawNum $1) Vl.Cqmin }
-    | cqw                                         { IntVal (mkRawNum $1) Vl.Cqw }
-    | deg                                         { IntVal (mkRawNum $1) Vl.Deg }
-    | dpi                                         { IntVal (mkRawNum $1) Vl.Dpi }
-    | dvb                                         { IntVal (mkRawNum $1) Vl.Dvb }
-    | dvh                                         { IntVal (mkRawNum $1) Vl.Dvh }
-    | dvi                                         { IntVal (mkRawNum $1) Vl.Dvi }
-    | dvmax                                       { IntVal (mkRawNum $1) Vl.Dvmax }
-    | dvmin                                       { IntVal (mkRawNum $1) Vl.Dvmin }
-    | em                                          { IntVal (mkRawNum $1) Vl.Em }
-    | ex                                          { IntVal (mkRawNum $1) Vl.Ex }
-    | grad                                        { IntVal (mkRawNum $1) Vl.Grad }
-    | ic                                          { IntVal (mkRawNum $1) Vl.Ic }
-    | in                                          { IntVal (mkRawNum $1) Vl.In }
-    | lh                                          { IntVal (mkRawNum $1) Vl.Lh }
-    | lvb                                         { IntVal (mkRawNum $1) Vl.Lvb }
-    | lvh                                         { IntVal (mkRawNum $1) Vl.Lvh }
-    | lvi                                         { IntVal (mkRawNum $1) Vl.Lvi }
-    | lvmax                                       { IntVal (mkRawNum $1) Vl.Lvmax }
-    | lvmin                                       { IntVal (mkRawNum $1) Vl.Lvmin }
-    | mm                                          { IntVal (mkRawNum $1) Vl.Mm }
-    | ms                                          { IntVal (mkRawNum $1) Vl.Ms }
-    | pc                                          { IntVal (mkRawNum $1) Vl.Pc }
-    | pt                                          { IntVal (mkRawNum $1) Vl.Pt }
-    | percent                                     { IntVal (mkRawNum $1) Vl.Percent }
-    | px                                          { IntVal (mkRawNum $1) Vl.Px }
-    | q                                           { IntVal (mkRawNum $1) Vl.Q }
-    | rad                                         { IntVal (mkRawNum $1) Vl.Rad }
-    | rcap                                        { IntVal (mkRawNum $1) Vl.Rcap }
-    | rch                                         { IntVal (mkRawNum $1) Vl.Rch }
-    | rem                                         { IntVal (mkRawNum $1) Vl.Rem }
-    | rex                                         { IntVal (mkRawNum $1) Vl.Rex }
-    | ric                                         { IntVal (mkRawNum $1) Vl.Ric }
-    | rlh                                         { IntVal (mkRawNum $1) Vl.Rlh }
-    | second                                      { IntVal (mkRawNum $1) Vl.Second }
-    | svb                                         { IntVal (mkRawNum $1) Vl.Svb }
-    | svh                                         { IntVal (mkRawNum $1) Vl.Svh }
-    | svi                                         { IntVal (mkRawNum $1) Vl.Svi }
-    | svmax                                       { IntVal (mkRawNum $1) Vl.Svmax }
-    | svmin                                       { IntVal (mkRawNum $1) Vl.Svmin }
-    | turn                                        { IntVal (mkRawNum $1) Vl.Turn }
-    | vb                                          { IntVal (mkRawNum $1) Vl.Vb }
-    | vh                                          { IntVal (mkRawNum $1) Vl.Vh }
-    | vi                                          { IntVal (mkRawNum $1) Vl.Vi }
-    | vmax                                        { IntVal (mkRawNum $1) Vl.Vmax }
-    | vmin                                        { IntVal (mkRawNum $1) Vl.Vmin }
-    | vw                                          { IntVal (mkRawNum $1) Vl.Vw }
-
-    | unitLessNum                                 { IntVal (mkRawNum $1) Vl.K }
+    : Scalar                                      { IntVal (mkRawNum (fst $1)) (snd $1) }
     | 'ratio'                                     { RatioVal $1 }
     | PropertyName                                { propRef $1 }
     | PropertyName '/' Os PropertyName            { Div $1 $4 }
@@ -549,7 +554,20 @@ PropVal :: { PropVal }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
     | 'uqUrl'                                     { UrlVal (UnquotedUrl (pack $1)) }
+    | 'calc(' Os CalcExpr Os ')'                  { CalcFun $3 }
     | hash                                        { HexColor (HC (pack $1)) }
+CalcOp :: { CalcOp }
+    : '+'                                         { PlusCe  }
+    | '-'                                         { MinusCe }
+    | '/'                                         { DivCe   }
+    | '*'                                         { ProdCe  }
+CalcExpr :: { CalcExpr }
+    : Op CalcExpr Os ')'                          { ParCe $2 }
+    | CalcExpr Os CalcOp Os CalcExpr              { BinOpCe $1 $3 $5 }
+    | CalcExpr Os CalcExpr                        {% recoverCalcBinOp $1 $3 }
+    | PropertyName Op CalcExpr Os ')'             { AppCe $1 $3 }
+    | PropertyName                                { VarCe $1 }
+    | Scalar                                      { ValCe (mkRawNum (fst $1)) (snd $1) }
 Unsigned :: { Unsigned }
     : unitLessNum                                 {% fmap Unsigned (fromEitherM failP (readEither $1)) }
 ContinueRule :: { CssRule }
@@ -748,7 +766,8 @@ IntOpt
     :                                             { 1 }
     | int                                         { $1 }
 Ocb : '{'                                         { () }
-Op  : '(' Os                                      { () }
+Op  :: { () }
+    : '(' Os                                      { () }
 Os  :                                             { () }
     | ' '                                         { () }
 AttrBox
