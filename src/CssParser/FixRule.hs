@@ -9,27 +9,18 @@ import CssParser.Ident
 import CssParser.Prelude
 import CssParser.Parser.Monad
 import CssParser.Rule
-    ( Attr,
-      Class(AtomicClass),
-      CssRule(MediaRule, LayerBlock, CssRule),
-      CssRuleBodyItem(..),
-      Hash,
-      PseudeTagSelector,
-      Selector(..),
-      TagRelation(Descendant),
-      TagSelector(..) )
 import CssParser.Show ( CssShow(toCssText) )
 import CssParser.Rule.Value
 import Data.Text qualified as T
 
 tagSelectorOnly :: Ident -> TagSelector
-tagSelectorOnly tn = TagSelector NoBar (TagName tn) [] Nothing []
+tagSelectorOnly tn = TagSelector NoBar (TagName tn) []
 
 setTag :: Ident -> TagSelector -> TagSelector
 setTag tn ts = ts { tagName = TagName tn }
 
-setHash :: Hash -> TagSelector -> TagSelector
-setHash h ts = ts { tagId = Just h }
+setHash :: TagSubSelector -> TagSelector -> TagSelector
+setHash = addClass
 
 selectorByTag :: Ident -> Selector
 selectorByTag tn = Selector Nothing (tagSelectorOnly tn) []
@@ -37,7 +28,7 @@ selectorByTag tn = Selector Nothing (tagSelectorOnly tn) []
 tagNameRule :: Ident -> [CssRuleBodyItem] -> CssRule
 tagNameRule tn = CssRule (pure $ selectorByTag tn)
 
-tagAndAttrRule :: Ident -> Attr -> [CssRuleBodyItem] -> CssRule
+tagAndAttrRule :: Ident -> TagSubSelector -> [CssRuleBodyItem] -> CssRule
 tagAndAttrRule tn atr body =
   prependAttr atr (CssRule (pure $ selectorByTag tn) body)
 
@@ -69,7 +60,7 @@ prependIdent tn tr = \case
     pure $ PeSelector (Just tr) (tagSelectorOnly tn) [] pe
 
 nullTagSelector :: TagSelector
-nullTagSelector = TagSelector NoBar NoTag [] Nothing []
+nullTagSelector = TagSelector NoBar NoTag []
 
 updateFirstTagSelector :: (TagSelector -> TagSelector) -> Selector -> Selector
 updateFirstTagSelector f = \case
@@ -98,8 +89,8 @@ mergePrecedingTagSelector f =
       PeSelectorOnly pe ->
         PeSelector Nothing (f nullTagSelector) [] pe
 
-addClass :: Class -> TagSelector -> TagSelector
-addClass c ts  = ts { tagClasses = c : ts.tagClasses }
+addClass :: TagSubSelector -> TagSelector -> TagSelector
+addClass c ts  = ts { tagSubSelectors = c : ts.tagSubSelectors }
 
 newRule :: (TagSelector -> TagSelector) -> [CssRuleBodyItem] -> [CssRuleBodyItem] -> [CssRuleBodyItem]
 newRule f body = (CssNestedRule (CssRule (Selector Nothing (f nullTagSelector) [] :| []) body) :)
@@ -146,11 +137,11 @@ tagNameIsClass tn = updateTopTagSelector go
     go ts = case ts.tagName of
       TagName c ->
         ts { tagName = TagName tn
-           , tagClasses = AtomicClass c : ts.tagClasses
+           , tagSubSelectors = AtomicClass c : ts.tagSubSelectors
            }
       _ -> ts
 
-prependIdentAttrSelector :: MonadFail m => Ident -> Attr -> TagRelation -> CssRule -> m CssRule
+prependIdentAttrSelector :: MonadFail m => Ident -> TagSubSelector -> TagRelation -> CssRule -> m CssRule
 prependIdentAttrSelector tn atr tr cr = prependAttr atr <$> prependIdentToRule tn tr cr
 
 prependIdentToRule :: MonadFail m => Ident -> TagRelation -> CssRule -> m CssRule
@@ -160,10 +151,10 @@ prependIdentToRule tn tr = mapCssRuleM go
        fts' <- prependIdent tn tr fts
        pure $ CssRule (fts' :| ots) body
 
-addAttr :: Attr -> TagSelector -> TagSelector
-addAttr a ts = ts { tagAttrs = a : ts.tagAttrs }
+addAttr :: TagSubSelector -> TagSelector -> TagSelector
+addAttr a ts = ts { tagSubSelectors = a : ts.tagSubSelectors }
 
-prependAttr :: Attr -> CssRule -> CssRule
+prependAttr :: TagSubSelector -> CssRule -> CssRule
 prependAttr a = updateTopTagSelector (addAttr a)
 
 setTopTagName :: Ident -> CssRule -> CssRule

@@ -24,16 +24,12 @@ import CssParser.Test.Arbitrary.Media ()
 import CssParser.Test.Arbitrary.MonoPair ()
 import Data.List ( null )
 
-instance Arbitrary Hash where
-    arbitrary = Hash <$> arbitraryIdent
-    shrink (Hash a) = Hash <$> shrinkIdent a
-
 instance Arbitrary Language where
   arbitrary = Language <$> elements ["en", "af-ZA", "ar", "de", "ar-BH", "pl", "ru"]
 
 isPartialTagSelector :: TagSelector -> Bool
 isPartialTagSelector TagSelector {..} =
-  tagName == NoTag && null tagAttrs && isNothing tagId && null tagClasses
+  tagName == NoTag && null tagSubSelectors
 
 instance Arbitrary TagSelector where
   arbitrary = do
@@ -54,9 +50,7 @@ instance Arbitrary Selector where
   shrink x = fmap normalize (genericShrink x)
 
 deriving via (GenericArbitrary TagRelation) instance Arbitrary TagRelation
-deriving via (GenericArbitrary Class) instance Arbitrary Class
-deriving via (GenericArbitrary Attr) instance Arbitrary Attr
-
+deriving via (GenericArbitrary TagSubSelector) instance Arbitrary TagSubSelector
 
 instance Norm CssRuleBodyItem where
   normalize = \case

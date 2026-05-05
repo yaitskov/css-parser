@@ -479,7 +479,6 @@ IdKwdMb
 MediaQueryList :: { [ MediaQuery ] }
     : MediaQuery                                  { [ $1 ] }
     | MediaQuery ',' MediaQueryList               { $1 : $3 }
-
 MediaQuery :: { MediaQuery }
     : 'not' Os Op MediaFeature ')'                { MediaQueryConditionOnly (MediaFeature (Not $4)) }
     | MtModifier MediaType Os 'and' Os MediaCondition
@@ -728,7 +727,7 @@ Selector :: { Selector }
     | TagRelMb TagSel ZipTagRelAndTagSel PsTgSel  { PeSelector $1 $2 $3 $4 }
     | PsTgSel                                     { PeSelectorOnly $1 }
 PsTgSel :: { PseudeTagSelector }
-    : CompositePe TagAttrs TagClasses             { PseudeTagSelector $1 $2 $3 }
+    : CompositePe TagClasses                      { PseudeTagSelector $1 $2 }
 CompositePe :: { CompositePe }
     : pseude                                      { AtomicPe $1 }
     | highlight Op IdKwd ')'                      { Highlight (Embraced $3) }
@@ -743,27 +742,23 @@ CompositePe :: { CompositePe }
 TagRelMb :: { Maybe TagRelation }
     : Maybe(TagRelation)                          { $1 }
 TagSel :: { TagSelector }
-    : Ident '|' TagName TagAttrs TagId TagClasses { TagSelector (R.Namespace $1) $3 $4 $5 $6 }
-    | Ident TagAttrs TagId TagClasses             { TagSelector NoBar (TagName $1) $2 $3 $4 }
-    | '&' TagAttrs TagId TagClasses               { TagSelector NoBar AmpersandTag $2 $3 $4 }
-    | '*' '|' TagName TagAttrs TagId TagClasses   { TagSelector AsteriskNs $3 $4 $5 $6 }
-    | '*' TagAttrs TagId TagClasses               { TagSelector NoBar AsteriskTag $2 $3 $4 }
-    | '|' TagName TagAttrs TagId TagClasses       { TagSelector NoNs $2 $3 $4 $5 }
-    | TagAttrs TagId TagClasses                   { TagSelector NoBar NoTag $1 $2 $3 }
+    : Ident '|' TagName TagClasses                { TagSelector (R.Namespace $1) $3 $4 }
+    | Ident TagClasses                            { TagSelector NoBar (TagName $1) $2 }
+    | '&' TagClasses                              { TagSelector NoBar AmpersandTag $2 }
+    | '*' '|' TagName TagClasses                  { TagSelector AsteriskNs $3 $4  }
+    | '*' TagClasses                              { TagSelector NoBar AsteriskTag $2 }
+    | '|' TagName TagClasses                      { TagSelector NoNs $2 $3  }
+    | TagClasses                                  { TagSelector NoBar NoTag $1 }
 TagName :: { TagName }
     :                                             { NoTag }
     | '&'                                         { AmpersandTag }
     | '*'                                         { AsteriskTag }
     | Ident                                       { TagName $1 }
-TagAttrs :: { [Attr] }
-    : List(AttrBox)                               { $1 }
-TagId :: { Maybe Hash }
-    : Maybe(Hash)                                 { $1 }
-Hash :: { Hash }
-    : hash                                        { Hash (pack $1) }
-TagClasses :: { [ Class ] }
+Hash :: { TagSubSelector }
+    : hash                                        { Hash (R.Ident (pack $1)) }
+TagClasses :: { [ TagSubSelector ] }
     : List(TagClass)                              { $1 }
-TagClass :: { Class }
+TagClass :: { TagSubSelector }
     : '.' IdKwd                                   { AtomicClass $2 }
     | pseudc                                      { AtomicPseudoClass $1 }
     | ':not' ESL                                  { NotClass $2 }
@@ -779,6 +774,8 @@ TagClass :: { Class }
     | is ESL                                      { Is $2 }
     | has ESL                                     { Has $2 }
     | pseudf Os Nth                               { call $1 $3 }
+    | '[' Attr                                    { $2 }
+    | Hash                                        { $1 }
 CslOfIdents :: { CslNe R.Ident }
     : NonEmpty(',', IdKwd)                        { CslNe $1 }
 SslNeOfIdents :: { SslNe R.Ident }
@@ -813,8 +810,6 @@ Op  :: { () }
     : '(' Os                                      { () }
 Os  :                                             { () }
     | ' '                                         { () }
-AttrBox
-    : '[' Attr                                    { $2 }
 Attr
     : IdKwd ']'                                   { HasAttr (AttrName NoBar $1) }
     | IdKwd '|' IdKwd ']'                         { HasAttr (AttrName (R.Namespace $1) $3) }
@@ -862,9 +857,6 @@ Embraced(o, p, c)
     : o p c                                       { $2 }
 Clp : ')'                                         { $1 }
 P(p): Embraced(Op, p, Clp)                        { $1 }
-SepList(sep, elt)
-    :                                             { [] }
-    | elt sep List(elt)                           { $1 : $3 }
 List(elt)
     :                                             { [] }
     | elt List(elt)                               { $1 : $2 }

@@ -2,7 +2,8 @@ module CssParser.Fun where
 
 import CssParser.Prelude ( Eq, Num(negate), Show, id )
 import CssParser.Rule
-    ( Class(NthLastOfType, NthChild, NthOfType, NthLastChild) )
+    ( TagSubSelector(NthLastOfType, NthChild, NthOfType,
+                     NthLastChild) )
 import CssParser.Rule.Pseudo ( Nth, pattern One )
 
 data NthF
@@ -12,7 +13,7 @@ data NthF
   | NthFOfType
   deriving (Show, Eq)
 
-instance Fun NthF (Nth -> Class) where
+instance Fun NthF (Nth -> TagSubSelector) where
   call NthFChild = NthChild
   call NthFLastChild = NthLastChild
   call NthFLastOfType = NthLastOfType
@@ -27,14 +28,14 @@ instance Num a => Fun TpmF (a -> a) where
   call TpmIdF = id
   call TpmNegF = negate
 
-pattern FirstChildP :: Class
+pattern FirstChildP :: TagSubSelector
 pattern FirstChildP = NthChild One
 
-pattern FirstOfTypeP :: Class
+pattern FirstOfTypeP :: TagSubSelector
 pattern FirstOfTypeP = NthOfType One
 
-pattern LastChildP :: Class
+pattern LastChildP :: TagSubSelector
 pattern LastChildP = NthLastChild One
 
-pattern LastOfTypeP :: Class
+pattern LastOfTypeP :: TagSubSelector
 pattern LastOfTypeP = NthLastOfType One

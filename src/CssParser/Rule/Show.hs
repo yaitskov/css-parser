@@ -2,7 +2,7 @@
 module CssParser.Rule.Show where
 
 import CssParser.Ident ( Ident(Ident), AttrName(AttrName) )
-import CssParser.MonoPair
+import CssParser.MonoPair ( MonoPair )
 import CssParser.Prelude
 import CssParser.Rule
 import CssParser.Rule.Pseudo ( Language(Language) )
@@ -84,7 +84,7 @@ instance CssShow AttrOp where
     SubstringMatch -> "*="
 instance ShowSpaceBetween Selector Selector where
   cssSpace _ _ = ", "
-instance CssShow Class where
+instance CssShow TagSubSelector where
   toCssText = \case
     AtomicClass (Ident uc) -> cons '.' $ encodeIdentifier uc
     AtomicPseudoClass apc -> toCssText apc
@@ -102,20 +102,19 @@ instance CssShow Class where
     Heading x -> ":heading" <> toCssText x
     Host x -> ":host" <> toCssText x
     State x -> ":state" <> toCssText x
-
-instance CssShow Attr where
-  toCssText (HasAttr name) = "[" <> toCssText name <> "]"
-  toCssText (Attr name op val) =
-    "[" <> toCssText name <>
-    toCssText op <>
-    encodeStringLiteral val <>
-    "]"
+    HasAttr name -> "[" <> toCssText name <> "]"
+    Attr name op val ->
+      "[" <> toCssText name <>
+      toCssText op <>
+      encodeStringLiteral val <>
+      "]"
+    Hash h -> cons '#' $ toCssText h
 
 instance CssShow AttrName where
   toCssText (AttrName n (Ident e)) = toCssText n <> encodeIdentifier e
 
-instance CssShow Hash where
-  toCssText = cons '#' . encodeIdentifier . unHash
+-- instance CssShow Hash where
+--   toCssText = cons '#' . encodeIdentifier . unHash
 
 instance CssShow Selector where
   toCssText = \case
@@ -130,14 +129,12 @@ instance CssShow Selector where
           (\ s (tr, ts) -> s <> toCssText tr <> toCssText ts)
           (maybe "" toCssText frl <> toCssText fts)
 
-instance ShowSpaceBetween Attr Attr where
-  cssSpace _ _ = ""
-instance ShowSpaceBetween Class Class where
+instance ShowSpaceBetween TagSubSelector TagSubSelector where
   cssSpace _ _ = ""
 
 instance CssShow PseudeTagSelector where
   toCssText pts =
-    toCssText pts.ptagName <> toCssText pts.ptagAttrs <> toCssText pts.ptagClasses
+    toCssText pts.ptagName <> toCssText pts.ptagSubs
 
 instance CssShow TagSelector where
   toCssText ts =
@@ -145,15 +142,8 @@ instance CssShow TagSelector where
     [ toCssText ts.tagNs
     , toCssText ts.tagName
     ]
-    <>
-    case ts.tagAttrs of
-      [] -> [""]
-      o -> fmap toCssText o
-    <>
-    [ maybe "" toCssText ts.tagId
-    , concat (toCssText <$> ts.tagClasses)
-    {- HLINT ignore "Use concatMap" -}
-    ]
+    <> (toCssText <$> ts.tagSubSelectors)
+    -- <> fmap toCssText (maybeToList ts.tagId)
 
 instance CssShow CompositePe where
   toCssText = \case

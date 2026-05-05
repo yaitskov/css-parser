@@ -54,8 +54,7 @@ data Selector
 data PseudeTagSelector
   = PseudeTagSelector
   { ptagName :: CompositePe
-  , ptagAttrs :: [Attr]
-  , ptagClasses :: [Class]
+  , ptagSubs :: [TagSubSelector]
   } deriving (Eq, Ord, Show, Generic)
 
 data CompositePe
@@ -82,12 +81,10 @@ data TagSelector
   = TagSelector
   { tagNs :: Namespace
   , tagName :: TagName
-  , tagAttrs :: [Attr]
-  , tagId :: Maybe Hash
-  , tagClasses :: [Class]
+  , tagSubSelectors :: [ TagSubSelector ]
   } deriving (Show, Ord, Eq, Generic)
 
-data Class
+data TagSubSelector
   = AtomicClass { unClass :: Ident }
   | AtomicPseudoClass AtomicPseudoClass
   | NotClass SelectorList
@@ -104,13 +101,11 @@ data Class
   | Heading (Embraced (CslNe Unsigned))
   | Host (Embraced SelectorList)
   | State (Embraced Ident)
-  deriving (Eq, Ord, Show, Generic)
 
-newtype Hash = Hash { unHash :: Text } deriving newtype (Eq, Ord, Show, IsString)
-
-data Attr
-  = HasAttr AttrName
+  | HasAttr AttrName
   | Attr AttrName AttrOp AttrVal
+  | Hash Ident
+
   deriving (Eq, Ord, Show, Generic)
 
 data CssRuleBodyItem

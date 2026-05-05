@@ -334,6 +334,7 @@ validSelectors =
   , "a[href=\"http://www.w3.org/\"]"
   , "a[hreflang=fr]"
   , "a[hreflang|=\"en\"]"
+  , ".button[disabled]"
   , "DIALOGUE[character=romeo]"
   , "DIALOGUE[character=juliet]"
   , "[att^=val]"
