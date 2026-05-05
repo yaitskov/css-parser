@@ -126,6 +126,7 @@ $pm       = [\-\+]
 @profile = @p@r@o@f@i@l@e
 
 @to      = @t@o
+@from    = @f@r@o@m
 @is      = @i@s
 @has     = @h@a@s
 @all     = @a@l@l
@@ -220,6 +221,7 @@ tokens :-
   @r@e@t@u@r@n@s                                       { constoken ReturnsT }
   @wo "@" @layer @wo                                   { constoken LayerAtT }
   @wo "@" @media $w @wo                                { constoken MediaT }
+  @from                                                { constoken FromT }
   @to                                                  { constoken ToT }
   @only @wo                                            { constoken OnlyT }
   @all                                                 { constoken (MediaTypeT AllMt     ) }
@@ -605,6 +607,7 @@ data Token
     | StartingStyleT
     | PositionTryT
     | ContainerT
+    | FromT
     | ToT
     | AtT
     | SrcPropT

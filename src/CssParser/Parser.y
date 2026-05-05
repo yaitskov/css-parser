@@ -41,7 +41,7 @@ import CssParser.Lexer
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
-    , StartingStyleT, ViewTransitionT, ScopeT, ToT, SupportsT, SelectorFunT
+    , StartingStyleT, ViewTransitionT, ScopeT, ToT, FromT, SupportsT, SelectorFunT
     , TActiveViewTransitionType, TDir, THeading, THost, TState
     , THighlight, TPart, TPicker, TScrollButton, TSlotted, TViewTransitionGroup
     , TViewTransitionImagePair, TViewTransitionNew, TViewTransitionOld
@@ -105,6 +105,7 @@ import Prelude
     fontFeatureValues
                 { TokenLoc FontFeatureValuesT _ _ }
     'to'        { TokenLoc ToT _ _ }
+    from        { TokenLoc FromT _ _ }
     scope       { TokenLoc ScopeT _ _ }
     container   { TokenLoc ContainerT _ _ }
     property    { TokenLoc PropertyT _ _ }
@@ -446,9 +447,10 @@ UnicodeRange :: { UnicodeRange }
 KeyframeList
     : List(Keyframe)                              { $1 }
 Keyframe
-    : KeyframeAdr Ocb PropEntries '}'             { Keyframe $1 $3 }
+    : KeyframeAdr Os Ocb PropEntries '}'          { Keyframe $1 $4 }
 KeyframeAdr
-    : IdKwd                                       { KeyframeLabel $1 }
+    : from                                        { KeyframeStart }
+    | 'to'                                        { KeyframeEnd }
     | percent                                     { KeyframePercentAdr (mkRawNum $1) }
 PropEntries :: { [PropEntry] }
     : List(PropEntry)                             { $1 }
@@ -839,6 +841,8 @@ IdKwd :: { R.Ident }
     | MediaKeywordAsIdent                         { $1 }
     | layer                                       { R.Ident "layer" }
     | result                                      { R.Ident "result" }
+    | from                                        { R.Ident "from" }
+    | 'to'                                        { R.Ident "to" }
     | returns                                     { R.Ident "returns" }
     | mediaType                                   { R.Ident (toStrict (toCssText $1)) }
 MediaKeywordAsIdent

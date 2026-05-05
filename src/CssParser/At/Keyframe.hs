@@ -7,13 +7,15 @@ import CssParser.Show ( CssShow(..), ShowSpaceBetween(..) )
 
 data KeyframeAdr
   = KeyframePercentAdr RawNum
-  | KeyframeLabel Ident
+  | KeyframeStart
+  | KeyframeEnd
   deriving (Show, Eq, Ord, Generic)
 
 instance CssShow KeyframeAdr where
   toCssText = \case
     KeyframePercentAdr p -> toCssText $ IntVal p Percent
-    KeyframeLabel i -> toCssText i
+    KeyframeStart -> "from"
+    KeyframeEnd -> "to"
 
 data PropEntry = PropEntry PropertyName PropVals deriving (Show, Eq, Ord, Generic)
 instance ShowSpaceBetween PropEntry PropEntry where

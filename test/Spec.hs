@@ -100,7 +100,7 @@ at :: [String]
 at =
   colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <>
   container <> misc <> supports <> unknown <> media <> page <> layer <>
-  atImport <> atFunction
+  atImport <> atFunction <> keyframe
 
 colorProfile :: [String]
 colorProfile =
@@ -229,6 +229,11 @@ layer :: [String]
 layer =
   [ "@layer {}"
   , "@layer l1 {}"
+  ]
+
+keyframe :: [String]
+keyframe =
+  [ "@keyframes spinAround { from {transform:rotate(0deg);} to {transform: rotate(359deg);}}"
   ]
 
 atImport :: [String]
