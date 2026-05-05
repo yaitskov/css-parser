@@ -60,8 +60,26 @@ deriving via Ident instance Arbitrary LiteralString
 deriving via (GenericArbitrary Ratio) instance Arbitrary Ratio
 deriving via (GenericArbitrary PropVals) instance Arbitrary PropVals
 deriving via (GenericArbitrary PropValsList) instance Arbitrary PropValsList
-deriving via (GenericArbitrary PropVal) instance Arbitrary PropVal
 deriving via (GenericArbitrary PropValType) instance Arbitrary PropValType
 
 deriving via (GenericArbitrary CalcOp) instance Arbitrary CalcOp
 deriving via (GenericArbitrary CalcExpr) instance Arbitrary CalcExpr
+
+rightMost :: PropVal -> PropVal
+rightMost = \case
+  Div _ y -> rightMost y
+  o -> o
+
+instance Norm PropVals where
+  normalize = \case
+    PropVals a i -> PropVals (normalize <$> a) i
+
+instance Norm PropVal where
+  normalize = \case
+    Div x y -> Div (normalize x) (rightMost y)
+    AppFun f a -> AppFun f (normalize a)
+    o -> o
+
+instance Arbitrary PropVal where
+  arbitrary = normalize <$> genericArbitrary
+  shrink = normalize <$> genericShrink

@@ -40,6 +40,7 @@ library
     , CssParser.At.FontFace
     , CssParser.At.FontFeatureValues
     , CssParser.At.FontPaletteValues
+    , CssParser.At.Function
     , CssParser.At.Import
     , CssParser.At.Keyframe
     , CssParser.At.Layer
@@ -92,6 +93,7 @@ test-suite test
     , CssParser.Test.Arbitrary.FontFace
     , CssParser.Test.Arbitrary.FontFeatureValues
     , CssParser.Test.Arbitrary.FontPaletteValues
+    , CssParser.Test.Arbitrary.Function
     , CssParser.Test.Arbitrary.Media
     , CssParser.Test.Arbitrary.MonoPair
     , CssParser.Test.Arbitrary.Rule

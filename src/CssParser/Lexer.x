@@ -3,6 +3,8 @@
 module CssParser.Lexer where
 
 import Control.Monad ((<=<))
+import CssParser.At.Function (AtomicCssType)
+import CssParser.At.Function qualified as F
 import CssParser.At.MediaQuery (MediaType(..))
 import CssParser.At.Page
 import CssParser.Fun
@@ -173,6 +175,7 @@ tokens :-
   @unicode "-" @range                                  { constoken UnicodeRangeT }
   @src                                                 { constoken SrcPropT }
   "@"                                                  { constoken AtT }
+  "@" @f@u@n@c@t@i@o@n                                 { constoken AtFunctionT }
   "@" @font "-" @face                                  { constoken FontFaceT }
   "@" @position "-" @try                               { constoken PositionTryT }
   @wo "@" @page $w @wo                                 { constoken PageT }
@@ -213,6 +216,8 @@ tokens :-
   @wo "@" @import $w @wo                               { constoken ImportT }
   @wo "@" @keyframes $w @wo                            { constoken KeyframesT }
   @layer                                               { constoken LayerT }
+  @r@e@s@u@l@t                                         { constoken ResultT }
+  @r@e@t@u@r@n@s                                       { constoken ReturnsT }
   @wo "@" @layer @wo                                   { constoken LayerAtT }
   @wo "@" @media $w @wo                                { constoken MediaT }
   @to                                                  { constoken ToT }
@@ -234,6 +239,7 @@ tokens :-
   @and @wo                                             { constoken AndT }
   @selector "("                                        { constoken SelectorFunT }
   @c@a@l@c "("                                         { constoken CalcFunT }
+  @t@y@p@e "("                                         { constoken TypeFunT }
   @url "("                                             { constoken UrlT }
   @url "(" @wo [^\"\'][^\)]* ")"                       { tokenize (UnquotedUrlT . readUnquotedUrl) }
   "."                                                  { constoken Dot }
@@ -246,6 +252,7 @@ tokens :-
   "U+" ("?" | "1")? ("?" | "0")? @updig{1,4} ("-" ("?" | "1")? ("?" | "0")? @updig{1,4})?
                                                        { tokenize (UnicodeRangeVal . drop 2) }
   @var @name                                           { tokenize (Var . readIdentifier . drop 2) }
+  "#"                                                  { constoken SharpT }
   "#" @name                                            { tokenize (THash . readIdentifier . drop 1) }
 
   @anum                                                { tokenize UnitLessNum }
@@ -307,6 +314,23 @@ tokens :-
   @uint "/" @uint                                      { tokenize2 ((pure . RatioT) <=< readRatio) }
   "+"                                                  { constoken Plus }
   "-"                                                  { constoken Minus }
+
+  @wo "<" @a@n@g@l@e ">"                                   { constoken (SyntaxTypeT F.Angle) }
+  @wo "<" @c@o@l@o@r ">"                                   { constoken (SyntaxTypeT F.Color) }
+  @wo "<" @c@u@s@t@o@m "-" @i@d@e@n@t ">"                  { constoken (SyntaxTypeT F.CustomIdent) }
+  @wo "<" @i@m@a@g@e ">"                                   { constoken (SyntaxTypeT F.Image) }
+  @wo "<" @i@n@t@e@g@e@r ">"                               { constoken (SyntaxTypeT F.Integer) }
+  @wo "<" @l@e@n@g@t@h ">"                                 { constoken (SyntaxTypeT F.Length) }
+  @wo "<" @l@e@n@g@t@h "-" @p@e@r@c@e@n@t@a@g@e ">"        { constoken (SyntaxTypeT F.LengthPercentage) }
+  @wo "<" @n@u@m@b@e@r ">"                                 { constoken (SyntaxTypeT F.Number) }
+  @wo "<" @p@e@r@c@e@n@t@a@g@e ">"                         { constoken (SyntaxTypeT F.Percentage) }
+  @wo "<" @r@e@s@o@l@u@t@i@o@n ">"                         { constoken (SyntaxTypeT F.Resolution) }
+  @wo "<" @s@t@r@i@n@g ">"                                 { constoken (SyntaxTypeT F.String) }
+  @wo "<" @t@i@m@e ">"                                     { constoken (SyntaxTypeT F.Time) }
+  @wo "<" @t@r@a@n@f@o@r@m "-" @f@u@n@c@t@i@o@n ">"        { constoken (SyntaxTypeT F.TranformFunction) }
+  @wo "<" @t@r@a@n@f@o@r@m "-" @l@i@s@t ">"                { constoken (SyntaxTypeT F.TranformList) }
+  @wo "<" @u@r@l ">"                                       { constoken (SyntaxTypeT F.UrlType) }
+
   @wo ">" @wo                                          { constoken Greater }
   @wo ">=" @wo                                         { constoken GreaterEqual }
   @wo "<" @wo                                          { constoken Less }
@@ -555,6 +579,7 @@ data Token
     | Semicolon
     | Pipe
     | Plus
+    | SharpT
     | Minus
     | Greater
     | GreaterEqual
@@ -566,8 +591,13 @@ data Token
     | PageT
     | PageMarginT PageMargin
 
+    | ResultT
+    | ReturnsT
     | SelectorFunT
     | CalcFunT
+    | TypeFunT
+    | SyntaxTypeT AtomicCssType
+    | AtFunctionT
     | ImportantT
     | SupportsT
     | ScopeT

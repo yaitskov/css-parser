@@ -209,8 +209,9 @@ data PropVal
   | UrlVal Url
   | StrVal Text
   | AppFun PropertyName PropVals
+  | AppConst PropertyName
   | CalcFun CalcExpr
-  | Div PropertyName PropertyName
+  | Div PropVal PropVal
   | HexColor HexColor
   deriving (Eq, Ord, Show, Generic)
 
@@ -231,6 +232,7 @@ instance CssShow PropVal where
     CalcFun ce -> "calc(" <> toCssText ce <> ")"
     Div a b -> toCssText a <> " / " <> toCssText b
     AppFun fn args -> toCssText fn <> "(" <> toCssText args <> ")"
+    AppConst fn -> toCssText fn <> "()"
 
 data Important = Important deriving (Show, Eq, Ord, Generic)
 instance CssShow Important where

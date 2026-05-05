@@ -100,7 +100,7 @@ at :: [String]
 at =
   colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <>
   container <> misc <> supports <> unknown <> media <> page <> layer <>
-  atImport
+  atImport <> atFunction
 
 colorProfile :: [String]
 colorProfile =
@@ -245,6 +245,22 @@ atImport =
   , "@import \"theme.css\" layer(utilities);"
   , "@import \"theme.css\" layer();"
   , "@import \"style.css\" layer;"
+  ]
+
+atFunction :: [String]
+atFunction =
+  [ "@function --f() { result: 12px; }"
+  , "@function --f(--x) { result: calc(var(--x) * 2); }"
+  , "@function --f(--x, --y) returns type(<angle>+) { result: calc(var(--x)+var(--y)); }"
+  , "@function --f(--x <length>) returns <length> { result: calc(var(--x) * 2); }"
+  , "@function --f(--x type(<number> | <percentage>)) { result: calc(var(--x) * 2); }"
+  , "@function --f(--x type(<angle>) : 0px) { result: calc(var(--x) / 2); }"
+  , "@function --f(--x *) returns type(*) { result: calc(var(--x) * 2); }"
+  , "@function --transparent(--color <color>, --alpha type(<number> | <percentage>))" ++
+       "returns <color> { result: oklch(from var(--color) l c h / var(--alpha)); }"
+  , "@function --narrow-wide(--narrow, --wide) { result: var(--wide);" ++
+       "@media (width < 700px) { result: var(--narrow); } }"
+  , "@function --outer(--outer-arg ){ --outer-local: 2; result:--inner();}"
   ]
 
 media :: [String]

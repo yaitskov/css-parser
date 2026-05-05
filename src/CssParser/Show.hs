@@ -6,8 +6,10 @@ module CssParser.Show
   , ShowSpaceBetween (..)
   , ShowParenthesis (..)
   , Embraced (..)
+  , Encurled (..)
   , CslNe (..)
   , SslNe (..)
+  , Csl (..)
   ) where
 
 import CssParser.Prelude
@@ -47,11 +49,15 @@ class ShowParenthesis (parent :: Type) (this :: Type) where
   left :: forall pp -> forall tt -> (pp ~ parent, tt ~ this) => LText
   right :: forall pp -> forall tt -> (pp ~ parent, tt ~ this) => LText
 
+newtype Csl a = Csl [a] deriving (Show, Eq, Ord, Generic)
+
+instance CssShow a => CssShow (Csl a) where
+  toCssText (Csl l) =  intercalate ", " $ fmap toCssText l
 
 newtype CslNe a = CslNe (NonEmpty a) deriving (Show, Eq, Ord, Generic)
 
 instance CssShow a => CssShow (CslNe a) where
-  toCssText (CslNe l) =  intercalate ", " .  fmap toCssText $ toList l
+  toCssText (CslNe l) = toCssText . Csl $ toList l
 
 newtype SslNe a = SslNe (NonEmpty a) deriving (Show, Eq, Ord, Generic)
 
@@ -61,6 +67,10 @@ instance CssShow a => CssShow (SslNe a) where
 newtype Embraced a = Embraced a deriving (Show, Eq, Ord, Generic)
 instance CssShow a => CssShow (Embraced a) where
   toCssText (Embraced a) = "("  <> toCssText a <> ")"
+
+newtype Encurled a = Encurled a deriving (Show, Eq, Ord, Generic)
+instance CssShow a => CssShow (Encurled a) where
+  toCssText (Encurled a) = "{"  <> toCssText a <> "}"
 
 instance CssShow Integer where
   toCssText = numToText

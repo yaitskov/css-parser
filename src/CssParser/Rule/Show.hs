@@ -9,6 +9,9 @@ import CssParser.Rule.Pseudo ( Language(Language) )
 import CssParser.Show
 import CssParser.Utils ( encodeIdentifier )
 
+instance ShowSpaceBetween CssRule CssRule where
+  cssSpace _ _ = "\n"
+
 instance CssShow CssRule where
   toCssText = \case
     CssRule sels body ->
@@ -42,6 +45,8 @@ instance CssShow CssRule where
       "@scope " <> toCssText range <> embrace body
     Supports fq body ->
       "@supports " <> toCssText fq <> embrace body
+    FunctionBlock f ->
+      "@function " <> toCssText f
     UnknownGramma i query body ->
       "@" <> toCssText i <> " " <> maybe "" toCssText query <> embrace body
 

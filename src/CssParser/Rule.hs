@@ -1,20 +1,21 @@
 module CssParser.Rule where
 
-import CssParser.At.Container
-import CssParser.At.FontFace
-import CssParser.At.FontFeatureValues
-import CssParser.At.FontPaletteValues
-import CssParser.At.Keyframe
-import CssParser.At.Layer
-import CssParser.At.MediaQuery
-import CssParser.At.Page
+import CssParser.At.Container ( ContainerQueryMap )
+import CssParser.At.FontFace ( FontFace, CommaSeparatedList )
+import CssParser.At.FontFeatureValues ( FontFeatureValues )
+import CssParser.At.FontPaletteValues ( FontPaletteValues )
+import CssParser.At.Function ( Function )
+import CssParser.At.Keyframe ( KeyframeSet, PropEntry )
+import CssParser.At.Layer ( LayerName )
+import CssParser.At.MediaQuery ( MediaQueryList )
+import CssParser.At.Page ( PageMargin, PageSelectorList )
 import CssParser.At.Supports qualified as S
 import CssParser.Ident
-import CssParser.MonoPair
+import CssParser.MonoPair ( MonoPair )
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Value
-import CssParser.Show
+import CssParser.Show ( CslNe, Embraced, SslNe )
 
 type SelectorList = NonEmpty Selector
 type FeatureQuery = S.FeatureQuery SelectorList
@@ -38,8 +39,11 @@ data CssRule
   | ViewTransition [CssRuleBodyItem]
   | ScopeBlock (MonoPair SelectorList) [CssRuleBodyItem]
   | Supports FeatureQuery [CssRuleBodyItem]
+  | FunctionBlock CssFunction
   | UnknownGramma Ident (Maybe CommaSeparatedList) [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
+
+type CssFunction = Function CssRule
 
 data Selector
   = Selector (Maybe TagRelation) TagSelector [(TagRelation, TagSelector)]

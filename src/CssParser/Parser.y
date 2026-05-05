@@ -7,6 +7,7 @@ import CssParser.At.Container
 import CssParser.At.FontFace
 import CssParser.At.FontFeatureValues
 import CssParser.At.FontPaletteValues
+import CssParser.At.Function qualified as F
 import CssParser.At.Import
 import CssParser.At.Keyframe
 import CssParser.At.Layer
@@ -29,14 +30,14 @@ import CssParser.Lexer
   ( AlexPosn(AlexPn), TokenLoc(TokenLoc)
   , Token
     ( TIncludes, TEqual, TDashMatch, TPrefixMatch, TSuffixMatch, TSubstringMatch, Ident
-    , Comma, Plus, Minus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
+    , Comma, Plus, SharpT, Minus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
     , CharsetT, ImportT, MediaT, LayerT, LayerAtT, NamespaceT, CounterStyleT, PropertyT
-    , NotT, OrT, AndT, OnlyT
+    , NotT, OrT, AndT, OnlyT, ResultT, ReturnsT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
-    , RatioT, ImportantT, MediaTypeT, CalcFunT
+    , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, AtFunctionT, SyntaxTypeT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
@@ -73,6 +74,7 @@ import Prelude
     '<'         { TokenLoc Less _ _ }
     '<='        { TokenLoc LessEqual _ _ }
     '+'         { TokenLoc Plus _ _ }
+    '#'         { TokenLoc SharpT _ _ }
     '-'         { TokenLoc Minus _ _ }
     '|'         { TokenLoc Pipe _ _ }
     '~'         { TokenLoc Tilde _ _ }
@@ -91,6 +93,8 @@ import Prelude
     '@'         { TokenLoc AtT _ _ }
     important   { TokenLoc ImportantT _ _ }
     supports    { TokenLoc SupportsT _ _ }
+    result      { TokenLoc ResultT _ _ }
+    returns     { TokenLoc ReturnsT _ _ }
     viewTransition
                 { TokenLoc ViewTransitionT _ _ }
     startingStyle
@@ -129,6 +133,9 @@ import Prelude
     'uqUrl'     { TokenLoc (UnquotedUrlT $$) _ _ }
     'selector(' { TokenLoc SelectorFunT _ _ }
     'calc('     { TokenLoc CalcFunT _ _ }
+    'type('     { TokenLoc TypeFunT _ _ }
+    '@function' { TokenLoc AtFunctionT _ _ }
+    syntaxType  { TokenLoc (SyntaxTypeT $$) _ _ }
     '^='        { TokenLoc TPrefixMatch _ _ }
     '$='        { TokenLoc TSuffixMatch _ _ }
     '*='        { TokenLoc TSubstringMatch _ _ }
@@ -299,9 +306,9 @@ CssRule :: { CssRule }
     | 'page' PageSelectorList '{' CssRuleBody '}' { Page (PageSelectorList $2) $4 }
     | pageMargin '{' CssRuleBody '}'              { PageMarginBlock $1 $3 }
     | counterStyle IdKwd '{' CssRuleBody '}'      { CounterStyle $2 $4 }
-    | property Var '{' CssRuleBody '}'            { Property (R.Var $2) $4 }
+    | property Var '{' CssRuleBody '}'            { Property $2 $4 }
     | keyframes IdKwd Ocb KeyframeList '}'        { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
-    | colorProf Os Var Ocb ColorPropEntries '}'   { ColorProfile (VarProp (R.Var $3)) $5 }
+    | colorProf Os Var Ocb ColorPropEntries '}'   { ColorProfile (VarProp $3) $5 }
     | colorProf Os IdKwd Ocb ColorPropEntries '}' { ColorProfile (PropertyName $3) $5 }
     | fontFace Os Ocb FontFacePropEntries '}'     {% fmap FontFaceBlock (fromEitherM failP (mkFontFace $4)) }
     | fontFeatureValues ' ' StrEitherIds Os Ocb FontFeatureValBlocks '}'
@@ -312,15 +319,48 @@ CssRule :: { CssRule }
                                                         (mapMaybe rightToMaybe $6))
                                                   }
     | fontPaletteValues ' ' Var Os Ocb PropEntries '}'
-                                                  { FontPaletteValuesBlock (FontPaletteValues (R.Var $3) $6) }
+                                                  { FontPaletteValuesBlock (FontPaletteValues $3 $6) }
     | container Os ContainerQueryMap ERB          { Container (ContainerQueryMap $3) $4 }
-    | positionTry Os Var Ocb PropEntries '}'      { PositionTry (R.Var $3) $5 }
+    | positionTry Os Var Ocb PropEntries '}'      { PositionTry $3 $5 }
     | startingStyle Os ERB                        { StartingStyle $3 }
     | viewTransition Os ERB                       { ViewTransition $3 }
     | scope Os SelectorPair ERB                   { ScopeBlock $3 $4 }
+    | '@function' Os Function                     { FunctionBlock $3 }
     | '@' supports Os FeatureQuery ERB            { Supports (normalize $4) $5 }
     | '@' IdKwd Os CommaSeparatedList Os ERB      { UnknownGramma $2 (Just (CommaSeparatedList $4)) $6 }
     | '@' IdKwd Os ERB                            { UnknownGramma $2 Nothing $4 }
+Function :: { CssFunction }
+    : Var Op FunArgs Os ')' Os RetType Os Ocb List(LocalConst) FunResult CssFileBody '}'
+                                                  { F.Function $1 $3 $7 $10 $11 $12 }
+FunArgs :: { [ F.FunArg ] }
+    :                                             { [] }
+    | FunArg                                      { [ $1 ] }
+    | FunArg Os ',' Os FunArgs                    { $1 : $5 }
+FunArg :: { F.FunArg }
+    : Var                                         { F.FunArg $1 Nothing Nothing }
+    | Var Os TypeFun                              { F.FunArg $1 (Just $3) Nothing }
+    | Var Os TypeFun Os ':' Os PropVal            { F.FunArg $1 (Just $3) (Just $7) }
+    | Var Os ':' Os PropVal                       { F.FunArg $1 Nothing (Just $5) }
+LocalConst :: { F.ConstEntry }
+    : Var ':' PropValsList ';'                    { F.ConstEntry $1 (PropValsList $3) }
+FunResult :: { PropVals }
+    : result ':' PropVals ';'                     { $3 }
+RetType :: { Maybe F.CssType }
+    :                                             { Nothing }
+    | returns Os TypeFun                          { Just $3 }
+TypeFun :: { F.CssType }
+    : 'type(' Os CssType Os ')'                   { $3 }
+    | CssLeaf                                     { F.Once $1 }
+    | '*'                                         { F.AnyCssType }
+CssType :: { F.CssType }
+    : '*'                                         { F.AnyCssType }
+    | CssLeaf                                     { F.Once $1 }
+    | CssLeaf '#'                                 { F.CommaSeparated $1 }
+    | CssLeaf '+'                                 { F.SpaceSeparated $1 }
+    | CssLeaf Os '|' Os CssType                   { F.OrLeaf $1 $5 }
+CssLeaf :: { F.CssLeafType }
+    : syntaxType                                  { F.AtomicCssType $1 }
+    | IdKwd                                       { F.IdentCssType $1 }
 FeatureQuery :: { FeatureQuery }
     : Op MediaFeature ')'                         { FqMediaFeature $2 }
     | Op FeatureQuery ')'                         { FqParen $2 }
@@ -367,7 +407,7 @@ CQ :: { ContainerQuery }
                                                       $8
                                                   }
     | Ident ':' PropVals                          { CqFeature (AsIs (CqOpFeature (PlainMf (PropertyName $1) $3))) }
-    | Var   ':' PropVals                          { CqFeature (AsIs (CqOpFeature (PlainMf (VarProp (R.Var $1)) $3))) }
+    | Var   ':' PropVals                          { CqFeature (AsIs (CqOpFeature (PlainMf (VarProp $1) $3))) }
     | 'not' Op MediaFeature ')' Os BOP CQ         { CqBin $6 (Not (CqOpFeature $3)) $7 }
     | 'not' Op MediaFeature ')'                   { CqFeature (Not (CqOpFeature $3)) }
     | 'not' Os Ident Os Op CQ ')'                 { CqFeature (Not (CqApp $3 $6)) }
@@ -414,7 +454,7 @@ PropEntries :: { [PropEntry] }
     : List(PropEntry)                             { $1 }
 PropertyName :: { PropertyName }
     : IdKwd                                       { PropertyName $1 }
-    | Var                                         { VarProp (R.Var $1) }
+    | Var                                         { VarProp $1 }
 PropEntry :: { PropEntry }
     : PropertyName ':' PropVals ';'               { PropEntry $1 $3 }
 PageSelectorList
@@ -549,8 +589,9 @@ PropVal :: { PropVal }
     : Scalar                                      { IntVal (mkRawNum (fst $1)) (snd $1) }
     | 'ratio'                                     { RatioVal $1 }
     | PropertyName                                { propRef $1 }
-    | PropertyName '/' Os PropertyName            { Div $1 $4 }
+    | PropVal '/' Os PropVal                      { Div $1 $4 }
     | PropertyName Op PropVals ')'                { AppFun $1 $3 }
+    | PropertyName Op ')'                         { AppConst $1 }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
     | 'uqUrl'                                     { UrlVal (UnquotedUrl (pack $1)) }
@@ -797,6 +838,8 @@ IdKwd :: { R.Ident }
     : Ident                                       { $1 }
     | MediaKeywordAsIdent                         { $1 }
     | layer                                       { R.Ident "layer" }
+    | result                                      { R.Ident "result" }
+    | returns                                     { R.Ident "returns" }
     | mediaType                                   { R.Ident (toStrict (toCssText $1)) }
 MediaKeywordAsIdent
     : 'not'                                       { R.Ident "not" }
@@ -809,8 +852,8 @@ IdTxt :: { Text }
     : ident                                       { pack $1 }
 Str :: { Text }
     : string                                      { pack $1 }
-Var :: { R.Ident }
-    : var                                         { R.Ident (pack $1) }
+Var :: { R.Var }
+    : var                                         { R.Var (R.Ident (pack $1)) }
 Embraced(o, p, c)
     : o p c                                       { $2 }
 Clp : ')'                                         { $1 }
