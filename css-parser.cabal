@@ -76,6 +76,14 @@ library
     , alex:alex
     , happy:happy
 
+executable css-parser
+  import: base
+  ghc-options: -threaded
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends:
+    , css-parser
+
 test-suite test
   import: base
   type:                exitcode-stdio-1.0
