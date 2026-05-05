@@ -8,6 +8,7 @@ import CssParser.At.Function qualified as F
 import CssParser.At.MediaQuery (MediaType(..))
 import CssParser.At.Page
 import CssParser.Fun
+import CssParser.Ident qualified as I
 import CssParser.Rule hiding (Heading, Host)
 import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition)
 import CssParser.Rule.Pseudo qualified as P
@@ -144,7 +145,6 @@ $pm       = [\-\+]
 @cmc     = \*\/
 @psc     = [:]
 @pse     = [:][:]
-@psb     = [:][:]?
 @lang    = [A-Za-z\-]+
 
 @deg     = @d@e@g
@@ -364,7 +364,6 @@ tokens :-
   @pse @t@a@r@g@e@t "-" @t@e@x@t                       { constoken (PseudoElementT TargetText) }
   @pse @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n               { constoken (PseudoElementT P.ViewTransition) }
 
-
   @pse  @h@i@g@h@l@i@g@h@t                             { constoken THighlight }
   @pse  @p@a@r@t                                       { constoken TPart }
   @pse  @p@i@c@k@e@r                                   { constoken TPicker }
@@ -376,6 +375,10 @@ tokens :-
                                                        { constoken TViewTransitionImagePair }
   @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @n@e@w   { constoken TViewTransitionNew }
   @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @o@l@d   { constoken TViewTransitionOld }
+
+  @pse @ident                                          { tokenize (PseudoElementT . UnknownPe . I.Ident .
+                                                                     pack . readIdentifier . drop 2)
+                                                       }
 
   @psc @active                                         { constoken (AtomicPseudoClassT Active) }
   @psc @active "-" @view "-" @t@r@a@n@s@i@t@i@o@n      { constoken (AtomicPseudoClassT ActiveViewTransition) }

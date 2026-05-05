@@ -1,5 +1,6 @@
 module CssParser.Rule.Pseudo where
 
+import CssParser.Ident
 import CssParser.Prelude hiding (Left, Right)
 import CssParser.Show ( numToText, CssShow(..), ShowSpaceBetween(..) )
 
@@ -29,7 +30,8 @@ data PseudoElement
   | SpellingError
   | TargetText
   | ViewTransition
-  deriving (Bounded, Enum, Eq, Ord, Show, Generic)
+  | UnknownPe Ident
+  deriving (Eq, Ord, Show, Generic)
 
 data AtomicPseudoClass
   = Active
@@ -219,3 +221,4 @@ instance CssShow PseudoElement where
         SpellingError -> "spelling-error"
         TargetText -> "target-text"
         ViewTransition -> "view-transition"
+        UnknownPe i -> toCssText i

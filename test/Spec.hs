@@ -289,6 +289,7 @@ validSelectors :: [String]
 validSelectors =
   [ "body > p"
   , "div ol>li p"
+  , ".progress::-webkit-progress-bar"
   , "*.pastoral"
   , ".pastoral"
   , "h1.pastoral"
