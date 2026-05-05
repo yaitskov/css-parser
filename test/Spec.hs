@@ -279,6 +279,9 @@ media =
   , "@media (max-width: 320px){}"
   , "@media (-webkit-transform-3d) {}"
   , "@media (400px < width < 1000px) or (a) {}"
+  , "@media not (f( 1) / y < x) {}"
+  , "@media not (x > f( 1) / y) {}"
+  , "@media not (f( 1) / y < x < f( 1) / y) {}"
   ]
 
 -- Based on the w3c testkit: https://test.csswg.org/harness/suite/selectors-3_dev/

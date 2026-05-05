@@ -512,6 +512,20 @@ MediaFeature :: { MediaFeature }
                                                       $5
                                                       $6
                                                   }
+    | PropertyName Op PropVals ')' '/' Os PropVal MfRel PropertyName
+                                                  { OpenRangeFeatureFlipped
+                                                      (Div
+                                                        (AppFun $1 $3)
+                                                        $7)
+                                                      $8 $9
+                                                  }
+    | PropertyName Op PropVals ')' '/' Os PropVal MfRel PropertyName MfRel PropVal
+                                                  { MfClosedRange
+                                                      (Div
+                                                        (AppFun $1 $3)
+                                                        $7)
+                                                      $8 $9 $10 $11
+                                                  }
     | PropertyName Op PropVals ')' MfRel PropertyName MfRel PropVal
                                                   { MfClosedRange
                                                       (AppFun $1 $3)
