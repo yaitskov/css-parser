@@ -170,6 +170,7 @@ properties :: [String]
 properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
+  , "--x: hsla(var(--bulma-white-h), 1);"
   , "margin: 10e2px;"
   , "margin: -0.0px;"
   , "margin: -3.4e-2;"

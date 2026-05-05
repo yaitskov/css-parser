@@ -70,6 +70,10 @@ rightMost = \case
   Div _ y -> rightMost y
   o -> o
 
+instance Norm PropValsList where
+  normalize = \case
+    PropValsList l -> PropValsList (normalize <$> l)
+
 instance Norm PropVals where
   normalize = \case
     PropVals a i -> PropVals (normalize <$> a) i
@@ -78,6 +82,8 @@ instance Norm PropVal where
   normalize = \case
     Div x y -> Div (normalize x) (rightMost y)
     AppFun f a -> AppFun f (normalize a)
+    AppFunEnum f (PropValsList (a :| [])) -> AppFun f (normalize a)
+    AppFunEnum f a -> AppFunEnum f (normalize a)
     o -> o
 
 instance Arbitrary PropVal where

@@ -209,6 +209,7 @@ data PropVal
   | UrlVal Url
   | StrVal Text
   | AppFun PropertyName PropVals
+  | AppFunEnum PropertyName PropValsList
   | AppConst PropertyName
   | CalcFun CalcExpr
   | Div PropVal PropVal
@@ -232,6 +233,7 @@ instance CssShow PropVal where
     CalcFun ce -> "calc(" <> toCssText ce <> ")"
     Div a b -> toCssText a <> " / " <> toCssText b
     AppFun fn args -> toCssText fn <> "(" <> toCssText args <> ")"
+    AppFunEnum fn args -> toCssText fn <> "(" <> toCssText args <> ")"
     AppConst fn -> toCssText fn <> "()"
 
 data Important = Important deriving (Show, Eq, Ord, Generic)
@@ -251,3 +253,8 @@ newtype PropValsList = PropValsList (NonEmpty PropVals) deriving (Show, Eq, Ord,
 
 instance CssShow PropValsList where
   toCssText (PropValsList l) = toCssText l
+
+mkAppFun :: PropertyName -> NonEmpty PropVals -> PropVal
+mkAppFun pn = \case
+  (x :| []) -> AppFun pn x
+  o -> AppFunEnum pn (PropValsList o)

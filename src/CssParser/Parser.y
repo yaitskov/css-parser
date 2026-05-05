@@ -590,7 +590,7 @@ PropVal :: { PropVal }
     | 'ratio'                                     { RatioVal $1 }
     | PropertyName                                { propRef $1 }
     | PropVal '/' Os PropVal                      { Div $1 $4 }
-    | PropertyName Op PropVals ')'                { AppFun $1 $3 }
+    | PropertyName Op PropValsList ')'            { mkAppFun $1 $3 }
     | PropertyName Op ')'                         { AppConst $1 }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
