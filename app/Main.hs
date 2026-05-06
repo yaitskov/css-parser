@@ -1,9 +1,17 @@
 module Main where
 
-import CssParser
+import Control.Monad ( forM_ )
+import CssParser ( parseCss )
 import CssParser.Prelude
+import System.Environment ( getArgs )
 
 main :: IO ()
-main = do
-  ast <- parseCss <$> getContents
-  print ast
+main =
+  getArgs >>= \case
+    [] -> do
+      ast <- parseCss <$> getContents
+      print ast
+    cssFiles ->
+      forM_ cssFiles $ \cssFile -> do
+        ast <- parseCss <$> readFile cssFile
+        print ast
