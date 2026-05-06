@@ -110,6 +110,7 @@ colorProfile =
 fontFace :: [String]
 fontFace =
   [ "@font-face { src: local(\"x\"), format(\"z\") url(\"x.otf\"); unicode-range: U+11F?; }"
+  , "/* */ @font-face { src: local(\"x\"); }"
   ]
 
 fontFeatureValues :: [String]
@@ -137,6 +138,9 @@ misc :: [String]
 misc =
   [ "@position-try --x {x: 1px;}"
   , "@starting-style {}"
+  , "@charset \"utf-8\"; /* */ /* */ @namespace \"x\"; "
+  , "@namespace \"x\"; /* */ /* */ @namespace \"y\";"
+  , "@layer a, b; /* */ /* */ @namespace \"y\";"
   , "@view-transition {}"
   , "@scope { x: 1rem; }"
   , "@scope { :scope {x: 1rem;} }"

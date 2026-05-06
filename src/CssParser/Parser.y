@@ -249,11 +249,11 @@ import Prelude
 %%
 
 CssFile
-    : Charset Headers Namespaces CssFileBody      { CssFile
+    : Charset Headers Namespaces Os CssFileBody   { CssFile
                                                       $1
                                                       (mapMaybe rightToMaybe $2)
                                                       $3
-                                                      (mapMaybe leftToMaybe $2 <> $4)
+                                                      (mapMaybe leftToMaybe $2 <> $5)
                                                   }
 Charset
     :                                             { Nothing }
@@ -297,7 +297,7 @@ LayerNames :: { NonEmpty LayerName }
 LayerName :: { LayerName }
     : IdKwd                                       { LayerName $1 }
 CssFileBody :: { [ CssRule ] }
-    : Os                                          { [] }
+    :                                             { [] }
     | CssRule Os CssFileBody                      { $1 : $3 }
 CssRule :: { CssRule }
     : SelectorList ERB                            { CssRule $1 $2 }
