@@ -7,15 +7,36 @@ import CssParser.At.Layer ( LayerName(..), LayerStmt(..) )
 import CssParser.At.Namespace ( Namespace )
 import CssParser.At.Keyframe
 import CssParser.At.Page
-import CssParser.Norm
-import CssParser.Rule.Pseudo ( AtomicPseudoClass(Blank) )
+import CssParser.Ident (Ident (..))
+import CssParser.Norm ( Norm(..) )
+import CssParser.Rule.Pseudo
+    ( AtomicPseudoClass(Blank), BrowserSpecificIdent(..) )
 import CssParser.Rule.Value ( Source(..) )
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Value ()
+import Data.Text (isPrefixOf)
+import Data.Text qualified as T
 
-instance Arbitrary AtomicPseudoClass where
-  arbitrary = arbitraryBoundedEnum
+instance Arbitrary BrowserSpecificIdent where
+  arbitrary = prependIfMissing <$> arbitrary
+    where
+      prependIfMissing = \case
+        o@(Ident x)
+          | "-moz-" `isPrefixOf` x || "-ms-" `isPrefixOf` x || "-webkit-" `isPrefixOf` x ->
+            BrowserSpecificIdent o
+          | otherwise -> BrowserSpecificIdent (Ident $ "-moz-" <> x)
+
+  shrink = filter skipBadUpc . genericShrink
+    where
+      skipBadUpc = \case
+        BrowserSpecificIdent (Ident x)
+          | "-ms-" `isPrefixOf` x && T.length x > 5 -> True
+          | "-webkit-" `isPrefixOf` x && T.length x > 9 -> True
+          | "-moz-" `isPrefixOf` x && T.length x > 6 -> True
+          | otherwise -> False
+
+deriving via (GenericArbitrary AtomicPseudoClass) instance Arbitrary AtomicPseudoClass
 
 instance Arbitrary Charset where
   arbitrary = Charset <$> elements ["UTF-8", "iso-8859-15"]

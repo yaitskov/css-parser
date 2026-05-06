@@ -1,7 +1,7 @@
 module CssParser.Utils where
 
 import Control.Arrow (first)
-import Data.Char (chr, digitToInt, intToDigit, isAsciiLower, isAsciiUpper, isHexDigit, ord)
+import Data.Char (chr, digitToInt, intToDigit, isAsciiLower, isAsciiUpper, isHexDigit, isDigit, ord)
 import Data.Text (Text, cons, pack, singleton)
 import qualified Data.Text.Lazy as LT
 import Prelude
@@ -60,7 +60,7 @@ readIdentifier :: String -> String
 readIdentifier = _readCssString '\\'
 
 _notEncode :: Char -> Bool
-_notEncode x = isAsciiLower x || isAsciiUpper x
+_notEncode x = isAsciiLower x || isAsciiUpper x || x == '-' || x == '_' || isDigit x
 
 -- | Convert a string to a css selector string literal. This is done by putting
 -- quotes around the content, and escaping certain characters.

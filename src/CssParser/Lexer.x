@@ -488,6 +488,10 @@ tokens :-
   @psc @h@e@a@d@i@n@g                                  { constoken THeading }
   @psc @h@o@s@t                                        { constoken THost }
   @psc @s@t@a@t@e                                      { constoken TState }
+  @psc @browserPrefix @nmstart @nmchar*                { tokenize (AtomicPseudoClassT . UnknownPc .
+                                                                    BrowserSpecificIdent . I.Ident .
+                                                                    pack . readIdentifier . drop 1)
+                                                       }
 
 
   @wo ")"                                              { constoken TClose }

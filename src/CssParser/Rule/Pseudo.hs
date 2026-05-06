@@ -33,6 +33,9 @@ data PseudoElement
   | UnknownPe Ident
   deriving (Eq, Ord, Show, Generic)
 
+newtype BrowserSpecificIdent = BrowserSpecificIdent Ident
+  deriving newtype (Eq, Ord, Show, CssShow, IsString) deriving (Generic)
+
 data AtomicPseudoClass
   = Active
   | ActiveViewTransition
@@ -100,7 +103,8 @@ data AtomicPseudoClass
   | Visited
   | VolumeLocked
   | XrOverlay
-  deriving (Eq, Bounded, Enum, Ord, Show, Generic)
+  | UnknownPc BrowserSpecificIdent
+  deriving (Eq, Ord, Show, Generic)
 
 pattern Even :: Nth
 pattern Even = Nth 2 0
@@ -195,6 +199,7 @@ instance CssShow AtomicPseudoClass where
         Visited -> "visited"
         VolumeLocked -> "volume-locked"
         XrOverlay -> "xr-overlay"
+        UnknownPc i -> toCssText i
 
 instance CssShow PseudoElement where
   toCssText = ("::" <>) . go

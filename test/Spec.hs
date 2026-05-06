@@ -290,6 +290,7 @@ validSelectors =
   [ "body > p"
   , "div ol>li p"
   , ".progress::-webkit-progress-bar"
+  , "input.is-skeleton:-moz-placeholder"
   , "*.pastoral"
   , ".pastoral"
   , "h1.pastoral"
