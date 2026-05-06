@@ -18,24 +18,23 @@ import CssParser.Test.Arbitrary.Value ()
 import Data.Text (isPrefixOf)
 import Data.Text qualified as T
 
+browserPrefixes :: [Text]
+browserPrefixes =  T.words "-moz- -ms- -webkit- -apple- -o-"
+
 instance Arbitrary BrowserSpecificIdent where
-  arbitrary = prependIfMissing <$> arbitrary
+  arbitrary =
+    prependIfMissing <$> elements browserPrefixes <*> arbitrary
     where
-      prependIfMissing = \case
+      prependIfMissing pre = \case
         o@(Ident x)
-          | "-moz-" `isPrefixOf` x || "-ms-" `isPrefixOf` x || "-webkit-" `isPrefixOf` x || "-apple-" `isPrefixOf` x ->
+          | any (`isPrefixOf` x) browserPrefixes ->
             BrowserSpecificIdent o
-          | otherwise -> BrowserSpecificIdent (Ident $ "-moz-" <> x)
+          | otherwise ->
+            BrowserSpecificIdent (Ident $ pre <> x)
 
   shrink = filter skipBadUpc . genericShrink
     where
-      skipBadUpc = \case
-        BrowserSpecificIdent (Ident x)
-          | "-ms-" `isPrefixOf` x && T.length x > 5 -> True
-          | "-webkit-" `isPrefixOf` x && T.length x > 9 -> True
-          | "-moz-" `isPrefixOf` x && T.length x > 6 -> True
-          | "-apple-" `isPrefixOf` x && T.length x > 6 -> True
-          | otherwise -> False
+      skipBadUpc (BrowserSpecificIdent (Ident x)) =  T.length x > 9
 
 deriving via (GenericArbitrary AtomicPseudoClass) instance Arbitrary AtomicPseudoClass
 
