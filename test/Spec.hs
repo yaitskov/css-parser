@@ -188,6 +188,7 @@ properties =
   , "width: calc( (var(--x) / var(--y) * 2) - x);" -- --f(3Q));"
   , "width: calc(var(--variable-width) + 20px);"
   , "margin: 1px !important;"
+  , "font-family: -apple-system;"
   , "margin: 3cm, 1px !important ;"
   , "font-family: one, two, three,four , five;"
   , "--c: 0.0lvmax +0svmin; "

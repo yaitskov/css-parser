@@ -100,7 +100,7 @@ $pm       = [\-\+]
 @y       = y|Y
 @z       = z|Z
 
-@browserPrefix = [\-](@m@o@z|@w@e@b@k@i@t|@m@s)[\-]
+@browserPrefix = [\-](@m@o@z|@w@e@b@k@i@t|@m@s|@a@p@p@l@e)[\-]
 @ident   = @browserPrefix? @nmstart @nmchar*
 
 @anum    = [\-\+]? ( @dec+ ([\.]@dec+)? (@e [\-\+]? @dec+)? | [\.]@dec+ )

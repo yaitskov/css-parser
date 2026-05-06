@@ -23,7 +23,7 @@ instance Arbitrary BrowserSpecificIdent where
     where
       prependIfMissing = \case
         o@(Ident x)
-          | "-moz-" `isPrefixOf` x || "-ms-" `isPrefixOf` x || "-webkit-" `isPrefixOf` x ->
+          | "-moz-" `isPrefixOf` x || "-ms-" `isPrefixOf` x || "-webkit-" `isPrefixOf` x || "-apple-" `isPrefixOf` x ->
             BrowserSpecificIdent o
           | otherwise -> BrowserSpecificIdent (Ident $ "-moz-" <> x)
 
@@ -34,6 +34,7 @@ instance Arbitrary BrowserSpecificIdent where
           | "-ms-" `isPrefixOf` x && T.length x > 5 -> True
           | "-webkit-" `isPrefixOf` x && T.length x > 9 -> True
           | "-moz-" `isPrefixOf` x && T.length x > 6 -> True
+          | "-apple-" `isPrefixOf` x && T.length x > 6 -> True
           | otherwise -> False
 
 deriving via (GenericArbitrary AtomicPseudoClass) instance Arbitrary AtomicPseudoClass
