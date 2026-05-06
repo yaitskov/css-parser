@@ -177,6 +177,8 @@ properties :: [String]
 properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
+  , "background-position:right -1rem center;"
+  , "background-position:right;"
   , "-o-object-fit: contain !important;"
   , "cursor:not-allowed;"
   , "--bs-btn-font-family: ;"
