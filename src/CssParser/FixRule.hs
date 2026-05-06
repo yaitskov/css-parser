@@ -167,8 +167,14 @@ setTopTagName tn = updateTopTagSelector go
 pclassToIdent :: AtomicPseudoClass -> Ident
 pclassToIdent = Ident . T.drop 1 . L.toStrict . toCssText
 
+prependPropVal :: PropVal -> PropVals -> PropVals
+prependPropVal pv (PropVals pvs mi) = PropVals (pv <| pvs) mi
+
+pclassToPropVal :: AtomicPseudoClass -> PropVal
+pclassToPropVal pc = IdentRef (pclassToIdent pc)
+
 pclassToPropVals :: Maybe Important-> AtomicPseudoClass -> PropVals
-pclassToPropVals mi pc = PropVals (IdentRef (pclassToIdent pc) :| []) mi
+pclassToPropVals mi pc = PropVals (pclassToPropVal pc :| []) mi
 
 rewritePseudoClassAsDescValue :: Ident -> Maybe Important -> AtomicPseudoClass -> CssRuleBodyItem
 rewritePseudoClassAsDescValue pn mi pc =

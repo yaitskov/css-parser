@@ -506,6 +506,8 @@ MediaCondition :: { MediaBoolExpr }
     | Op MediaFeature ')'                         { MediaFeature (AsIs $2) }
 MediaFeature :: { MediaFeature }
     : PropertyName ':' PropVals                   { PlainMf $1 $3 }
+    | PropertyName pseudc                         { PlainMf $1 (pclassToPropVals Nothing $2) }
+    | PropertyName pseudc Os PropVals             { PlainMf $1 (prependPropVal (pclassToPropVal $2) $4) }
     | PropertyName MfRel PropVal                  { OpenRangeFeature $1 $2 $3 }
     | PropertyName MfRel PropertyName MfRel PropVal
                                                   { MfClosedRange (propRef $1) $2 $3 $4 $5 }
