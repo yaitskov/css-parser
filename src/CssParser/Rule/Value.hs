@@ -191,6 +191,7 @@ data CalcExpr
   | ValCe RawNum PropValType
   | VarCe PropertyName
   | AppCe PropertyName CalcExpr
+  | CalcCe CalcExpr
   deriving (Eq, Ord, Show, Generic)
 
 instance CssShow CalcExpr where
@@ -200,6 +201,7 @@ instance CssShow CalcExpr where
     ValCe n t -> toCssText n <> toCssText t
     VarCe v -> toCssText v
     AppCe f a -> toCssText f <> "(" <> toCssText a <> ")"
+    CalcCe a -> "calc(" <> toCssText a <> ")"
 
 data PropVal
   = IntVal RawNum PropValType

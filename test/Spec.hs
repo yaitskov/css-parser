@@ -143,6 +143,9 @@ misc =
   , "div { > p { --x: 1px; }}"
   , "div {>p{ --x: 1px; }}"
   , "div {p{ --x: 1px; }}"
+  , "p{}/* */ "
+  , "p{/* */ }"
+  , "/* \n */p{ /* \n */ }"
   ]
 
 supports :: [String]

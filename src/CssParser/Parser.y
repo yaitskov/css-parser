@@ -296,8 +296,9 @@ LayerNames :: { NonEmpty LayerName }
     : NonEmpty(',', LayerName)                    { $1 }
 LayerName :: { LayerName }
     : IdKwd                                       { LayerName $1 }
-CssFileBody
-    : List(CssRule)                               { $1 }
+CssFileBody :: { [ CssRule ] }
+    : Os                                          { [] }
+    | CssRule Os CssFileBody                      { $1 : $3 }
 CssRule :: { CssRule }
     : SelectorList '{' CssRuleBody '}'            { CssRule $1 $3 }
     | 'media' '{' CssRuleBody '}'                 { MediaRule (MediaQueryList []) $3 }
@@ -624,6 +625,7 @@ CalcExpr :: { CalcExpr }
     | PropertyName Op CalcExpr Os ')'             { AppCe $1 $3 }
     | PropertyName                                { VarCe $1 }
     | Scalar                                      { ValCe (mkRawNum (fst $1)) (snd $1) }
+    | 'calc(' Os CalcExpr Os ')'                  { CalcCe $3 }
 Unsigned :: { Unsigned }
     : unitLessNum                                 {% fmap Unsigned (fromEitherM failP (readEither $1)) }
 ContinueRule :: { CssRule }

@@ -173,6 +173,7 @@ $pm       = [\-\+]
 @cmc     = \*\/
 @psc     = [:]
 @pse     = [:][:]
+@psb     = [:][:]?
 @lang    = [A-Za-z\-]+
 
 @deg     = @d@e@g
@@ -370,9 +371,9 @@ tokens :-
   @wo "]"                                              { constoken BClose }
   @wo "{" @wo                                          { constoken COpen }
   @wo "}" @wo                                          { constoken CClose }
-  @pse @a@f@t@e@r                                      { constoken (PseudoElementT After) }
+  @psb @a@f@t@e@r                                      { constoken (PseudoElementT After) }
   @pse @b@a@c@k@d@r@o@p                                { constoken (PseudoElementT Backdrop) }
-  @pse @b@e@f@o@r@e                                    { constoken (PseudoElementT Before) }
+  @psb @b@e@f@o@r@e                                    { constoken (PseudoElementT Before) }
   @pse @c@h@e@c@k@m@a@r@k                              { constoken (PseudoElementT Checkmark) }
   @pse @c@o@l@u@m@n                                    { constoken (PseudoElementT Column) }
   @pse @c@u@e                                          { constoken (PseudoElementT Cue) }
@@ -499,15 +500,15 @@ tokens :-
 
   @psc @wo                                             { constoken Colon }
   $w @wo                                               { constoken Space }
-  @cmo                                                 { begin comment }
+  @wo @cmo                                             { begin comment }
   "<!--"                                               { begin htmlComment }
  }
  <comment> {
-  .                                       ;
+  [.\n]                                                ;
   @cmc                                                 { begin state_initial }
  }
  <htmlComment> {
-  .                                       ;
+  [.\n]                                                ;
   "-->"                                                { begin state_initial }
  }
  <nth_state> {
