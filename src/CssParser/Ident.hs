@@ -5,7 +5,7 @@ import CssParser.Show ( CssShow(..) )
 import CssParser.Utils ( encodeIdentifier )
 import Data.Text (pack)
 
-newtype Ident = Ident Text deriving newtype (Eq, Ord, Show, IsString)
+newtype Ident = Ident Text deriving newtype (Eq, Ord, Show, Semigroup, Monoid, IsString)
 
 data TagName
   = TagName Ident

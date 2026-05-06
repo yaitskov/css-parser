@@ -638,6 +638,13 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                   { mkLeaf $1 $3 : $5 }
     | PropertyName ':' PropValsList               { [ mkLeaf $1 $3 ] }
     | PropertyName ':' Os ';' OsCssRuleBody       { $5 }
+    | IdKwd ':not' '-' IdKwd Important ';' OsCssRuleBody
+                                                  { fixNotClass (PropertyName $1) $4 $5 : $7 }
+    | IdKwd ':not' '-' IdKwd Important            { [fixNotClass (PropertyName $1) $4 $5] }
+    | IdKwd ':not' '(' SelectorList ')' ContinueRule OsCssRuleBody
+                                                  { upsertHeadTagSelector (setTag $1 . addClass (NotClass $4)) $6 $7 }
+    | IdKwd ':not' '(' SelectorList ')' ERB OsCssRuleBody
+                                                  { newRule (setTag $1 . addClass (NotClass $4)) $6 $7 }
     | IdKwd '{' OsCssRuleBody '}' OsCssRuleBody   { CssNestedRule (tagNameRule $1 $3) : $5 }
     | IdKwd '>' Os ContinueRule OsCssRuleBody     {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 Child $4) }
     | IdKwd ' ' ContinueRule OsCssRuleBody        {% fmap ((: $4) . CssNestedRule) (prependIdentToRule $1 Descendant $3) }
@@ -653,8 +660,6 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | IdKwd pseudc ContinueRule OsCssRuleBody     { upsertHeadTagSelector
                                                       (setTag $1 . addClass (AtomicPseudoClass $2)) $3 $4 }
     | IdKwd pseudc ERB OsCssRuleBody              { newRule (addClass (AtomicPseudoClass $2) . setTag $1) $3 $4 }
-    | IdKwd ':not' ESL ContinueRule OsCssRuleBody { upsertHeadTagSelector (setTag $1 . addClass (NotClass $3)) $4 $5 }
-    | IdKwd ':not' ESL ERB OsCssRuleBody          { newRule (setTag $1 . addClass (NotClass $3)) $4 $5 }
     | IdKwd where ESL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Where $3)) $4 $5 }
     | IdKwd where ESL ERB OsCssRuleBody           { newRule (setTag $1 . addClass (Where $3)) $4 $5 }
     | IdKwd is    ESL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Is $3)) $4 $5 }

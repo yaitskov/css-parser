@@ -162,6 +162,10 @@ setTopTagName tn = updateTopTagSelector go
   where
     go ts = ts { tagName = TagName tn }
 
+fixNotClass :: PropertyName -> Ident -> Maybe Important -> CssRuleBodyItem
+fixNotClass pn nsuf mi =
+  CssLeafRule pn  (PropVals (IdentRef ("not-" <> nsuf) :| []) mi)
+
 mkLeaf :: PropertyName -> NonEmpty PropVals -> CssRuleBodyItem
 mkLeaf pn = \case
   (x :| []) -> CssLeafRule pn x
