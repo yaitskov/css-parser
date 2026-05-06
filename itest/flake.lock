@@ -1,0 +1,191 @@
+{
+  "nodes": {
+    "bootstrap": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777997996,
+        "narHash": "sha256-1UzRvgY1glUH8HSTs0lyuM+q8H82NYpvI6KCo4skaCg=",
+        "owner": "twbs",
+        "repo": "bootstrap",
+        "rev": "a583d9a8f3a1027566f3d82f0538d61f6d17f0d3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "twbs",
+        "repo": "bootstrap",
+        "type": "github"
+      }
+    },
+    "bulma": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772395980,
+        "narHash": "sha256-RNj2nniHTUpg2m5WXCejDy7OyvIxikKV60d3ZCRvwWw=",
+        "owner": "jgthms",
+        "repo": "bulma",
+        "rev": "741da22368cd548111224983a1c3ece8954fe8cc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jgthms",
+        "repo": "bulma",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "foundation": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1727461563,
+        "narHash": "sha256-3HfO8mWc2ZLoO2eXN12wh8lmQyZ8fol8FsjOla/6vxM=",
+        "owner": "foundation",
+        "repo": "foundation-sites",
+        "rev": "337be7a8d9d20d28f5d27d2d98131a6d3772506c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "foundation",
+        "repo": "foundation-sites",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1770195405,
+        "narHash": "sha256-FTUS9GSw4KiOjAOmsarvRhTGEECUVd3NhBfzUytCuhE=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "bc16855ba53f3cb6851903a393e7073d1b5911e7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "bc16855ba53f3cb6851903a393e7073d1b5911e7",
+        "type": "github"
+      }
+    },
+    "ress": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1686610023,
+        "narHash": "sha256-ljcWz+HS1Mn/UtwfaPikND7G6C4owXfTafVyNSpx21M=",
+        "owner": "filipelinhares",
+        "repo": "ress",
+        "rev": "7092c6033e6db09d8e40a161831e86071012be52",
+        "type": "github"
+      },
+      "original": {
+        "owner": "filipelinhares",
+        "repo": "ress",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "bootstrap": "bootstrap",
+        "bulma": "bulma",
+        "flake-utils": "flake-utils",
+        "foundation": "foundation",
+        "nixpkgs": "nixpkgs",
+        "ress": "ress",
+        "sakura": "sakura",
+        "stack-overflow": "stack-overflow",
+        "uphack": "uphack",
+        "uswds": "uswds"
+      }
+    },
+    "sakura": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772693925,
+        "narHash": "sha256-TmaoYszuaUMxbtCV8upH7NlJj/ILHnV5SS5cL40YpiI=",
+        "owner": "oxalorg",
+        "repo": "sakura",
+        "rev": "1eab9fd871abc74ec74d1a6f18ee56148f5a4b8f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalorg",
+        "repo": "sakura",
+        "type": "github"
+      }
+    },
+    "stack-overflow": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1761557615,
+        "narHash": "sha256-zM338ni97M00RAb09wg8oOLpU2+tpSrBiYXZA/SCsMs=",
+        "type": "tarball",
+        "url": "https://github.com/StackExchange/Stacks/archive/refs/tags/@stackoverflow/stacks-svelte@0.6.0.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/StackExchange/Stacks/archive/refs/tags/@stackoverflow/stacks-svelte@0.6.0.tar.gz"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "uphack": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1757595711,
+        "narHash": "sha256-9vOuWhJhPKnHBPZj/+6AJ7E0K2qezec7d8zW42n9j9o=",
+        "owner": "yaitskov",
+        "repo": "upload-doc-to-hackage",
+        "rev": "29d4066f4f8a5a1a194d9b701f9b272dda85c3aa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "yaitskov",
+        "repo": "upload-doc-to-hackage",
+        "type": "github"
+      }
+    },
+    "uswds": {
+      "flake": false,
+      "locked": {
+        "lastModified": 499162500,
+        "narHash": "sha256-NWw/9gHtjJ7PgFBFv7CCWn3b72ZG1SghXkBxmzF5reU=",
+        "type": "tarball",
+        "url": "https://github.com/uswds/uswds/releases/download/v3.13.0/uswds-uswds-3.13.0.tgz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/uswds/uswds/releases/download/v3.13.0/uswds-uswds-3.13.0.tgz"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
