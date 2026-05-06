@@ -190,7 +190,7 @@ data CalcExpr
   | BinOpCe CalcExpr CalcOp CalcExpr
   | ValCe RawNum PropValType
   | VarCe PropertyName
-  | AppCe PropertyName CalcExpr
+  | AppCe PropertyName PropValsList
   | CalcCe CalcExpr
   deriving (Eq, Ord, Show, Generic)
 

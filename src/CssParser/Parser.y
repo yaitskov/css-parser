@@ -624,7 +624,7 @@ CalcExpr :: { CalcExpr }
     : Op CalcExpr Os ')'                          { ParCe $2 }
     | CalcExpr Os CalcOp Os CalcExpr              { BinOpCe $1 $3 $5 }
     | CalcExpr Os CalcExpr                        {% recoverCalcBinOp $1 $3 }
-    | PropertyName Op CalcExpr Os ')'             { AppCe $1 $3 }
+    | PropertyName Op PropValsList Os ')'         { AppCe $1 (PropValsList $3) }
     | PropertyName                                { VarCe $1 }
     | Scalar                                      { ValCe (mkRawNum (fst $1)) (snd $1) }
     | 'calc(' Os CalcExpr Os ')'                  { CalcCe $3 }
