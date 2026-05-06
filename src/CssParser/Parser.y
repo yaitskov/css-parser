@@ -637,6 +637,7 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | PropertyName ':' PropValsList ';' OsCssRuleBody
                                                   { mkLeaf $1 $3 : $5 }
     | PropertyName ':' PropValsList               { [ mkLeaf $1 $3 ] }
+    | PropertyName ':' Os ';' OsCssRuleBody       { $5 }
     | IdKwd '{' OsCssRuleBody '}' OsCssRuleBody   { CssNestedRule (tagNameRule $1 $3) : $5 }
     | IdKwd '>' Os ContinueRule OsCssRuleBody     {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 Child $4) }
     | IdKwd ' ' ContinueRule OsCssRuleBody        {% fmap ((: $4) . CssNestedRule) (prependIdentToRule $1 Descendant $3) }

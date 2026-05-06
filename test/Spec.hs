@@ -177,6 +177,7 @@ properties :: [String]
 properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
+  , "--bs-btn-font-family: ;"
   , "--x: hsla(var(--bulma-white-h), 1);"
   , "p: 1px; /* */ q: 100vh;"
   , "/* */ q: 100vh;"
