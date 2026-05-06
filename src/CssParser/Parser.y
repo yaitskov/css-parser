@@ -263,8 +263,8 @@ Headers :: { [ Either CssRule FileHeader ] }
 Header :: { Either CssRule FileHeader }
     : 'import' Import ';'                         { Right (HeaderImport $2) }
     | '@layer' LayerNames ';'                     { Right (HeaderLayers (LayerStmt $2)) }
-    | '@layer' IdKwd '{' CssRuleBody '}'          { Left (LayerBlock (Just (LayerName $2)) $4) }
-    | '@layer' '{' CssRuleBody '}'                { Left (LayerBlock Nothing $3) }
+    | '@layer' IdKwd ERB                          { Left (LayerBlock (Just (LayerName $2)) $3) }
+    | '@layer' '{' OsCssRuleBody '}'              { Left (LayerBlock Nothing $3) }
 Import -- :: { Import SelectorList }
     : Source Os                                   { ImportUrlSupports $1 Nothing [] }
     | Source Os layer Os                          { ImportDefaultLayer $1 }
@@ -300,15 +300,15 @@ CssFileBody :: { [ CssRule ] }
     : Os                                          { [] }
     | CssRule Os CssFileBody                      { $1 : $3 }
 CssRule :: { CssRule }
-    : SelectorList '{' CssRuleBody '}'            { CssRule $1 $3 }
-    | 'media' '{' CssRuleBody '}'                 { MediaRule (MediaQueryList []) $3 }
-    | 'media' MediaQueryList '{' CssRuleBody '}'  { MediaRule (MediaQueryList $2) $4 }
-    | '@layer' IdKwdMb '{' CssRuleBody '}'        { LayerBlock (fmap LayerName $2) $4 }
-    | 'page' '{' CssRuleBody '}'                  { Page (PageSelectorList []) $3 }
-    | 'page' PageSelectorList '{' CssRuleBody '}' { Page (PageSelectorList $2) $4 }
-    | pageMargin '{' CssRuleBody '}'              { PageMarginBlock $1 $3 }
-    | counterStyle IdKwd '{' CssRuleBody '}'      { CounterStyle $2 $4 }
-    | property Var '{' CssRuleBody '}'            { Property $2 $4 }
+    : SelectorList ERB                            { CssRule $1 $2 }
+    | 'media' '{' OsCssRuleBody '}'               { MediaRule (MediaQueryList []) $3 }
+    | 'media' MediaQueryList ERB                  { MediaRule (MediaQueryList $2) $3 }
+    | '@layer' IdKwdMb ERB                        { LayerBlock (fmap LayerName $2) $3 }
+    | 'page' '{' OsCssRuleBody '}'                { Page (PageSelectorList []) $3 }
+    | 'page' PageSelectorList ERB                 { Page (PageSelectorList $2) $3 }
+    | pageMargin ERB                              { PageMarginBlock $1 $2 }
+    | counterStyle IdKwd ERB                      { CounterStyle $2 $3 }
+    | property Var ERB                            { Property $2 $3 }
     | keyframes IdKwd Ocb KeyframeList '}'        { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
     | colorProf Os Var Ocb ColorPropEntries '}'   { ColorProfile (VarProp $3) $5 }
     | colorProf Os IdKwd Ocb ColorPropEntries '}' { ColorProfile (PropertyName $3) $5 }
@@ -377,8 +377,10 @@ SelectorPair :: { MonoPair SelectorList }
     :                                             { EmptyPair }
     | ESL Os                                      { HalfPair $1 }
     | ESL Os 'to' Os ESL Os                       { FullPair $1 $5 }
+OsCssRuleBody :: { [CssRuleBodyItem] }
+    : Os CssRuleBody                              { $2 }
 ERB :: { [CssRuleBodyItem] } -- Embraced Rule Body
-    : '{' CssRuleBody '}'                         { $2 }
+    : '{' OsCssRuleBody '}'                       { $2 }
 ContainerQueryMap :: { NonEmpty (These R.Ident ContainerQuery) }
     : NonEmpty(',', IdContainerQuery)             { $1 }
 IdContainerQuery :: { These R.Ident ContainerQuery }
@@ -629,42 +631,42 @@ CalcExpr :: { CalcExpr }
 Unsigned :: { Unsigned }
     : unitLessNum                                 {% fmap Unsigned (fromEitherM failP (readEither $1)) }
 ContinueRule :: { CssRule }
-    : SelectorList '{' CssRuleBody '}'            { CssRule $1 $3 }
+    : SelectorList '{' Os CssRuleBody '}'         { CssRule $1 $4 }
 CssRuleBody :: { [ CssRuleBodyItem ] }
     :                                             { [] }
-    | PropertyName ':' PropValsList ';' CssRuleBody
+    | PropertyName ':' PropValsList ';' OsCssRuleBody
                                                   { mkLeaf $1 $3 : $5 }
     | PropertyName ':' PropValsList               { [ mkLeaf $1 $3 ] }
-    | IdKwd '{' CssRuleBody '}' CssRuleBody       { CssNestedRule (tagNameRule $1 $3) : $5 }
-    | IdKwd '>' Os ContinueRule CssRuleBody       {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 Child $4) }
-    | IdKwd ' ' ContinueRule CssRuleBody          {% fmap ((: $4) . CssNestedRule) (prependIdentToRule $1 Descendant $3) }
-    | IdKwd '|' ContinueRule CssRuleBody          { CssNestedRule (updateTopTagSelector (setTsNs $1) $3) : $4 }
-    | IdKwd '+' Os ContinueRule CssRuleBody       {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 NextSibling $4) }
-    | IdKwd '~' Os ContinueRule CssRuleBody       {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 GeneralSibling $4) }
-    | IdKwd '[' Attr ERB CssRuleBody              { CssNestedRule (tagAndAttrRule $1 $3 $4) : $5 }
-    | IdKwd '[' Attr ContinueRule CssRuleBody     { upsertHeadTagSelector (setTag $1 . addAttr $3) $4 $5 }
-    | IdKwd ',' ContinueRule CssRuleBody          { CssNestedRule (prependSelectorToRule $1 $3) : $4 }
-    | IdKwd '.' ContinueRule CssRuleBody          { CssNestedRule (tagNameIsClass $1 $3) : $4 }
-    | IdKwd Hash ContinueRule CssRuleBody         { upsertHeadTagSelector (setTag $1 . setHash $2) $3 $4 }
-    | IdKwd Hash ERB CssRuleBody                  { newRule (setHash $2 . setTag $1) $3 $4 }
-    | IdKwd pseudc ContinueRule CssRuleBody       { upsertHeadTagSelector
+    | IdKwd '{' OsCssRuleBody '}' OsCssRuleBody   { CssNestedRule (tagNameRule $1 $3) : $5 }
+    | IdKwd '>' Os ContinueRule OsCssRuleBody     {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 Child $4) }
+    | IdKwd ' ' ContinueRule OsCssRuleBody        {% fmap ((: $4) . CssNestedRule) (prependIdentToRule $1 Descendant $3) }
+    | IdKwd '|' ContinueRule OsCssRuleBody        { CssNestedRule (updateTopTagSelector (setTsNs $1) $3) : $4 }
+    | IdKwd '+' Os ContinueRule OsCssRuleBody     {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 NextSibling $4) }
+    | IdKwd '~' Os ContinueRule OsCssRuleBody     {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 GeneralSibling $4) }
+    | IdKwd '[' Attr ERB OsCssRuleBody            { CssNestedRule (tagAndAttrRule $1 $3 $4) : $5 }
+    | IdKwd '[' Attr ContinueRule OsCssRuleBody   { upsertHeadTagSelector (setTag $1 . addAttr $3) $4 $5 }
+    | IdKwd ',' ContinueRule OsCssRuleBody        { CssNestedRule (prependSelectorToRule $1 $3) : $4 }
+    | IdKwd '.' ContinueRule OsCssRuleBody        { CssNestedRule (tagNameIsClass $1 $3) : $4 }
+    | IdKwd Hash ContinueRule OsCssRuleBody       { upsertHeadTagSelector (setTag $1 . setHash $2) $3 $4 }
+    | IdKwd Hash ERB OsCssRuleBody                { newRule (setHash $2 . setTag $1) $3 $4 }
+    | IdKwd pseudc ContinueRule OsCssRuleBody     { upsertHeadTagSelector
                                                       (setTag $1 . addClass (AtomicPseudoClass $2)) $3 $4 }
-    | IdKwd pseudc ERB CssRuleBody                { newRule (addClass (AtomicPseudoClass $2) . setTag $1) $3 $4 }
-    | IdKwd ':not' ESL ContinueRule CssRuleBody   { upsertHeadTagSelector (setTag $1 . addClass (NotClass $3)) $4 $5 }
-    | IdKwd ':not' ESL ERB CssRuleBody            { newRule (setTag $1 . addClass (NotClass $3)) $4 $5 }
-    | IdKwd where ESL ContinueRule CssRuleBody    { upsertHeadTagSelector (setTag $1 . addClass (Where $3)) $4 $5 }
-    | IdKwd where ESL ERB CssRuleBody             { newRule (setTag $1 . addClass (Where $3)) $4 $5 }
-    | IdKwd is    ESL ContinueRule CssRuleBody    { upsertHeadTagSelector (setTag $1 . addClass (Is $3)) $4 $5 }
-    | IdKwd is    ESL ERB          CssRuleBody    { newRule (setTag $1 . addClass (Is $3)) $4 $5 }
-    | IdKwd has   ESL ContinueRule CssRuleBody    { upsertHeadTagSelector (setTag $1 . addClass (Has $3)) $4 $5 }
-    | IdKwd has   ESL ERB          CssRuleBody    { newRule (setTag $1 . addClass (Has $3)) $4 $5 }
+    | IdKwd pseudc ERB OsCssRuleBody              { newRule (addClass (AtomicPseudoClass $2) . setTag $1) $3 $4 }
+    | IdKwd ':not' ESL ContinueRule OsCssRuleBody { upsertHeadTagSelector (setTag $1 . addClass (NotClass $3)) $4 $5 }
+    | IdKwd ':not' ESL ERB OsCssRuleBody          { newRule (setTag $1 . addClass (NotClass $3)) $4 $5 }
+    | IdKwd where ESL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Where $3)) $4 $5 }
+    | IdKwd where ESL ERB OsCssRuleBody           { newRule (setTag $1 . addClass (Where $3)) $4 $5 }
+    | IdKwd is    ESL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Is $3)) $4 $5 }
+    | IdKwd is    ESL ERB          OsCssRuleBody  { newRule (setTag $1 . addClass (Is $3)) $4 $5 }
+    | IdKwd has   ESL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Has $3)) $4 $5 }
+    | IdKwd has   ESL ERB          OsCssRuleBody  { newRule (setTag $1 . addClass (Has $3)) $4 $5 }
 
     | IdKwd 'lang(' Str ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector (setTag $1 . addClass (Lang (Language $3))) $5 $6 }
-    | IdKwd 'lang(' Str ')' ERB CssRuleBody       { newRule (setTag $1 . addClass (Lang (Language $3))) $5 $6 }
+    | IdKwd 'lang(' Str ')' ERB OsCssRuleBody     { newRule (setTag $1 . addClass (Lang (Language $3))) $5 $6 }
     | IdKwd pseudf Os Nth ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector (setTag $1 . addClass (call $2 $4)) $5 $6 }
-    | IdKwd pseudf Os Nth ERB CssRuleBody         { newRule (setTag $1 . addClass (call $2 $4)) $5 $6 }
+    | IdKwd pseudf Os Nth ERB OsCssRuleBody       { newRule (setTag $1 . addClass (call $2 $4)) $5 $6 }
 
     | IdKwd activeViewTransitionType Op CslOfIdents Os ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector
@@ -681,7 +683,7 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       (setTag $1 . addClass (Dir (Embraced $4)))
                                                       $7 $8
                                                   }
-    | IdKwd dir Op IdKwd Os ')' ERB CssRuleBody   { newRule
+    | IdKwd dir Op IdKwd Os ')' ERB OsCssRuleBody { newRule
                                                       ( setTag $1
                                                       . addClass (Dir (Embraced $4)))
                                                       $7 $8
@@ -697,21 +699,21 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       . addClass (Heading (Embraced $3)))
                                                       $6 $7
                                                   }
-    | IdKwd heading ContinueRule CssRuleBody      { upsertHeadTagSelector
+    | IdKwd heading ContinueRule OsCssRuleBody    { upsertHeadTagSelector
                                                       (setTag $1 . addClass (AtomicPseudoClass P.Heading)) $3 $4 }
-    | IdKwd heading ERB CssRuleBody               { newRule (addClass (AtomicPseudoClass P.Heading) . setTag $1) $3 $4 }
-    | IdKwd host ESL ContinueRule CssRuleBody     { upsertHeadTagSelector
+    | IdKwd heading ERB OsCssRuleBody             { newRule (addClass (AtomicPseudoClass P.Heading) . setTag $1) $3 $4 }
+    | IdKwd host ESL ContinueRule OsCssRuleBody   { upsertHeadTagSelector
                                                       (setTag $1 . addClass (Host (Embraced $3)))
                                                       $4 $5
                                                   }
-    | IdKwd host ESL ERB CssRuleBody              { newRule
+    | IdKwd host ESL ERB OsCssRuleBody            { newRule
                                                       ( setTag $1
                                                       . addClass (Host (Embraced $3)))
                                                       $4 $5
                                                   }
-    | IdKwd host ContinueRule CssRuleBody         { upsertHeadTagSelector
+    | IdKwd host ContinueRule OsCssRuleBody       { upsertHeadTagSelector
                                                       (setTag $1 . addClass (AtomicPseudoClass P.Host)) $3 $4 }
-    | IdKwd host ERB CssRuleBody                  { newRule (addClass (AtomicPseudoClass P.Host) . setTag $1) $3 $4 }
+    | IdKwd host ERB OsCssRuleBody                { newRule (addClass (AtomicPseudoClass P.Host) . setTag $1) $3 $4 }
 
     | IdKwd state Op IdKwd Os ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector
@@ -724,9 +726,10 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       $7 $8
                                                   }
 
-    | IdKwd PsTgSel ERB CssRuleBody               { newPseude (setTag $1) $2 $3 $4 }
-    | IdKwd PsTgSel ',' ContinueRule CssRuleBody  { CssNestedRule (pushPeSelector (setTag $1) $2 $4) : $5 }
-    | CssRule CssRuleBody                         { CssNestedRule $1 : $2 }
+    | IdKwd PsTgSel ERB OsCssRuleBody             { newPseude (setTag $1) $2 $3 $4 }
+    | IdKwd PsTgSel ',' ContinueRule OsCssRuleBody
+                                                  { CssNestedRule (pushPeSelector (setTag $1) $2 $4) : $5 }
+    | CssRule OsCssRuleBody                       { CssNestedRule $1 : $2 }
 PropValsList :: { NonEmpty PropVals }
     : NonEmpty(',', PropVals)                     { $1 }
 PropVals :: { PropVals }
