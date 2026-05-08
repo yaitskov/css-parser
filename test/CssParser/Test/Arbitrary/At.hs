@@ -60,8 +60,6 @@ instance Arbitrary PageSelector where
   arbitrary = normalize <$> genericArbitrary
   shrink = filter (/= PageSelector Nothing []) . genericShrink
 
--- deriving via (GenericArbitrary Namespace) instance Arbitrary Namespace
-
 deriving via (GenericArbitrary KeyframeSet) instance Arbitrary KeyframeSet
 deriving via (GenericArbitrary KeyframeSetName) instance Arbitrary KeyframeSetName
 deriving via (GenericArbitrary Keyframe) instance Arbitrary Keyframe

@@ -59,8 +59,13 @@ shrinkText = liftA2 (zipWith (<>)) inits (tails . T.drop 1)
 shrinkIdent :: Text -> [Text]
 shrinkIdent t
     | T.length t < 2 = []
-    | otherwise = L.filter (`isMissing` keywords) $ shrinkText t
+    | otherwise = L.filter isGood $ shrinkText t
   where
+    isGood s = s `isMissing` keywords &&
+      (case T.uncons s of
+         Nothing -> False
+         Just (l, _) -> isLetter l || l == '_')
+
     isMissing a b = not (a `member` b)
 
 instance Arbitrary a => Arbitrary (Embraced a) where
