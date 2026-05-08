@@ -652,6 +652,7 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | IdKwd pseudc ContinueRule OsCssRuleBody     { upsertHeadTagSelector
                                                       (setTag $1 . addClass (AtomicPseudoClass $2)) $3 $4 }
     | IdKwd pseudc ERB OsCssRuleBody              { newRule (addClass (AtomicPseudoClass $2) . setTag $1) $3 $4 }
+    | IdKwd pseudc IdKwd Important                { [rewritePseudoClassAsDescValueBeforeIdent $1 $2 $3 $4 ] }
     | IdKwd pseudc Important                      { [rewritePseudoClassAsDescValue $1 $3 $2] }
     | IdKwd pseudc Important ';' OsCssRuleBody    { rewritePseudoClassAsDescValue $1 $3 $2 : $5 }
     | IdKwd pseudc Important ',' PropValsList     { [rewritePseudoClassAsPropValsImp $1 $2 $3 $5] }

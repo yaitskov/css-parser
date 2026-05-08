@@ -138,6 +138,7 @@ misc :: [String]
 misc =
   [ "@position-try --x {x: 1px;}"
   , "@starting-style {}"
+  , "strong{color:currentColor}"
   , "@charset \"utf-8\"; /* */ /* */ @namespace \"x\"; "
   , "@namespace \"x\"; /* */ /* */ @namespace \"y\";"
   , "@layer a, b; /* */ /* */ @namespace \"y\";"

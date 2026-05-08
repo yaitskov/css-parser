@@ -175,6 +175,11 @@ pclassToPropVal pc = IdentRef (pclassToIdent pc)
 pclassToPropVals :: Maybe Important-> AtomicPseudoClass -> PropVals
 pclassToPropVals mi pc = PropVals (pclassToPropVal pc :| []) mi
 
+rewritePseudoClassAsDescValueBeforeIdent :: Ident -> AtomicPseudoClass -> Ident -> Maybe Important -> CssRuleBodyItem
+rewritePseudoClassAsDescValueBeforeIdent pn pc i mi  =
+  CssLeafRule (PropertyName pn)
+    (PropVals (IdentRef (pclassToIdent pc <> i) :| []) mi)
+
 rewritePseudoClassAsDescValue :: Ident -> Maybe Important -> AtomicPseudoClass -> CssRuleBodyItem
 rewritePseudoClassAsDescValue pn mi pc =
  CssLeafRule (PropertyName pn) (pclassToPropVals mi pc)
