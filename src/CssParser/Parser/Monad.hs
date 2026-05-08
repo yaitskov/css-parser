@@ -42,3 +42,8 @@ catchP m k =
    case m of
       Ok a     -> Ok a
       Failed e -> k e
+
+fromEitherM :: Applicative m => (e -> m a) -> Either e a -> m a
+fromEitherM ef = \case
+  Right v -> pure v
+  Left e -> ef e

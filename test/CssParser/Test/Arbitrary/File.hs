@@ -5,7 +5,6 @@ module CssParser.Test.Arbitrary.File where
 import CssParser.File ( CssFile )
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.At ()
-import CssParser.Test.Arbitrary.FontFace  ()
 import CssParser.Test.Arbitrary.Media ()
 import CssParser.Test.Arbitrary.Rule ()
 

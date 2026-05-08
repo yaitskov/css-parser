@@ -232,6 +232,7 @@ data PropVal
   = IntVal RawNum PropValType
   | RatioVal Ratio
   | IdentRef Ident
+  | UnicodeRangeVal UnicodeRange
   | VarRef Var
   | UrlVal Url
   | StrVal Text
@@ -252,6 +253,7 @@ instance CssShow PropVal where
   toCssText = \case
     IntVal i pvt -> toCssText i <> toCssText pvt
     RatioVal rv -> toCssText rv
+    UnicodeRangeVal ur -> toCssText ur
     VarRef v -> toCssText v
     IdentRef i -> toCssText i
     UrlVal u -> toCssText u
@@ -285,3 +287,19 @@ mkAppFun :: PropertyName -> NonEmpty PropVals -> PropVal
 mkAppFun pn = \case
   (x :| []) -> AppFun pn x
   o -> AppFunEnum pn (PropValsList o)
+
+newtype UnicodeRange = UnicodeRange Text deriving (Show, Eq, Ord, Generic)
+instance CssShow UnicodeRange where
+  toCssText (UnicodeRange t) = "U+" <> fromStrict t
+instance ShowSpaceBetween UnicodeRange UnicodeRange where
+  cssSpace _ _ = ", "
+
+newtype CommaSeparatedList
+  = CommaSeparatedList (NonEmpty PropVals)
+  deriving (Show, Eq, Ord, Generic)
+
+instance ShowSpaceBetween CommaSeparatedList CommaSeparatedList where
+  cssSpace _ _ = "; "
+
+instance CssShow CommaSeparatedList where
+  toCssText (CommaSeparatedList l) = toCssText l

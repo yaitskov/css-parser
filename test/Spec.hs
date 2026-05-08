@@ -11,7 +11,6 @@ import CssParser
       parseCssP,
       parseCss )
 import CssParser.Test.Arbitrary.File ()
-import CssParser.Test.Arbitrary.FontFace  ()
 import CssParser.Test.Arbitrary.Media ()
 import CssParser.Utils (encodeString, readCssString, encodeIdentifier, readIdentifier)
 import Data.Text (pack)
@@ -105,6 +104,7 @@ at =
 colorProfile :: [String]
 colorProfile =
   [ "@color-profile xx { src: url(\"https://example.org/SWOP2006_Coated5v2.icc\"); }"
+  , "@color-profile y { src: url(example.org); src: url(example.com); }"
   ]
 
 fontFace :: [String]

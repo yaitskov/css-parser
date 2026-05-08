@@ -49,7 +49,8 @@ instance CssShow AtRule where
       "keyframes " <>  toCssText kf
     ColorProfile n b ->
       "color-profile " <> toCssText n <> " {" <> toCssText b <> "}"
-    FontFaceBlock ff -> toCssText ff
+    FontFaceBlock ff ->
+      "font-face {" <> toCssText ff <> "}"
     FontFeatureValuesBlock ffv -> toCssText ffv
     FontPaletteValuesBlock ffv -> toCssText ffv
     Container cq body ->

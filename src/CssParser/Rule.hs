@@ -1,7 +1,6 @@
 module CssParser.Rule where
 
 import CssParser.At.Container ( ContainerQueryMap )
-import CssParser.At.FontFace ( FontFace, CommaSeparatedList )
 import CssParser.At.FontFeatureValues ( FontFeatureValues )
 import CssParser.At.FontPaletteValues ( FontPaletteValues )
 import CssParser.At.Function ( Function )
@@ -16,7 +15,7 @@ import CssParser.Prelude
 import CssParser.Rule.Pseudo
     ( AtomicPseudoClass, PseudoElement, Nth, Language )
 import CssParser.Rule.Value
-    ( PropVals, PropValsList, Source, Unsigned )
+    ( PropValsList, PropVals, Source, Unsigned, CommaSeparatedList )
 import CssParser.Show ( CslNe, Embraced, SslNe )
 
 type SelectorList = NonEmpty Selector
@@ -39,8 +38,8 @@ data AtRule
   | CounterStyle Ident [CssRuleBodyItem]
   | Property Var [CssRuleBodyItem]
   | Keyframes KeyframeSet
-  | ColorProfile PropertyName [PropEntry]
-  | FontFaceBlock FontFace
+  | ColorProfile PropertyName [CssRuleBodyItem]
+  | FontFaceBlock [CssRuleBodyItem]
   | FontFeatureValuesBlock FontFeatureValues
   | FontPaletteValuesBlock FontPaletteValues
   | Container ContainerQueryMap [CssRuleBodyItem]

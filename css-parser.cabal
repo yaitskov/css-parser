@@ -36,7 +36,6 @@ library
   exposed-modules:
     , CssParser
     , CssParser.At.Container
-    , CssParser.At.FontFace
     , CssParser.At.FontFeatureValues
     , CssParser.At.FontPaletteValues
     , CssParser.At.Function
@@ -96,7 +95,6 @@ test-suite test
     , CssParser.Test.Arbitrary.Container
     , CssParser.Test.Arbitrary.Ident
     , CssParser.Test.Arbitrary.File
-    , CssParser.Test.Arbitrary.FontFace
     , CssParser.Test.Arbitrary.FontFeatureValues
     , CssParser.Test.Arbitrary.FontPaletteValues
     , CssParser.Test.Arbitrary.Function

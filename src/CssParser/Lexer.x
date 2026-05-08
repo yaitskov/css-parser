@@ -108,7 +108,6 @@ $pm       = [\-\+]
 @feature = @f@e@a@t@u@r@e
 @unicode = @u@n@i@c@o@d@e
 @range   = @r@a@n@g@e
-@src     = @s@r@c
 @font    = @f@o@n@t
 @face    = @f@a@c@e
 @keyframes = @k@e@y@f@r@a@m@e@s
@@ -182,8 +181,6 @@ tokens :-
   @wo ","  @wo                                         { constoken Comma }
   (@wo ";" @wo)+                                       { constoken Semicolon }
 
-  @unicode "-" @range                                  { constoken UnicodeRangeT }
-  @src                                                 { constoken SrcPropT }
   "!" @wo @i@m@p@o@r@t@a@n@t                           { constoken ImportantT }
   @supports                                            { constoken SupportsT }
 
@@ -538,7 +535,6 @@ data Token
     | UnicodeRangeVal String
     | FontFeatureValuesT
     | FontPaletteValuesT
-    | UnicodeRangeT
     | Var String
     | THash String
     | UnitLessNum String
@@ -635,7 +631,6 @@ data Token
     | FromT
     | ToT
     | AtT I.BrowserPrefix
-    | SrcPropT
     | FontFaceT
     | NamespaceT
     | ColorProfileT

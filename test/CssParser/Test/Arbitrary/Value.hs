@@ -2,8 +2,8 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.Value where
 
-import CssParser.Ident
-import CssParser.Norm
+import CssParser.Ident ( Ident(..) )
+import CssParser.Norm ( Norm(..) )
 import CssParser.Parser.Monad
 import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
@@ -87,3 +87,29 @@ instance Norm PropVal where
 instance Arbitrary PropVal where
   arbitrary = normalize <$> genericArbitrary
   shrink = normalize <$> genericShrink
+
+deriving via (GenericArbitrary CommaSeparatedList) instance Arbitrary CommaSeparatedList
+
+unPatternLetter :: Gen Char
+unPatternLetter = elements ( '?' : ['0' .. '9' ] <> ['a' .. 'f' ])
+
+unPattern :: Gen Text
+unPattern = do
+  s <- unPatternLetter
+  b <- sublistOf =<< vectorOf 3 unPatternLetter
+  f <- maybeToList <$> elements [  Nothing, Just '0' ]
+  p <- maybeToList <$> elements [  Nothing, Just '1' ]
+  pure (pack $ p ++ f ++ b ++ [s])
+
+unDoublePattern :: Gen Text
+unDoublePattern = liftA2 (\a b -> a <> "-" <> b) unPattern unPattern
+
+instance Arbitrary UnicodeRange where
+  arbitrary = UnicodeRange <$> oneof [unPattern, unDoublePattern]
+  shrink (UnicodeRange ur) =
+    case T.dropEnd 1 ur of
+      ur'->
+        case T.unsnoc ur' of
+          Just (ur'', '-') -> shrink (UnicodeRange ur'')
+          Just (_, _) -> [UnicodeRange ur']
+          Nothing -> []

@@ -3,7 +3,6 @@
 module CssParser.Parser where
 
 import CssParser.At.Container
-import CssParser.At.FontFace
 import CssParser.At.FontFeatureValues
 import CssParser.At.FontPaletteValues
 import CssParser.At.Function qualified as F
@@ -15,7 +14,7 @@ import CssParser.At.Supports hiding (FeatureQuery)
 import CssParser.Norm
 import CssParser.Rule.Pseudo qualified as P
 import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition, Heading, Host)
-import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em, Deg, Grad, Rad, Turn, Rem)
+import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em, Deg, Grad, Rad, Turn, Rem, UnicodeRangeVal)
 import CssParser.Rule.Value qualified as Vl
 import CssParser.Fun
 import CssParser.File
@@ -36,7 +35,7 @@ import CssParser.Lexer
     , Greater, Less, LessEqual, GreaterEqual
     , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
-    , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
+    , KeyframesT, ColorProfileT, FontFaceT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
     , StartingStyleT, ViewTransitionT, ScopeT, ToT, FromT, SupportsT, SelectorFunT
     , TActiveViewTransitionType, TDir, THeading, THost, TState
@@ -86,7 +85,6 @@ import Prelude
     '='         { TokenLoc TEqual _ _ }
     mediaType   { TokenLoc (MediaTypeT $$) _ _ }
     charset     { TokenLoc CharsetT _ _ }
-    unRange     { TokenLoc UnicodeRangeT _ _ }
     '@'         { TokenLoc (AtT $$) _ _ }
     important   { TokenLoc ImportantT _ _ }
     supports    { TokenLoc SupportsT _ _ }
@@ -113,7 +111,6 @@ import Prelude
     counterStyle
                 { TokenLoc CounterStyleT _ _ }
     fontFace    { TokenLoc FontFaceT _ _ }
-    srcProp     { TokenLoc SrcPropT _ _ }
     import      { TokenLoc ImportT _ _ }
     layer       { TokenLoc LayerT _ _ }
     page        { TokenLoc PageT _ _ }
@@ -299,11 +296,8 @@ AtRule :: { AtRule }
     | counterStyle IdKwd ERB                      { CounterStyle $2 $3 }
     | property Var ERB                            { Property $2 $3 }
     | keyframes IdKwd Ocb List(Keyframe) '}'      { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
-    | colorProfile Os Var Ocb ColorPropEntries '}'
-                                                  { ColorProfile (VarProp $3) $5 }
-    | colorProfile Os IdKwd Ocb ColorPropEntries '}'
-                                                  { ColorProfile (PropertyName $3) $5 }
-    | fontFace Os Ocb FontFacePropEntries '}'     {% fmap FontFaceBlock (fromEitherM failP (mkFontFace $4)) }
+    | colorProfile Os PropertyName Os ERB         { ColorProfile $3 $5 }
+    | fontFace Os ERB                             { FontFaceBlock $3 }
     | fontFeatureValues ' ' StrEitherIds Os Ocb FontFeatureValBlocks '}'
                                                   { FontFeatureValuesBlock
                                                       (FontFeatureValues
@@ -421,21 +415,10 @@ FontFeatureValBlock
 StrEitherIds :: { Either LiteralString IdentList }
     : Str                                         { Left (LiteralString $1) }
     | NonEmpty(' ', IdKwd)                        { Right (IdentList $1) }
-ColorPropEntries
-    : srcProp ':' PropVals ';' ColorPropEntries   { PropEntry (PropertyName "src") $3 : $5 }
-    | PropEntry ColorPropEntries                  { $1 : $2 }
-    |                                             { [] }
 CommaSeparatedList :: { NonEmpty PropVals }
     : CssPropertyVals Important                   { (PropVals $1 $2) :| [] }
     | CssPropertyVals Important ',' CommaSeparatedList
                                                   { (PropVals $1 $2) <| $4 }
-FontFacePropEntries :: { NonEmpty (Either SrcVal FontFacePropEntry) }
-    : FontFaceProp                                { $1 :| [] }
-    | FontFaceProp FontFacePropEntries            { $1 <| $2 }
-FontFaceProp
-    : srcProp ':' CommaSeparatedList ';'          { Left (CommaSeparatedList $3) }
-    | unRange ':' NonEmpty(',', UnicodeRange) ';' { Right (UnicodeRangePropEntry $3) }
-    | PropEntry                                   { Right (FontFaceCommonEntry $1) }
 UnicodeRange :: { UnicodeRange }
     : unRangeVal                                  { UnicodeRange (pack $1) }
 Keyframe
@@ -598,6 +581,7 @@ Scalar :: { (String, PropValType) }
 PropVal :: { PropVal }
     : Scalar                                      { IntVal (mkRawNum (fst $1)) (snd $1) }
     | 'ratio'                                     { RatioVal $1 }
+    | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
     | PropertyName                                { propRef $1 }
     | PropVal '/' Os PropVal                      { Div $1 $4 }
     | PropertyName Op PropValsList ')'            { mkAppFun $1 $3 }
