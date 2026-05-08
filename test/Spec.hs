@@ -250,7 +250,7 @@ layer =
 
 keyframe :: [String]
 keyframe =
-  [ "@keyframes spinAround { from {transform:rotate(0deg);} to {transform: rotate(359deg);}}"
+  [ "@keyframes spinAround { from, to {transform:rotate(0deg);} to {transform: rotate(359deg);}}"
   , "@-webkit-keyframes spinAround { 0% {} 100% {}}"
   ]
 

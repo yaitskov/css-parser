@@ -298,7 +298,7 @@ AtRule :: { AtRule }
     | pageMargin ERB                              { PageMarginBlock $1 $2 }
     | counterStyle IdKwd ERB                      { CounterStyle $2 $3 }
     | property Var ERB                            { Property $2 $3 }
-    | keyframes IdKwd Ocb KeyframeList '}'        { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
+    | keyframes IdKwd Ocb List(Keyframe) '}'      { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
     | colorProfile Os Var Ocb ColorPropEntries '}'
                                                   { ColorProfile (VarProp $3) $5 }
     | colorProfile Os IdKwd Ocb ColorPropEntries '}'
@@ -438,10 +438,9 @@ FontFaceProp
     | PropEntry                                   { Right (FontFaceCommonEntry $1) }
 UnicodeRange :: { UnicodeRange }
     : unRangeVal                                  { UnicodeRange (pack $1) }
-KeyframeList
-    : List(Keyframe)                              { $1 }
 Keyframe
-    : KeyframeAdr Os Ocb PropEntries '}'          { Keyframe $1 $4 }
+    : NonEmpty(',', KeyframeAdr) Os Ocb PropEntries '}'
+                                                  { Keyframe (CslNe $1) $4 }
 KeyframeAdr
     : from                                        { KeyframeStart }
     | 'to'                                        { KeyframeEnd }

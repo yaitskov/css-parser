@@ -3,7 +3,7 @@ module CssParser.At.Keyframe where
 import CssParser.Ident
 import CssParser.Rule.Value
 import CssParser.Prelude
-import CssParser.Show ( CssShow(..), ShowSpaceBetween(..) )
+import CssParser.Show
 
 data KeyframeAdr
   = KeyframePercentAdr RawNum
@@ -24,7 +24,7 @@ instance CssShow PropEntry where
   toCssText (PropEntry pn pv) =
     toCssText pn <> ": " <>  toCssText pv <> ";"
 
-data Keyframe = Keyframe KeyframeAdr [PropEntry] deriving (Show, Eq, Ord, Generic)
+data Keyframe = Keyframe (CslNe KeyframeAdr) [PropEntry] deriving (Show, Eq, Ord, Generic)
 
 instance CssShow Keyframe where
   toCssText (Keyframe kfa ps) =
