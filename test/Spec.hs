@@ -110,6 +110,7 @@ colorProfile =
 fontFace :: [String]
 fontFace =
   [ "@font-face { src: local(\"x\"), format(\"z\") url(\"x.otf\"); unicode-range: U+11F?; }"
+  , "@font-face {unicode-range:u+f003,u+f006}"
   , "/* */ @font-face { src: local(\"x\"); }"
   ]
 

@@ -266,7 +266,7 @@ tokens :-
   @wo "/"                                              { constoken DivT }
   @ident                                               { tokenize (Ident . readIdentifier) }
   @string                                              { tokenize (String . readCssString) }
-  "U+" ("?" | "1")? ("?" | "0")? @updig{1,4} ("-" ("?" | "1")? ("?" | "0")? @updig{1,4})?
+  @u "+" ("?" | "1")? ("?" | "0")? @updig{1,4} ("-" ("?" | "1")? ("?" | "0")? @updig{1,4})?
                                                        { tokenize (UnicodeRangeVal . drop 2) }
   @var @name                                           { tokenize (Var . readIdentifier . drop 2) }
   "#"                                                  { constoken SharpT }
