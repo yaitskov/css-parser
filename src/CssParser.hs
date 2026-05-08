@@ -7,7 +7,6 @@ module CssParser
   , NonEmpty ((:|))
   ) where
 
-import CssParser.At as X
 import CssParser.At.MediaQuery as X
 import CssParser.At.Supports as X hiding (FeatureQuery)
 import CssParser.Rule.Value as X
@@ -18,7 +17,7 @@ import CssParser.Norm as X (Norm (..))
 import CssParser.Parser.Monad as X
 import CssParser.Parser as X (cssParser)
 import CssParser.Prelude
-import CssParser.Rule as X
+import CssParser.Rule as X hiding (Namespace)
 import CssParser.Show as X
 
 alex :: String -> Either String [TokenLoc]

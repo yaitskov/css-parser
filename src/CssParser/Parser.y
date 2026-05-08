@@ -2,7 +2,6 @@
 {
 module CssParser.Parser where
 
-import CssParser.At
 import CssParser.At.Container
 import CssParser.At.FontFace
 import CssParser.At.FontFeatureValues
@@ -10,9 +9,7 @@ import CssParser.At.FontPaletteValues
 import CssParser.At.Function qualified as F
 import CssParser.At.Import
 import CssParser.At.Keyframe
-import CssParser.At.Layer
 import CssParser.At.MediaQuery
-import CssParser.At.Namespace
 import CssParser.At.Page
 import CssParser.At.Supports hiding (FeatureQuery)
 import CssParser.Norm
@@ -33,11 +30,11 @@ import CssParser.Lexer
     , Comma, Plus, SharpT, Minus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
-    , CharsetT, ImportT, MediaT, LayerT, LayerAtT, NamespaceT, CounterStyleT, PropertyT
+    , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
     , NotT, OrT, AndT, OnlyT, ResultT, ReturnsT
     , TOpen, TClose
     , Greater, Less, LessEqual, GreaterEqual
-    , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, AtFunctionT, SyntaxTypeT
+    , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, SrcPropT, UnicodeRangeT, UnicodeRangeVal
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
@@ -88,9 +85,9 @@ import Prelude
     '}'         { TokenLoc CClose _ _ }
     '='         { TokenLoc TEqual _ _ }
     mediaType   { TokenLoc (MediaTypeT $$) _ _ }
-    'charset'   { TokenLoc CharsetT _ _ }
+    charset     { TokenLoc CharsetT _ _ }
     unRange     { TokenLoc UnicodeRangeT _ _ }
-    '@'         { TokenLoc AtT _ _ }
+    '@'         { TokenLoc (AtT $$) _ _ }
     important   { TokenLoc ImportantT _ _ }
     supports    { TokenLoc SupportsT _ _ }
     result      { TokenLoc ResultT _ _ }
@@ -109,21 +106,21 @@ import Prelude
     scope       { TokenLoc ScopeT _ _ }
     container   { TokenLoc ContainerT _ _ }
     property    { TokenLoc PropertyT _ _ }
-    colorProf   { TokenLoc ColorProfileT _ _ }
+    colorProfile
+                { TokenLoc ColorProfileT _ _ }
     namespace   { TokenLoc NamespaceT _ _ }
     keyframes   { TokenLoc KeyframesT _ _ }
     counterStyle
                 { TokenLoc CounterStyleT _ _ }
     fontFace    { TokenLoc FontFaceT _ _ }
     srcProp     { TokenLoc SrcPropT _ _ }
-    'import'    { TokenLoc ImportT _ _ }
+    import      { TokenLoc ImportT _ _ }
     layer       { TokenLoc LayerT _ _ }
-    '@layer'    { TokenLoc LayerAtT _ _ }
-    'page'      { TokenLoc PageT _ _ }
+    page        { TokenLoc PageT _ _ }
 
     pageMargin  { TokenLoc (PageMarginT $$) _ _ }
 
-    'media'     { TokenLoc MediaT _ _ }
+    media       { TokenLoc MediaT _ _ }
 
     'only'      { TokenLoc OnlyT _ _ }
     'not'       { TokenLoc NotT _ _ }
@@ -135,7 +132,7 @@ import Prelude
     'selector(' { TokenLoc SelectorFunT _ _ }
     'calc('     { TokenLoc CalcFunT _ _ }
     'type('     { TokenLoc TypeFunT _ _ }
-    '@function' { TokenLoc AtFunctionT _ _ }
+    function    { TokenLoc FunctionT _ _ }
     syntaxType  { TokenLoc (SyntaxTypeT $$) _ _ }
     '^='        { TokenLoc TPrefixMatch _ _ }
     '$='        { TokenLoc TSuffixMatch _ _ }
@@ -242,29 +239,16 @@ import Prelude
     ')'         { TokenLoc TClose _ _ }
     '/'         { TokenLoc DivT _ _ }
 
-%right 'not'
-%left '+' '-' '*' '/'
-%left 'or' 'and'
+-- %left 'not'
+-- %left 'or' 'and'
+
+-- %left '+' '-'
+-- %left '*' '/'
 
 %%
 
-CssFile
-    : Charset Headers Namespaces Os CssFileBody   { CssFile
-                                                      $1
-                                                      (mapMaybe rightToMaybe $2)
-                                                      $3
-                                                      (mapMaybe leftToMaybe $2 <> $5)
-                                                  }
-Charset
-    :                                             { Nothing }
-    | 'charset' Str ';'                           { Just (Charset $2) }
-Headers :: { [ Either CssRule FileHeader ] }
-    : List(Header)                                { $1 }
-Header :: { Either CssRule FileHeader }
-    : 'import' Import ';'                         { Right (HeaderImport $2) }
-    | '@layer' LayerNames ';'                     { Right (HeaderLayers (LayerStmt $2)) }
-    | '@layer' IdKwd ERB                          { Left (LayerBlock (Just (LayerName $2)) $3) }
-    | '@layer' '{' OsCssRuleBody '}'              { Left (LayerBlock Nothing $3) }
+CssFile :: { CssFile }
+    : CssFileBody                                 { CssFile $1 }
 Import -- :: { Import SelectorList }
     : Source Os                                   { ImportUrlSupports $1 Nothing [] }
     | Source Os layer Os                          { ImportDefaultLayer $1 }
@@ -283,35 +267,42 @@ LayerNameMb :: { Maybe LayerName }
 Supports :: { FeatureQuery }
     : supports Op MediaFeature ')'                { FqMediaFeature $3 }
     | supports Op FeatureQuery ')'                { normalize $3 }
-Namespaces
-    :                                             { [] }
-    | Namespace ';' Namespaces                    { $1 : $3 }
-Namespace
-    : namespace IdKwdMb Os Source                 { Namespace $2 $4 }
 Source
     : 'url(' Str ')'                              { UrlSource (Url $2) }
     | 'uqUrl'                                     { UrlSource (UnquotedUrl (pack $1)) }
     | Str                                         { StrSource $1 }
-LayerNames :: { NonEmpty LayerName }
-    : NonEmpty(',', LayerName)                    { $1 }
+LayerNames :: { [LayerName] }
+    : LayerName                                   { [$1] }
+    | LayerName ',' LayerNames                    { $1 : $3 }
 LayerName :: { LayerName }
-    : IdKwd                                       { LayerName $1 }
+    : Os IdKwd                                    { LayerName $2 }
 CssFileBody :: { [ CssRule ] }
     :                                             { [] }
-    | CssRule Os CssFileBody                      { $1 : $3 }
+    | Os CssRule Os CssFileBody                   { $2 : $4 }
 CssRule :: { CssRule }
     : SelectorList ERB                            { CssRule $1 $2 }
-    | 'media' '{' OsCssRuleBody '}'               { MediaRule (MediaQueryList []) $3 }
-    | 'media' MediaQueryList ERB                  { MediaRule (MediaQueryList $2) $3 }
-    | '@layer' IdKwdMb ERB                        { LayerBlock (fmap LayerName $2) $3 }
-    | 'page' '{' OsCssRuleBody '}'                { Page (PageSelectorList []) $3 }
-    | 'page' PageSelectorList ERB                 { Page (PageSelectorList $2) $3 }
+    | '@' AtRule                                  { AtRule $1 $2 }
+AtRule :: { AtRule }
+    : media Os '{' OsCssRuleBody '}'              { MediaRule (MediaQueryList []) $4 }
+    | media Os MediaQueryList ERB                 { MediaRule (MediaQueryList $3) $4 }
+    | namespace IdKwdMb Os Source ';'             { Namespace $2 $4 }
+    | import Import ';'                           { ImportStmt $2 }
+    | charset Str ';'                             { CharsetStmt (Charset $2) }
+    | layer ' ' LayerName ';'                     { LayerStmt (pure $3) }
+    | layer ' ' LayerName ',' LayerNames Os ';'   { LayerStmt ($3 :| $5) }
+    | layer ' ' LayerName ERB                     { LayerBlock (Just $3) $4 }
+    | layer ' ' '{' OsCssRuleBody '}'             { LayerBlock Nothing $4 }
+    | layer '{' OsCssRuleBody '}'                 { LayerBlock Nothing $3 }
+    | page '{' OsCssRuleBody '}'                  { Page (PageSelectorList []) $3 }
+    | page PageSelectorList ERB                   { Page (PageSelectorList $2) $3 }
     | pageMargin ERB                              { PageMarginBlock $1 $2 }
     | counterStyle IdKwd ERB                      { CounterStyle $2 $3 }
     | property Var ERB                            { Property $2 $3 }
     | keyframes IdKwd Ocb KeyframeList '}'        { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
-    | colorProf Os Var Ocb ColorPropEntries '}'   { ColorProfile (VarProp $3) $5 }
-    | colorProf Os IdKwd Ocb ColorPropEntries '}' { ColorProfile (PropertyName $3) $5 }
+    | colorProfile Os Var Ocb ColorPropEntries '}'
+                                                  { ColorProfile (VarProp $3) $5 }
+    | colorProfile Os IdKwd Ocb ColorPropEntries '}'
+                                                  { ColorProfile (PropertyName $3) $5 }
     | fontFace Os Ocb FontFacePropEntries '}'     {% fmap FontFaceBlock (fromEitherM failP (mkFontFace $4)) }
     | fontFeatureValues ' ' StrEitherIds Os Ocb FontFeatureValBlocks '}'
                                                   { FontFeatureValuesBlock
@@ -327,10 +318,10 @@ CssRule :: { CssRule }
     | startingStyle Os ERB                        { StartingStyle $3 }
     | viewTransition Os ERB                       { ViewTransition $3 }
     | scope Os SelectorPair ERB                   { ScopeBlock $3 $4 }
-    | '@function' Os Function                     { FunctionBlock $3 }
-    | '@' supports Os FeatureQuery ERB            { Supports (normalize $4) $5 }
-    | '@' IdKwd Os CommaSeparatedList Os ERB      { UnknownGramma $2 (Just (CommaSeparatedList $4)) $6 }
-    | '@' IdKwd Os ERB                            { UnknownGramma $2 Nothing $4 }
+    | function Os Function                        { FunctionBlock $3 }
+    | supports Os FeatureQuery ERB                { Supports (normalize $3) $4 }
+    | Ident Os CommaSeparatedList Os ERB          { UnknownGramma $1 (Just (CommaSeparatedList $3)) $5 }
+    | Ident Os ERB                                { UnknownGramma $1 Nothing $3 }
 Function :: { CssFunction }
     : Var Op FunArgs Os ')' Os RetType Os Ocb List(LocalConst) FunResult CssFileBody '}'
                                                   { F.Function $1 $3 $7 $10 $11 $12 }
@@ -426,7 +417,7 @@ FontFeatureValBlocks :: { [ Either PropEntry FontFeatureValuesSubBlock ] }
     | FontFeatureValBlock FontFeatureValBlocks    { Right $1 : $2 }
     | PropEntry FontFeatureValBlocks              { Left $1 : $2 }
 FontFeatureValBlock
-    : '@' IdKwd Os Ocb PropEntries '}'            { FontFeatureValuesSubBlock $2 $5 }
+    : '@' IdKwd Os Ocb PropEntries '}'            { FontFeatureValuesSubBlock $1 $2 $5 }
 StrEitherIds :: { Either LiteralString IdentList }
     : Str                                         { Left (LiteralString $1) }
     | NonEmpty(' ', IdKwd)                        { Right (IdentList $1) }
@@ -615,7 +606,7 @@ PropVal :: { PropVal }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
     | 'uqUrl'                                     { UrlVal (UnquotedUrl (pack $1)) }
-    | 'calc(' Os CalcExpr Os ')'                  { CalcFun $3 }
+    | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (validationToP $3 (reorder $3)) }
     | hash                                        { HexColor (HC (pack $1)) }
 CalcOp :: { CalcOp }
     : '+'                                         { PlusCe  }
@@ -623,12 +614,12 @@ CalcOp :: { CalcOp }
     | '/'                                         { DivCe   }
     | '*'                                         { ProdCe  }
 CalcExpr :: { CalcExpr }
-    : Op CalcExpr Os ')'                          { ParCe $2 }
+    : '(' CalcExpr  ')'                           { ParCe $2 }
     | CalcExpr Os CalcOp Os CalcExpr              { BinOpCe $1 $3 $5 }
-    | CalcExpr Os CalcExpr                        {% recoverCalcBinOp $1 $3 }
+    | CalcExpr CalcExpr                           {% recoverCalcBinOp $1 $2 }
     | PropertyName Op PropValsList Os ')'         { AppCe $1 (PropValsList $3) }
     | PropertyName                                { VarCe $1 }
-    | Scalar                                      { ValCe (mkRawNum (fst $1)) (snd $1) }
+    | Os Scalar Os                                { ValCe (mkRawNum (fst $2)) (snd $2) }
     | 'calc(' Os CalcExpr Os ')'                  { CalcCe $3 }
 Unsigned :: { Unsigned }
     : unitLessNum                                 {% fmap Unsigned (fromEitherM failP (readEither $1)) }
@@ -704,16 +695,16 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       . addClass (Dir (Embraced $4)))
                                                       $7 $8
                                                   }
-    | IdKwd heading CslOfInts Os ')' ContinueRule CssRuleBody
+    | IdKwd heading Op CslOfInts Os ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector
-                                                      (setTag $1 . addClass (Heading (Embraced $3)))
-                                                      $6 $7
+                                                      (setTag $1 . addClass (Heading (Embraced $4)))
+                                                      $7 $8
                                                   }
-    | IdKwd heading CslOfInts Os ')' ERB CssRuleBody
+    | IdKwd heading Op CslOfInts Os ')' ERB CssRuleBody
                                                   { newRule
                                                       ( setTag $1
-                                                      . addClass (Heading (Embraced $3)))
-                                                      $6 $7
+                                                      . addClass (Heading (Embraced $4)))
+                                                      $7 $8
                                                   }
     | IdKwd heading ContinueRule OsCssRuleBody    { upsertHeadTagSelector
                                                       (setTag $1 . addClass (AtomicPseudoClass P.Heading)) $3 $4 }
@@ -866,15 +857,40 @@ AttrOp ::  { AttrOp }
     | '^='                                        { PrefixMatch }
     | '$='                                        { SuffixMatch }
     | '*='                                        { SubstringMatch }
+
 IdKwd :: { R.Ident }
     : Ident                                       { $1 }
     | MediaKeywordAsIdent                         { $1 }
-    | layer                                       { R.Ident "layer" }
-    | result                                      { R.Ident "result" }
-    | from                                        { R.Ident "from" }
     | 'to'                                        { R.Ident "to" }
+    | from                                        { R.Ident "from" }
+    | result                                      { R.Ident "result" }
     | returns                                     { R.Ident "returns" }
+    | AtId                                        { $1 }
+
+AtId :: { R.Ident }
+    : charset                                     { R.Ident "charset" }
+    | colorProfile                                { R.Ident "color-profile" }
+    | container                                   { R.Ident "container" }
+    | counterStyle                                { R.Ident "counter-style" }
+    | fontFace                                    { R.Ident "font-face" }
+    | fontFeatureValues                           { R.Ident "font-feature-values" }
+    | fontPaletteValues                           { R.Ident "font-palette-values" }
+
+    | function                                    { R.Ident "function" }
+    | import                                      { R.Ident "import" }
+    | keyframes                                   { R.Ident "keyframes" }
+    | layer                                       { R.Ident "layer" }
+    | media                                       { R.Ident "media" }
     | mediaType                                   { R.Ident (toStrict (toCssText $1)) }
+    | namespace                                   { R.Ident "namespace" }
+    | page                                        { R.Ident "page" }
+    | pageMargin                                  { R.Ident "page-margin" }
+    | positionTry                                 { R.Ident "position-try" }
+    | property                                    { R.Ident "property" }
+    | scope                                       { R.Ident "scope" }
+    | startingStyle                               { R.Ident "starting-style" }
+    | supports                                    { R.Ident "supports" }
+    | viewTransition                              { R.Ident "view-transition" }
 MediaKeywordAsIdent
     : 'not'                                       { R.Ident "not" }
     | 'or'                                        { R.Ident "or" }

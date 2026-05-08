@@ -34,10 +34,27 @@
         "type": "github"
       }
     },
+    "reorder": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778161995,
+        "narHash": "sha256-ayu1hh7EK4IXKsu+2FqH9SDukRi6+IZ21R/fjoh+TME=",
+        "owner": "yaitskov",
+        "repo": "reorder-expression",
+        "rev": "8e16ee1293fef17785c0b6cd2657547b8101216e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "yaitskov",
+        "repo": "reorder-expression",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
+        "reorder": "reorder",
         "uphack": "uphack"
       }
     },

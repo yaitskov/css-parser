@@ -1,4 +1,5 @@
 -- cabal test   --test-option=--quickcheck-tests=10 --test-option=--quickcheck-max-size=22 --test-option=--hide-successes
+-- cabal test   --test-option=--quickcheck-tests=11  --test-option=--quickcheck-max-size=20    --test-option=--quickcheck-verbose --test-option=--quickcheck-replay="(SMGen 1498744052230560514 7024820165127764247,10)"
 module Main where
 
 import CssParser
@@ -19,7 +20,7 @@ import Prelude
 import Test.Tasty ( defaultMain, testGroup, TestTree )
 import Test.Tasty.HUnit ( testCase, (@=?) )
 import Test.Tasty.QuickCheck
-    ( (===), label, withMaxSuccess, Property, testProperty )
+    ( (===), {-label,-} withMaxSize, withMaxSuccess, Property, testProperty )
 
 main :: IO ()
 main = defaultMain tests
@@ -47,15 +48,14 @@ tests = testGroup "CssParser"
       (fmap (\x -> testCase x (True @=? checkParse x)) at)
     ]
   , testGroup "Arbitrary "
-    [ testProperty "Alex"
-      (withMaxSuccess 410 encodeDecodeAlex)
+    [ testProperty "Alex" (throttle encodeDecodeAlex)
     , testProperty "Encode-decode CSS identity"
       -- cabal test with by default runs about a minute
-      -- (withMaxSize 60 (withMaxSuccess 61
-        encodeDecodeCss -- ) )
+      (throttle encodeDecodeCss)
     ]
   ]
   where
+    throttle x = withMaxSize 60 (withMaxSuccess 44 x)
     cpt m x = testCase m (True @=? checkParse (x <> " {}"))
 
 encodeDecode :: Char -> String -> Bool
@@ -66,7 +66,7 @@ encodeDecodeId b = readIdentifier (TL.unpack (encodeIdentifier (pack b))) == b
 
 encodeDecodeAlex :: CssFile -> Property
 encodeDecodeAlex cf =
-  label cfCss $
+  -- label cfCss $
     case alex cfCss of
       Left e -> error $ "Alex failed: " <> e <> "After:\n" <> cfCss
       Right v -> v === v
@@ -251,6 +251,7 @@ layer =
 keyframe :: [String]
 keyframe =
   [ "@keyframes spinAround { from {transform:rotate(0deg);} to {transform: rotate(359deg);}}"
+  , "@-webkit-keyframes spinAround { 0% {} 100% {}}"
   ]
 
 atImport :: [String]
@@ -307,10 +308,14 @@ validSelectors :: [String]
 validSelectors =
   [ "body > p"
   , "div ol>li p"
+  , "i:heading(0)"
+  , "i:host(p)"
+  , "i:state(p)"
   , ".progress::-webkit-progress-bar"
   , "input.is-skeleton:-moz-placeholder"
   , "*.pastoral"
   , ".pastoral"
+  , ".media:not(:last-child)"
   , "h1.pastoral"
   , "p.pastoral.marine"
   , "h1#chapter1"

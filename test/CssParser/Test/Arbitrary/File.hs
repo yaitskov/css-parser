@@ -2,10 +2,11 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.File where
 
-import CssParser.File ( CssFile, FileHeader )
+import CssParser.File ( CssFile )
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.At ()
+import CssParser.Test.Arbitrary.FontFace  ()
+import CssParser.Test.Arbitrary.Media ()
 import CssParser.Test.Arbitrary.Rule ()
 
-deriving via (GenericArbitrary FileHeader) instance Arbitrary FileHeader
 deriving via (GenericArbitrary CssFile) instance Arbitrary CssFile

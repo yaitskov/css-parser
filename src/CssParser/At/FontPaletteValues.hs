@@ -12,4 +12,4 @@ data FontPaletteValues
 
 instance CssShow FontPaletteValues where
   toCssText (FontPaletteValues v ps) =
-    "@font-palette-values " <> toCssText v <> " {" <> toCssText ps <> "}"
+    "font-palette-values " <> toCssText v <> " {" <> toCssText ps <> "}"

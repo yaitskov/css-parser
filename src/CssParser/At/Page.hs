@@ -26,22 +26,22 @@ data PageMargin
 
 instance CssShow PageMargin where
   toCssText = \case
-    TopLeftCorner ->      "@top-left-corner"
-    TopLeft ->            "@top-left"
-    TopCenter ->          "@top-center"
-    TopRight ->           "@top-right"
-    TopRightCorner ->     "@top-right-corner"
-    BottomLeftCorner ->   "@bottom-left-corner"
-    BottomLeft ->         "@bottom-left"
-    BottomCenter ->       "@bottom-center"
-    BottomRight ->        "@bottom-right"
-    BottomRightCorner ->  "@bottom-right-corner"
-    LeftTop ->            "@left-top"
-    LeftMiddle ->         "@left-middle"
-    LeftBottom ->         "@left-bottom"
-    RightTop ->           "@right-top"
-    RightMiddle ->        "@right-middle"
-    RightBottom ->        "@right-bottom"
+    TopLeftCorner ->      "top-left-corner"
+    TopLeft ->            "top-left"
+    TopCenter ->          "top-center"
+    TopRight ->           "top-right"
+    TopRightCorner ->     "top-right-corner"
+    BottomLeftCorner ->   "bottom-left-corner"
+    BottomLeft ->         "bottom-left"
+    BottomCenter ->       "bottom-center"
+    BottomRight ->        "bottom-right"
+    BottomRightCorner ->  "bottom-right-corner"
+    LeftTop ->            "left-top"
+    LeftMiddle ->         "left-middle"
+    LeftBottom ->         "left-bottom"
+    RightTop ->           "right-top"
+    RightMiddle ->        "right-middle"
+    RightBottom ->        "right-bottom"
 
 newtype PageName = PageName Ident deriving newtype (Show, Eq, Ord, CssShow, IsString) deriving (Generic)
 
@@ -57,4 +57,4 @@ newtype PageSelectorList = PageSelectorList [PageSelector]
 
 instance CssShow PageSelectorList where
   toCssText (PageSelectorList pps) =
-    unwords ("@page" : (toCssText <$> pps))
+    unwords (toCssText <$> pps)

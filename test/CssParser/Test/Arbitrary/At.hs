@@ -2,12 +2,9 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.At where
 
-import CssParser.At ( Charset(..) )
-import CssParser.At.Layer ( LayerName(..), LayerStmt(..) )
-import CssParser.At.Namespace ( Namespace )
 import CssParser.At.Keyframe
 import CssParser.At.Page
-import CssParser.Ident (Ident (..))
+import CssParser.Ident
 import CssParser.Norm ( Norm(..) )
 import CssParser.Rule.Pseudo
     ( AtomicPseudoClass(Blank), BrowserSpecificIdent(..) )
@@ -47,11 +44,7 @@ instance Arbitrary Source where
     [ UrlSource <$> arbitrary
     , StrSource <$> arbitraryWord
     ]
-
-
 deriving via (GenericArbitrary LayerName) instance Arbitrary LayerName
-deriving via (GenericArbitrary LayerStmt) instance Arbitrary LayerStmt
-
 
 deriving via (GenericArbitrary PageMargin) instance Arbitrary PageMargin
 
@@ -67,7 +60,7 @@ instance Arbitrary PageSelector where
   arbitrary = normalize <$> genericArbitrary
   shrink = filter (/= PageSelector Nothing []) . genericShrink
 
-deriving via (GenericArbitrary Namespace) instance Arbitrary Namespace
+-- deriving via (GenericArbitrary Namespace) instance Arbitrary Namespace
 
 deriving via (GenericArbitrary KeyframeSet) instance Arbitrary KeyframeSet
 deriving via (GenericArbitrary KeyframeSetName) instance Arbitrary KeyframeSetName

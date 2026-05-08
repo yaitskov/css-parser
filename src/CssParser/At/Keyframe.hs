@@ -1,6 +1,6 @@
 module CssParser.At.Keyframe where
 
-import CssParser.Ident ( Ident(..), PropertyName )
+import CssParser.Ident
 import CssParser.Rule.Value
 import CssParser.Prelude
 import CssParser.Show ( CssShow(..), ShowSpaceBetween(..) )
@@ -33,8 +33,10 @@ instance ShowSpaceBetween Keyframe Keyframe where
   cssSpace _ _ = " "
 newtype KeyframeSetName = KeyframeSetName Ident deriving newtype (Show, Eq, Ord, CssShow, IsString) deriving (Generic)
 
-data KeyframeSet = KeyframeSet KeyframeSetName [Keyframe] deriving (Show, Eq, Ord, Generic)
+data KeyframeSet
+  = KeyframeSet KeyframeSetName [Keyframe]
+  deriving (Show, Eq, Ord, Generic)
 
 instance CssShow KeyframeSet where
   toCssText (KeyframeSet kfsn frames) =
-    "@keyframes " <> toCssText kfsn <> " {" <> toCssText frames <> "}"
+    toCssText kfsn <> " {" <> toCssText frames <> "}"

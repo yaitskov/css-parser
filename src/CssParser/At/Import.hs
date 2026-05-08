@@ -1,11 +1,11 @@
 module CssParser.At.Import where
 
-import CssParser.At.Layer ( LayerName )
+import CssParser.At.MediaQuery ( MediaQuery )
 import CssParser.At.Supports ( FeatureQuery, hasOuterParens )
+import CssParser.Ident
 import CssParser.Prelude
 import CssParser.Rule.Value ( Source )
 import CssParser.Show ( CssShow(..) )
-import CssParser.At.MediaQuery ( MediaQuery )
 
 {-
 @import url;
@@ -23,10 +23,10 @@ data Import sl
   = ImportDefaultLayer Source
   | ImportUrlLayer     Source (Maybe LayerName) (Maybe (FeatureQuery sl)) [MediaQuery]
   | ImportUrlSupports  Source                   (Maybe (FeatureQuery sl)) [MediaQuery]
-  deriving (Show, Eq, Generic)
+  deriving (Show, Ord, Eq, Generic)
 
 instance CssShow sl => CssShow (Import sl) where
-  toCssText x = "@import " <> go x <> ";"
+  toCssText = go
     where
       showMq = \case
         [] -> ""

@@ -5,8 +5,8 @@ import CssParser.At.FontFace ( FontFace, CommaSeparatedList )
 import CssParser.At.FontFeatureValues ( FontFeatureValues )
 import CssParser.At.FontPaletteValues ( FontPaletteValues )
 import CssParser.At.Function ( Function )
+import CssParser.At.Import ( Import )
 import CssParser.At.Keyframe ( KeyframeSet, PropEntry )
-import CssParser.At.Layer ( LayerName )
 import CssParser.At.MediaQuery ( MediaQueryList )
 import CssParser.At.Page ( PageMargin, PageSelectorList )
 import CssParser.At.Supports qualified as S
@@ -14,7 +14,9 @@ import CssParser.Ident
 import CssParser.MonoPair ( MonoPair )
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
+    ( AtomicPseudoClass, PseudoElement, Nth, Language )
 import CssParser.Rule.Value
+    ( PropVals, PropValsList, Source, Unsigned )
 import CssParser.Show ( CslNe, Embraced, SslNe )
 
 type SelectorList = NonEmpty Selector
@@ -22,8 +24,16 @@ type FeatureQuery = S.FeatureQuery SelectorList
 
 data CssRule
   = CssRule SelectorList [CssRuleBodyItem]
-  | MediaRule MediaQueryList [CssRuleBodyItem]
+  | AtRule BrowserPrefix AtRule
+  deriving (Show, Ord, Eq, Generic)
+
+data AtRule
+  = MediaRule MediaQueryList [CssRuleBodyItem]
   | LayerBlock (Maybe LayerName) [CssRuleBodyItem]
+  | LayerStmt (NonEmpty LayerName)
+  | ImportStmt (Import SelectorList)
+  | Namespace (Maybe Ident) Source
+  | CharsetStmt Charset
   | Page PageSelectorList [CssRuleBodyItem]
   | PageMarginBlock PageMargin [CssRuleBodyItem]
   | CounterStyle Ident [CssRuleBodyItem]

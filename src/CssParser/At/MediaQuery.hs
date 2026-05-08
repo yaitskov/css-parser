@@ -46,7 +46,7 @@ instance ShowSpaceBetween MediaQuery MediaQuery where
   cssSpace _ _ = ", "
 
 instance CssShow MediaQueryList where
-  toCssText (MediaQueryList mqs) = "@media " <> toCssText mqs
+  toCssText (MediaQueryList mqs) = toCssText mqs
 
 data MediaQuery
   = MediaQueryConditionOnly MediaBoolExpr

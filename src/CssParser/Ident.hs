@@ -1,9 +1,27 @@
 module CssParser.Ident where
 
 import CssParser.Prelude
-import CssParser.Show ( CssShow(..) )
+import CssParser.Show
 import CssParser.Utils ( encodeIdentifier )
 import Data.Text (pack)
+
+data BrowserPrefix
+  = Moz
+  | Na
+  | Opera
+  | WebKit
+  | Apple
+  | Microsoft
+  deriving (Eq, Ord, Show, Bounded, Enum, Generic)
+
+instance CssShow BrowserPrefix where
+  toCssText = \case
+    Moz -> "@-moz-"
+    Na -> "@"
+    Opera -> "@-o-"
+    Apple -> "@-apple-"
+    WebKit -> "@-webkit-"
+    Microsoft -> "@-ms-"
 
 newtype Ident = Ident Text deriving newtype (Eq, Ord, Show, Semigroup, Monoid, IsString)
 
@@ -60,6 +78,15 @@ instance CssShow TagName where
     AmpersandTag -> "&"
     TagName (Ident lt) -> fromStrict lt
 
-
 instance CssShow Ident where
   toCssText (Ident i) = encodeIdentifier i
+
+newtype LayerName = LayerName Ident deriving newtype (Show, Eq, Ord, CssShow, IsString) deriving (Generic)
+
+instance ShowSpaceBetween LayerName LayerName where
+  cssSpace _ _ = ", "
+
+newtype Charset = Charset Text deriving newtype (Show, Eq, Ord, IsString) deriving (Generic)
+
+instance CssShow Charset where
+  toCssText (Charset cs) = encodeStringLiteral cs

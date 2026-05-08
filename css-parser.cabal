@@ -35,7 +35,6 @@ library
   hs-source-dirs: src
   exposed-modules:
     , CssParser
-    , CssParser.At
     , CssParser.At.Container
     , CssParser.At.FontFace
     , CssParser.At.FontFeatureValues
@@ -43,9 +42,7 @@ library
     , CssParser.At.Function
     , CssParser.At.Import
     , CssParser.At.Keyframe
-    , CssParser.At.Layer
     , CssParser.At.MediaQuery
-    , CssParser.At.Namespace
     , CssParser.At.Page
     , CssParser.At.Supports
     , CssParser.File
@@ -71,6 +68,7 @@ library
     , bytestring >=0.9
     , Decimal >=0.4.2
     , either < 6
+    , reorder-expression < 1
     , these < 2
   build-tool-depends:
     , alex:alex

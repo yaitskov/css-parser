@@ -1,12 +1,16 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Rule.Show where
 
-import CssParser.Ident ( Ident(Ident), AttrName(AttrName) )
+import CssParser.Ident ( AttrName(AttrName), Ident(Ident) )
 import CssParser.MonoPair ( MonoPair )
 import CssParser.Prelude
 import CssParser.Rule
 import CssParser.Rule.Pseudo ( Language(Language) )
 import CssParser.Show
+    ( encodeStringLiteral,
+      CssShow(..),
+      ShowParenthesis(..),
+      ShowSpaceBetween(..) )
 import CssParser.Utils ( encodeIdentifier )
 
 instance ShowSpaceBetween CssRule CssRule where
@@ -16,39 +20,54 @@ instance CssShow CssRule where
   toCssText = \case
     CssRule sels body ->
       intercalate ", " (toList $ fmap toCssText sels) <> "{" <> toCssText body <> "}"
-    MediaRule mql body -> toCssText mql <> " {" <> toCssText body <> "}"
+    AtRule pb ar ->
+      toCssText pb <> toCssText ar
+
+instance CssShow AtRule where
+  toCssText = \case
+    MediaRule mql body ->
+      "media " <> toCssText mql <> " {" <> toCssText body <> "}"
     LayerBlock mbn body ->
-      "@layer " <> maybe "" ((<> " ") . toCssText) mbn <> "{" <> toCssText body <> "}"
+      "layer " <> maybe "" ((<> " ") . toCssText) mbn <> "{" <> toCssText body <> "}"
+    ImportStmt i ->
+      "import " <> toCssText i <> ";"
+    LayerStmt l ->
+      "layer " <> toCssText l <> ";"
+    Namespace i s ->
+      "namespace " <> maybe "" ((<> " ") . toCssText) i <> toCssText s <> ";"
+    CharsetStmt cs ->
+      "charset " <> toCssText cs <> ";"
     Page psl body ->
-      toCssText psl <> " {" <> toCssText body <> "}"
+      "page " <> toCssText psl <> " {" <> toCssText body <> "}"
     PageMarginBlock pm body ->
       toCssText pm <> " {" <> toCssText body <> "}"
     CounterStyle cn body ->
-      "@counter-style " <> toCssText cn <> " {" <> toCssText body <> "}"
+      "counter-style " <> toCssText cn <> " {" <> toCssText body <> "}"
     Property pn body ->
-      "@property " <> toCssText pn <> " {" <> toCssText body <> "}"
-    Keyframes kf -> toCssText kf
+      "property " <> toCssText pn <> " {" <> toCssText body <> "}"
+    Keyframes kf ->
+      "keyframes " <>  toCssText kf
     ColorProfile n b ->
-      "@color-profile " <> toCssText n <> " {" <> toCssText b <> "}"
+      "color-profile " <> toCssText n <> " {" <> toCssText b <> "}"
     FontFaceBlock ff -> toCssText ff
     FontFeatureValuesBlock ffv -> toCssText ffv
     FontPaletteValuesBlock ffv -> toCssText ffv
     Container cq body ->
-      "@container " <> toCssText cq <> " {" <> toCssText body <> "}"
+      "container " <> toCssText cq <> " {" <> toCssText body <> "}"
     PositionTry v pl ->
-      "@position-try " <> toCssText v <> " {" <> toCssText pl <> "}"
+      "position-try " <> toCssText v <> " {" <> toCssText pl <> "}"
     StartingStyle body ->
-      "@starting-style {" <> toCssText body <> "}"
+      "starting-style {" <> toCssText body <> "}"
     ViewTransition body ->
-      "@view-transition {" <> toCssText body <> "}"
+      "view-transition {" <> toCssText body <> "}"
     ScopeBlock range body ->
-      "@scope " <> toCssText range <> embrace body
+      "scope " <> toCssText range <> embrace body
     Supports fq body ->
-      "@supports " <> toCssText fq <> embrace body
+      "supports " <> toCssText fq <> embrace body
     FunctionBlock f ->
-      "@function " <> toCssText f
+      "function " <> toCssText f
     UnknownGramma i query body ->
-      "@" <> toCssText i <> " " <> maybe "" toCssText query <> embrace body
+      toCssText i <> " " <> maybe "" toCssText query <> embrace body
 
 embrace :: CssShow a => a -> LText
 embrace x = " {" <> toCssText x <> "}"

@@ -6,6 +6,10 @@
       url = "github:yaitskov/upload-doc-to-hackage";
       flake = false;
     };
+    reorder = {
+      url = "github:yaitskov/reorder-expression";
+      flake = false;
+    };
   };
   outputs = inputs@{ self, nixpkgs, flake-utils, uphack,  ... }:
     flake-utils.lib.eachDefaultSystem (system:
@@ -22,6 +26,7 @@
         packageName = "css-parser";
         pkgs = nixpkgs.legacyPackages.${system};
         haskellPackages = pkgs.haskell.packages.${ghcName}.extend(final: prev: {
+          reorder-expression = (final.callCabal2nix "reorder-expression" inputs.reorder { });
         });
       in {
         packages.default =

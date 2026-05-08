@@ -57,6 +57,7 @@ instance Norm CssRuleBodyItem where
     CssEnumLeaf pn (PropValsList (x :| [])) -> CssLeafRule pn x
     o -> o
 
+deriving via (GenericArbitrary AtRule) instance Arbitrary AtRule
 deriving via (GenericArbitrary CssRule) instance Arbitrary CssRule
 
 instance Arbitrary CssRuleBodyItem where

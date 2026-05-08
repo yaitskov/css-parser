@@ -4,6 +4,7 @@ module CssParser.Test.Arbitrary.Value where
 
 import CssParser.Ident
 import CssParser.Norm
+import CssParser.Parser.Monad
 import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
@@ -70,20 +71,17 @@ rightMost = \case
   Div _ y -> rightMost y
   o -> o
 
-instance Norm PropValsList where
-  normalize = \case
-    PropValsList l -> PropValsList (normalize <$> l)
-
-instance Norm PropVals where
-  normalize = \case
-    PropVals a i -> PropVals (normalize <$> a) i
+instance Norm CalcExpr where
+  normalize x =
+    case validationToP x (reorder x) of
+      Failed er -> error er
+      Ok x' -> x'
 
 instance Norm PropVal where
   normalize = \case
-    Div x y -> Div (normalize x) (rightMost y)
-    AppFun f a -> AppFun f (normalize a)
-    AppFunEnum f (PropValsList (a :| [])) -> AppFun f (normalize a)
-    AppFunEnum f a -> AppFunEnum f (normalize a)
+    Div x y -> Div (rightMost y) (normalize x)
+    AppFunEnum f (PropValsList (a :| [])) -> AppFun f a
+    CalcFun ce -> CalcFun $ normalize ce
     o -> o
 
 instance Arbitrary PropVal where

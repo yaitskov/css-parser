@@ -1,8 +1,16 @@
 module CssParser.Parser.Monad where
 
 import CssParser.Prelude
+import Data.List qualified as L
+import Expression.Reorder
 
 data P a = Ok a | Failed String deriving (Functor)
+
+validationToP :: Show a => a -> Validation (NonEmpty String) a -> P a
+validationToP x = \case
+  Failure er ->
+      Failed $ "Failed to reorder " <> show x <> " due: " <> L.intercalate "\n" (toList er)
+  Success a -> Ok a
 
 instance Applicative P where
   pure = Ok

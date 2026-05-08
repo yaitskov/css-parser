@@ -3,9 +3,10 @@ module CssParser.FixRule where
 
 import CssParser.Ident
     ( Ident (Ident),
-      Namespace(Namespace, NoBar),
+      Namespace(NoBar),
       PropertyName (PropertyName),
       TagName(TagName, NoTag) )
+import CssParser.Ident qualified as I
 import CssParser.Prelude
 import CssParser.Parser.Monad
 import CssParser.Rule
@@ -112,9 +113,7 @@ pushPeSelector f pts =  mapCssRule go
 mapCssRuleM :: Monad m => (NonEmpty Selector -> [CssRuleBodyItem] -> m CssRule) -> CssRule -> m CssRule
 mapCssRuleM f  = \case
   CssRule selList bis -> f selList bis
-  mr@MediaRule {} -> pure mr
-  lb@LayerBlock {} -> pure lb
-  o -> pure o
+  ar@AtRule {} -> pure ar
 
 mapCssRule :: (NonEmpty Selector -> [CssRuleBodyItem] -> CssRule) -> CssRule -> CssRule
 mapCssRule f cr = runIdentity $ mapCssRuleM go cr
@@ -127,7 +126,7 @@ updateTopTagSelector tsF =
   mapCssRule $ \ (fs :| os) body -> CssRule (updateFirstTagSelector tsF fs :| os) body
 
 setTsNs :: Ident -> TagSelector -> TagSelector
-setTsNs ns ts = ts { tagNs = Namespace ns }
+setTsNs ns ts = ts { tagNs = I.Namespace ns }
 
 prependSelectorToRule :: Ident -> CssRule -> CssRule
 prependSelectorToRule iden =

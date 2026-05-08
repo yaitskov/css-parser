@@ -48,7 +48,7 @@ data FontFace
 
 instance CssShow FontFace where
   toCssText ff =
-    "@font-face { src: " <> toCssText ff.src <> "; " <> toCssText ff.optionalProps <> "}"
+    "font-face { src: " <> toCssText ff.src <> "; " <> toCssText ff.optionalProps <> "}"
 
 fromEitherM
   :: Applicative m

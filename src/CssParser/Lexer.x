@@ -73,8 +73,15 @@ $pm       = [\-\+]
 @y       = y|Y
 @z       = z|Z
 
+@moz     = "-" @m@o@z "-"
+@webkit  = "-" @w@e@b@k@i@t "-"
+@ms      = "-" @m@s "-"
+@apple   = "-" @a@p@p@l@e "-"
+@opera   = "-" @o "-"
+
 @browserPrefix = [\-](@m@o@z|@w@e@b@k@i@t|@m@s|@o|@a@p@p@l@e)[\-]
 @ident   = @browserPrefix? @nmstart @nmchar*
+
 
 @anum    = [\-\+]? ( @dec+ ([\.]@dec+)? (@e [\-\+]? @dec+)? | [\.]@dec+ )
 
@@ -177,52 +184,61 @@ tokens :-
 
   @unicode "-" @range                                  { constoken UnicodeRangeT }
   @src                                                 { constoken SrcPropT }
-  "@"                                                  { constoken AtT }
-  "@" @f@u@n@c@t@i@o@n                                 { constoken AtFunctionT }
-  "@" @font "-" @face                                  { constoken FontFaceT }
-  "@" @position "-" @try                               { constoken PositionTryT }
-  @wo "@" @page $w @wo                                 { constoken PageT }
-
-  @wo "@" @top "-" @left "-" @corner                   { constoken (PageMarginT TopLeftCorner) }
-  @wo "@" @bottom "-" @right "-" @corner               { constoken (PageMarginT BottomRightCorner) }
-  @wo "@" @top "-" @right "-" @corner                  { constoken (PageMarginT TopRightCorner) }
-  @wo "@" @bottom "-" @left "-" @corner                { constoken (PageMarginT BottomLeftCorner) }
-
-  @wo "@" @top "-" @left                               { constoken (PageMarginT TopLeft) }
-  @wo "@" @top "-" @center                             { constoken (PageMarginT TopCenter) }
-  @wo "@" @top "-" @right                              { constoken (PageMarginT TopRight) }
-  @wo "@" @bottom "-" @left                            { constoken (PageMarginT BottomLeft) }
-  @wo "@" @bottom "-" @center                          { constoken (PageMarginT BottomCenter) }
-  @wo "@" @bottom "-" @right                           { constoken (PageMarginT BottomRight) }
-
-  @wo "@" @left "-" @top                               { constoken (PageMarginT LeftTop) }
-  @wo "@" @left "-" @middle                            { constoken (PageMarginT LeftMiddle) }
-  @wo "@" @left "-" @bottom                            { constoken (PageMarginT LeftBottom) }
-  @wo "@" @right "-" @top                              { constoken (PageMarginT RightTop) }
-  @wo "@" @right "-" @middle                           { constoken (PageMarginT RightMiddle) }
-  @wo "@" @right "-" @bottom                           { constoken (PageMarginT RightBottom) }
-
   "!" @wo @i@m@p@o@r@t@a@n@t                           { constoken ImportantT }
   @supports                                            { constoken SupportsT }
-  "@" @scope                                           { constoken ScopeT }
-  "@" @view "-" @transition                            { constoken ViewTransitionT }
-  "@" @starting "-" @style                             { constoken StartingStyleT }
-  "@" @container                                       { constoken ContainerT }
-  "@" @font "-" @palette "-" @values                   { constoken FontPaletteValuesT }
-  "@" @font "-" @feature "-" @values                   { constoken FontFeatureValuesT }
-  "@" @color "-" @profile                              { constoken ColorProfileT }
-  @wo "@" @property $w @wo                             { constoken PropertyT }
-  @wo "@" @counter "-" @style $w @wo                   { constoken CounterStyleT }
-  @wo "@" @charset $w @wo                              { constoken CharsetT }
-  @wo "@" @namespace $w @wo                            { constoken NamespaceT }
 
-  @wo "@" @import $w @wo                               { constoken ImportT }
-  @wo "@" @keyframes $w @wo                            { constoken KeyframesT }
+  "@"                                                  { constoken (AtT I.Na) }
+  "@" @moz                                             { constoken (AtT I.Moz) }
+  "@" @ms                                              { constoken (AtT I.Microsoft) }
+  "@" @apple                                           { constoken (AtT I.Apple) }
+  "@" @opera                                           { constoken (AtT I.Opera) }
+  "@" @webkit                                          { constoken (AtT I.WebKit) }
+
+  @f@u@n@c@t@i@o@n                                     { constoken FunctionT }
+  @font "-" @face                                      { constoken FontFaceT }
+  @position "-" @try                                   { constoken PositionTryT }
+  @page $w @wo                                         { constoken PageT }
+
+  @top "-" @left "-" @corner                           { constoken (PageMarginT TopLeftCorner) }
+  @bottom "-" @right "-" @corner                       { constoken (PageMarginT BottomRightCorner) }
+  @top "-" @right "-" @corner                          { constoken (PageMarginT TopRightCorner) }
+  @bottom "-" @left "-" @corner                        { constoken (PageMarginT BottomLeftCorner) }
+
+  @top "-" @left                                       { constoken (PageMarginT TopLeft) }
+  @top "-" @center                                     { constoken (PageMarginT TopCenter) }
+  @top "-" @right                                      { constoken (PageMarginT TopRight) }
+  @bottom "-" @left                                    { constoken (PageMarginT BottomLeft) }
+  @bottom "-" @center                                  { constoken (PageMarginT BottomCenter) }
+  @bottom "-" @right                                   { constoken (PageMarginT BottomRight) }
+
+  @left "-" @top                                       { constoken (PageMarginT LeftTop) }
+  @left "-" @middle                                    { constoken (PageMarginT LeftMiddle) }
+  @left "-" @bottom                                    { constoken (PageMarginT LeftBottom) }
+  @right "-" @top                                      { constoken (PageMarginT RightTop) }
+  @right "-" @middle                                   { constoken (PageMarginT RightMiddle) }
+  @right "-" @bottom                                   { constoken (PageMarginT RightBottom) }
+
+  @scope                                               { constoken ScopeT }
+  @view "-" @transition                                { constoken ViewTransitionT }
+  @starting "-" @style                                 { constoken StartingStyleT }
+  @container                                           { constoken ContainerT }
+  @font "-" @palette "-" @values                       { constoken FontPaletteValuesT }
+  @font "-" @feature "-" @values                       { constoken FontFeatureValuesT }
+  @color "-" @profile                                  { constoken ColorProfileT }
+  @property $w @wo                                     { constoken PropertyT }
+  @counter "-" @style $w @wo                           { constoken CounterStyleT }
+  @charset $w @wo                                      { constoken CharsetT }
+  @namespace $w @wo                                    { constoken NamespaceT }
+  @media                                               { constoken MediaT }
+  @import $w @wo                                       { constoken ImportT }
+  @keyframes $w @wo                                    { constoken KeyframesT }
   @layer                                               { constoken LayerT }
+  -- end of at tokens
+
   @r@e@s@u@l@t                                         { constoken ResultT }
   @r@e@t@u@r@n@s                                       { constoken ReturnsT }
-  @wo "@" @layer @wo                                   { constoken LayerAtT }
-  @wo "@" @media $w @wo                                { constoken MediaT }
+
+
   @from                                                { constoken FromT }
   @to                                                  { constoken ToT }
   @only @wo                                            { constoken OnlyT }
@@ -608,7 +624,7 @@ data Token
     | CalcFunT
     | TypeFunT
     | SyntaxTypeT AtomicCssType
-    | AtFunctionT
+    | FunctionT
     | ImportantT
     | SupportsT
     | ScopeT
@@ -618,7 +634,7 @@ data Token
     | ContainerT
     | FromT
     | ToT
-    | AtT
+    | AtT I.BrowserPrefix
     | SrcPropT
     | FontFaceT
     | NamespaceT
@@ -629,7 +645,6 @@ data Token
     | ImportT
     | KeyframesT
     | LayerT
-    | LayerAtT
     | MediaT
     | DivT
     | OnlyT

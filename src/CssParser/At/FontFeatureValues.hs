@@ -11,12 +11,13 @@ instance CssShow IdentList where
   toCssText (IdentList l) = unwords (toCssText <$> toList l)
 
 data FontFeatureValuesSubBlock
-  = FontFeatureValuesSubBlock Ident [PropEntry]
+  = FontFeatureValuesSubBlock BrowserPrefix Ident [PropEntry]
   deriving (Eq, Ord, Show, Generic)
 
 instance CssShow FontFeatureValuesSubBlock where
-  toCssText (FontFeatureValuesSubBlock i ps) =
-    "@" <> toCssText i <> " {" <> toCssText ps <> "}"
+  toCssText (FontFeatureValuesSubBlock bp i ps) =
+    toCssText bp <> toCssText i <> " {" <> toCssText ps <> "}"
+
 instance ShowSpaceBetween FontFeatureValuesSubBlock FontFeatureValuesSubBlock where
   cssSpace _ _ = ""
 data FontFeatureValues
@@ -29,5 +30,5 @@ data FontFeatureValues
 
 instance CssShow FontFeatureValues where
   toCssText ff =
-    "@font-feature-values " <> toCssText ff.name <> " {" <>
+    "font-feature-values " <> toCssText ff.name <> " {" <>
     toCssText ff.props  <> toCssText ff.blocks <> "}"

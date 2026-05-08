@@ -1,9 +1,13 @@
-module CssParser.Rule.Value where
+module CssParser.Rule.Value
+  ( module CssParser.Rule.Value
+  , reorder
+  ) where
 
 import CssParser.Ident
 import CssParser.Prelude
 import CssParser.Show
 import Data.Text qualified as C8
+import Expression.Reorder
 
 newtype Unsigned = Unsigned Integer
   deriving newtype (Eq, Show, Ord, Num, Enum, Real, Read, Integral, CssShow)
@@ -35,7 +39,7 @@ instance CssShow Url where
     UnquotedUrl u -> "url(" <> fromStrict u <> ")"
 
 data Source = UrlSource Url | StrSource Text
-  deriving (Show, Eq, Generic)
+  deriving (Show, Ord, Eq, Generic)
 
 instance CssShow Source where
   toCssText = \case
@@ -193,6 +197,27 @@ data CalcExpr
   | AppCe PropertyName PropValsList
   | CalcCe CalcExpr
   deriving (Eq, Ord, Show, Generic)
+
+fixityOf :: CalcOp -> Fixity
+fixityOf = \case
+  PlusCe -> Fixity AssocLeft 1
+  MinusCe -> Fixity AssocLeft 2
+  ProdCe -> Fixity AssocLeft 3
+  DivCe -> Fixity AssocLeft 4
+
+-- happy builtin capabilites for operator priority is pretty limited
+-- %left and %right are just ignored for the gramma
+-- AST tree is alway represented as a list always spanning to the right
+instance SyntaxTree CalcExpr String where
+  reorderChildren = \case
+    BinOpCe l op r -> BinOpCe <$> reorder l <*> pure op <*> reorder r
+    ParCe x -> ParCe <$> reorder x
+    CalcCe x -> CalcCe <$> reorder x
+    o -> pure o
+  structureOf = \case
+    BinOpCe l op r -> NodeInfix (fixityOf op) l r (`BinOpCe` op)
+    _ -> NodeLeaf
+  makeError err _ = show err
 
 instance CssShow CalcExpr where
   toCssText = \case
