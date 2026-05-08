@@ -180,6 +180,7 @@ properties =
   , "margin: 2.0px;"
   , "color:currentColor;"
   , "isolation:isolate;"
+  , "--bulma-table-cell-text-align:left;"
   , "border:ActiveText 2px solid;"
   , "border:ActiveText, solid;"
   , "border:ActiveText !important;"

@@ -2,9 +2,8 @@
 module CssParser.FixRule where
 
 import CssParser.Ident
-    ( Ident (Ident),
-      Namespace(NoBar),
-      PropertyName (PropertyName),
+    ( Ident (..), Namespace(NoBar),
+      PropertyName (..),
       TagName(TagName, NoTag) )
 import CssParser.Ident qualified as I
 import CssParser.Prelude
@@ -21,6 +20,10 @@ tagSelectorOnly tn = TagSelector NoBar (TagName tn) []
 
 setTag :: Ident -> TagSelector -> TagSelector
 setTag tn ts = ts { tagName = TagName tn }
+
+identOnly :: PropertyName -> (Ident -> a) -> P a
+identOnly (PropertyName i) f = Ok (f i)
+identOnly (VarProp i) _ = Failed $ "Var " <> show i <> " is not expected"
 
 setHash :: TagSubSelector -> TagSelector -> TagSelector
 setHash = addClass
@@ -175,38 +178,34 @@ pclassToPropVal pc = IdentRef (pclassToIdent pc)
 pclassToPropVals :: Maybe Important-> AtomicPseudoClass -> PropVals
 pclassToPropVals mi pc = PropVals (pclassToPropVal pc :| []) mi
 
-rewritePclassAsValue :: Ident -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
+rewritePclassAsValue :: PropertyName -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
 rewritePclassAsValue pn pc = \case
   (PropVals (pv :| pvs) mi) :| [] ->
-    CssLeafRule (PropertyName pn) (PropVals (g pvs pv) mi)
+    CssLeafRule pn (PropVals (g pvs pv) mi)
   (PropVals (pv :| pvs) mi) :| pvne ->
-    CssEnumLeaf (PropertyName pn) (PropValsList $ PropVals (g pvs pv) mi :| pvne)
+    CssEnumLeaf pn (PropValsList $ PropVals (g pvs pv) mi :| pvne)
   where
     g pvs = \case
       IdentRef i -> IdentRef (pclassToIdent pc <> i) :| pvs
       o -> IdentRef (pclassToIdent pc) :| (o : pvs)
 
-rewritePclassAsValueComma :: Ident -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
+rewritePclassAsValueComma :: PropertyName -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
 rewritePclassAsValueComma pn pc pvne =
-    CssEnumLeaf (PropertyName pn) (PropValsList $ pclassToPropVals Nothing pc <| pvne)
+    CssEnumLeaf pn (PropValsList $ pclassToPropVals Nothing pc <| pvne)
 
-rewritePseudoClassAsDescValue :: Ident -> Maybe Important -> AtomicPseudoClass -> CssRuleBodyItem
-rewritePseudoClassAsDescValue pn mi pc =
- CssLeafRule (PropertyName pn) (pclassToPropVals mi pc)
+rewritePseudoClassAsDescValue :: PropertyName -> Maybe Important -> AtomicPseudoClass -> CssRuleBodyItem
+rewritePseudoClassAsDescValue pn mi pc = CssLeafRule pn (pclassToPropVals mi pc)
 
-rewritePseudoClassAsPropValsImp :: Ident -> AtomicPseudoClass -> Maybe Important -> NonEmpty PropVals -> CssRuleBodyItem
+rewritePseudoClassAsPropValsImp ::
+  PropertyName -> AtomicPseudoClass -> Maybe Important -> NonEmpty PropVals -> CssRuleBodyItem
 rewritePseudoClassAsPropValsImp pn pc mi pvl =
-  CssEnumLeaf
-    (PropertyName pn)
-    (PropValsList $ pclassToPropVals mi pc <| pvl)
+  CssEnumLeaf pn (PropValsList $ pclassToPropVals mi pc <| pvl)
 
-rewritePseudoClassAsPropVals :: Ident -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
+rewritePseudoClassAsPropVals :: PropertyName -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
 rewritePseudoClassAsPropVals pn pc (pvs :| pvl) =
   case pvs of
     PropVals pv mi ->
-      CssEnumLeaf
-        (PropertyName pn)
-        (PropValsList $ PropVals (IdentRef (pclassToIdent pc) <| pv) mi :| pvl)
+      CssEnumLeaf pn (PropValsList $ PropVals (IdentRef (pclassToIdent pc) <| pv) mi :| pvl)
 
 mkLeaf :: PropertyName -> NonEmpty PropVals -> CssRuleBodyItem
 mkLeaf pn = \case

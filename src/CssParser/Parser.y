@@ -296,7 +296,7 @@ AtRule :: { AtRule }
     | counterStyle IdKwd ERB                      { CounterStyle $2 $3 }
     | property Var ERB                            { Property $2 $3 }
     | keyframes IdKwd Ocb List(Keyframe) '}'      { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
-    | colorProfile Os PropertyName Os ERB         { ColorProfile $3 $5 }
+    | colorProfile Os PropN Os ERB                { ColorProfile $3 $5 }
     | fontFace Os ERB                             { FontFaceBlock $3 }
     | fontFeatureValues ' ' StrEitherIds Os Ocb FontFeatureValBlocks '}'
                                                   { FontFeatureValuesBlock
@@ -397,8 +397,7 @@ CQ :: { ContainerQuery }
                                                       (AsIs (CqApp $1 $4))
                                                       $8
                                                   }
-    | Ident ':' PropVals                          { CqFeature (AsIs (CqOpFeature (PlainMf (PropertyName $1) $3))) }
-    | Var   ':' PropVals                          { CqFeature (AsIs (CqOpFeature (PlainMf (VarProp $1) $3))) }
+    | PropN ':' PropVals                          { CqFeature (AsIs (CqOpFeature (PlainMf $1 $3))) }
     | 'not' Op MediaFeature ')' Os BOP CQ         { CqBin $6 (Not (CqOpFeature $3)) $7 }
     | 'not' Op MediaFeature ')'                   { CqFeature (Not (CqOpFeature $3)) }
     | 'not' Os Ident Os Op CQ ')'                 { CqFeature (Not (CqApp $3 $6)) }
@@ -432,12 +431,12 @@ KeyframeAdr
     | percent                                     { KeyframePercentAdr (mkRawNum $1) }
 PropEntries :: { [PropEntry] }
     : List(PropEntry)                             { $1 }
-PropertyName :: { PropertyName }
+PropN :: { PropertyName }
     : IdKwd                                       { PropertyName $1 }
     | Var                                         { VarProp $1 }
 PropEntry :: { PropEntry }
-    : PropertyName ':' PropVals ';'               { PropEntry $1 $3 }
-    | PropertyName ':' PropVals                   { PropEntry $1 $3 }
+    : PropN ':' PropVals ';'                      { PropEntry $1 $3 }
+    | PropN ':' PropVals                          { PropEntry $1 $3 }
 PageSelectorList
     : PageSelector                                { [ $1 ] }
     | PageSelector Os PageSelectorList            { $1 : $3 }
@@ -481,33 +480,31 @@ MediaCondition :: { MediaBoolExpr }
     | Op MediaFeature ')' Os BOP MediaCondition   { MediaBin $5 (AsIs $2) $6 }
     | Op MediaFeature ')'                         { MediaFeature (AsIs $2) }
 MediaFeature :: { MediaFeature }
-    : PropertyName ':' PropVals                   { PlainMf $1 $3 }
-    | PropertyName pseudc                         { PlainMf $1 (pclassToPropVals Nothing $2) }
-    | PropertyName pseudc Os PropVals             { PlainMf $1 (prependPropVal (pclassToPropVal $2) $4) }
-    | PropertyName MfRel PropVal                  { OpenRangeFeature $1 $2 $3 }
-    | PropertyName MfRel PropertyName MfRel PropVal
-                                                  { MfClosedRange (propRef $1) $2 $3 $4 $5 }
-    | PropertyName Op PropVals ')' MfRel PropertyName
-                                                  { OpenRangeFeatureFlipped
+    : PropN ':' PropVals                          { PlainMf $1 $3 }
+    | PropN pseudc                                { PlainMf $1 (pclassToPropVals Nothing $2) }
+    | PropN pseudc Os PropVals                    { PlainMf $1 (prependPropVal (pclassToPropVal $2) $4) }
+    | PropN MfRel PropVal                         { OpenRangeFeature $1 $2 $3 }
+    | PropN MfRel PropN MfRel PropVal             { MfClosedRange (propRef $1) $2 $3 $4 $5 }
+    | PropN Op PropVals ')' MfRel PropN           { OpenRangeFeatureFlipped
                                                       (AppFun $1 $3)
                                                       $5
                                                       $6
                                                   }
-    | PropertyName Op PropVals ')' '/' Os PropVal MfRel PropertyName
+    | PropN Op PropVals ')' '/' Os PropVal MfRel PropN
                                                   { OpenRangeFeatureFlipped
                                                       (Div
                                                         (AppFun $1 $3)
                                                         $7)
                                                       $8 $9
                                                   }
-    | PropertyName Op PropVals ')' '/' Os PropVal MfRel PropertyName MfRel PropVal
+    | PropN Op PropVals ')' '/' Os PropVal MfRel PropN MfRel PropVal
                                                   { MfClosedRange
                                                       (Div
                                                         (AppFun $1 $3)
                                                         $7)
                                                       $8 $9 $10 $11
                                                   }
-    | PropertyName Op PropVals ')' MfRel PropertyName MfRel PropVal
+    | PropN Op PropVals ')' MfRel PropN MfRel PropVal
                                                   { MfClosedRange
                                                       (AppFun $1 $3)
                                                       $5
@@ -515,9 +512,9 @@ MediaFeature :: { MediaFeature }
                                                       $7
                                                       $8
                                                   }
-    | PropertyName                                { BooleanMf $1 }
-    | PropVal MfRel PropertyName                  { OpenRangeFeatureFlipped $1 $2 $3 }
-    | PropVal MfRel PropertyName MfRel PropVal    { MfClosedRange $1 $2 $3 $4 $5 }
+    | PropN                                       { BooleanMf $1 }
+    | PropVal MfRel PropN                         { OpenRangeFeatureFlipped $1 $2 $3 }
+    | PropVal MfRel PropN MfRel PropVal           { MfClosedRange $1 $2 $3 $4 $5 }
 MfRel :: { MfRelation }
     : '<'                                         { MfLt }
     | '>'                                         { MfGt }
@@ -585,10 +582,10 @@ PropVal :: { PropVal }
     : Scalar                                      { IntVal (mkRawNum (fst $1)) (snd $1) }
     | 'ratio'                                     { RatioVal $1 }
     | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
-    | PropertyName                                { propRef $1 }
+    | PropN                                       { propRef $1 }
     | PropVal '/' Os PropVal                      { Div $1 $4 }
-    | PropertyName Op PropValsList ')'            { mkAppFun $1 $3 }
-    | PropertyName Op ')'                         { AppConst $1 }
+    | PropN Op PropValsList ')'                   { mkAppFun $1 $3 }
+    | PropN Op ')'                                { AppConst $1 }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
     | 'uqUrl'                                     { UrlVal (UnquotedUrl (pack $1)) }
@@ -603,8 +600,8 @@ CalcExpr :: { CalcExpr }
     : '(' CalcExpr  ')'                           { ParCe $2 }
     | CalcExpr Os CalcOp Os CalcExpr              { BinOpCe $1 $3 $5 }
     | CalcExpr CalcExpr                           {% recoverCalcBinOp $1 $2 }
-    | PropertyName Op PropValsList Os ')'         { AppCe $1 (PropValsList $3) }
-    | PropertyName                                { VarCe $1 }
+    | PropN Op PropValsList Os ')'                { AppCe $1 (PropValsList $3) }
+    | PropN                                       { VarCe $1 }
     | Os Scalar Os                                { ValCe (mkRawNum (fst $2)) (snd $2) }
     | 'calc(' Os CalcExpr Os ')'                  { CalcCe $3 }
 Unsigned :: { Unsigned }
@@ -613,10 +610,9 @@ ContinueRule :: { CssRule }
     : SelectorList '{' Os CssRuleBody '}'         { CssRule $1 $4 }
 CssRuleBody :: { [ CssRuleBodyItem ] }
     :                                             { [] }
-    | PropertyName ':' PropValsList ';' OsCssRuleBody
-                                                  { mkLeaf $1 $3 : $5 }
-    | PropertyName ':' PropValsList               { [ mkLeaf $1 $3 ] }
-    | PropertyName ':' Os ';' OsCssRuleBody       { $5 }
+    | PropN ':' PropValsList ';' OsCssRuleBody    { mkLeaf $1 $3 : $5 }
+    | PropN ':' PropValsList                      { [ mkLeaf $1 $3 ] }
+    | PropN ':' Os ';' OsCssRuleBody              { $5 }
     | IdKwd 'not(' SL  ContinueRule OsCssRuleBody { upsertHeadTagSelector (setTag $1 . addClass (NotClass $3)) $4 $5 }
     | IdKwd 'not(' SL ERB OsCssRuleBody           { newRule (setTag $1 . addClass (NotClass $3)) $4 $5 }
     | IdKwd '{' OsCssRuleBody '}' OsCssRuleBody   { CssNestedRule (tagNameRule $1 $3) : $5 }
@@ -631,21 +627,21 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | IdKwd '.' ContinueRule OsCssRuleBody        { CssNestedRule (tagNameIsClass $1 $3) : $4 }
     | IdKwd Hash ContinueRule OsCssRuleBody       { upsertHeadTagSelector (setTag $1 . setHash $2) $3 $4 }
     | IdKwd Hash ERB OsCssRuleBody                { newRule (setHash $2 . setTag $1) $3 $4 }
-    | IdKwd pseudc ContinueRule OsCssRuleBody     { upsertHeadTagSelector
-                                                      (setTag $1 . addClass (AtomicPseudoClass $2)) $3 $4 }
-    | IdKwd pseudc ERB OsCssRuleBody              { newRule (addClass (AtomicPseudoClass $2) . setTag $1) $3 $4 }
-    | IdKwd pseudc PropValsList                   { [rewritePclassAsValue $1 $2 $3] }
-    | IdKwd pseudc PropValsList ';' OsCssRuleBody
-                                                  { rewritePclassAsValue $1 $2 $3 : $5 }
-    | IdKwd pseudc ',' PropValsList ';' OsCssRuleBody
+    | PropN pseudc ContinueRule OsCssRuleBody     {% identOnly $1 (\tn -> upsertHeadTagSelector
+                                                      (setTag tn . addClass (AtomicPseudoClass $2)) $3 $4) }
+    | PropN pseudc ERB OsCssRuleBody              {% identOnly $1
+                                                    (\tn -> newRule (addClass (AtomicPseudoClass $2) . setTag tn) $3 $4) }
+    | PropN pseudc PropValsList                   { [rewritePclassAsValue $1 $2 $3] }
+    | PropN pseudc PropValsList ';' OsCssRuleBody { rewritePclassAsValue $1 $2 $3 : $5 }
+    | PropN pseudc ',' PropValsList ';' OsCssRuleBody
                                                   { rewritePclassAsValueComma $1 $2 $4 : $6 }
-    | IdKwd pseudc Important                      { [rewritePseudoClassAsDescValue $1 $3 $2] }
-    | IdKwd pseudc Important ';' OsCssRuleBody    { rewritePseudoClassAsDescValue $1 $3 $2 : $5 }
-    | IdKwd pseudc Important ',' PropValsList     { [rewritePseudoClassAsPropValsImp $1 $2 $3 $5] }
-    | IdKwd pseudc Important ',' PropValsList ';' OsCssRuleBody
+    | PropN pseudc Important                      { [rewritePseudoClassAsDescValue $1 $3 $2] }
+    | PropN pseudc Important ';' OsCssRuleBody    { rewritePseudoClassAsDescValue $1 $3 $2 : $5 }
+    | PropN pseudc Important ',' PropValsList     { [rewritePseudoClassAsPropValsImp $1 $2 $3 $5] }
+    | PropN pseudc Important ',' PropValsList ';' OsCssRuleBody
                                                   { rewritePseudoClassAsPropValsImp $1 $2 $3 $5 : $7 }
-    | IdKwd pseudc ' ' PropValsList               { [rewritePseudoClassAsPropVals $1 $2 $4] }
-    | IdKwd pseudc ' ' PropValsList ';' OsCssRuleBody
+    | PropN pseudc ' ' PropValsList               { [rewritePseudoClassAsPropVals $1 $2 $4] }
+    | PropN pseudc ' ' PropValsList ';' OsCssRuleBody
                                                   { rewritePseudoClassAsPropVals $1 $2 $4 : $6 }
     | IdKwd 'where(' SL ContinueRule OsCssRuleBody
                                                   { upsertHeadTagSelector (setTag $1 . addClass (Where $3)) $4 $5 }
