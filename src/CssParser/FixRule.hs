@@ -175,10 +175,20 @@ pclassToPropVal pc = IdentRef (pclassToIdent pc)
 pclassToPropVals :: Maybe Important-> AtomicPseudoClass -> PropVals
 pclassToPropVals mi pc = PropVals (pclassToPropVal pc :| []) mi
 
-rewritePseudoClassAsDescValueBeforeIdent :: Ident -> AtomicPseudoClass -> Ident -> Maybe Important -> CssRuleBodyItem
-rewritePseudoClassAsDescValueBeforeIdent pn pc i mi  =
-  CssLeafRule (PropertyName pn)
-    (PropVals (IdentRef (pclassToIdent pc <> i) :| []) mi)
+rewritePclassAsValue :: Ident -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
+rewritePclassAsValue pn pc = \case
+  (PropVals (pv :| pvs) mi) :| [] ->
+    CssLeafRule (PropertyName pn) (PropVals (g pvs pv) mi)
+  (PropVals (pv :| pvs) mi) :| pvne ->
+    CssEnumLeaf (PropertyName pn) (PropValsList $ PropVals (g pvs pv) mi :| pvne)
+  where
+    g pvs = \case
+      IdentRef i -> IdentRef (pclassToIdent pc <> i) :| pvs
+      o -> IdentRef (pclassToIdent pc) :| (o : pvs)
+
+rewritePclassAsValueComma :: Ident -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
+rewritePclassAsValueComma pn pc pvne =
+    CssEnumLeaf (PropertyName pn) (PropValsList $ pclassToPropVals Nothing pc <| pvne)
 
 rewritePseudoClassAsDescValue :: Ident -> Maybe Important -> AtomicPseudoClass -> CssRuleBodyItem
 rewritePseudoClassAsDescValue pn mi pc =
