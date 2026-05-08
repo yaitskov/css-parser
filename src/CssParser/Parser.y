@@ -221,15 +221,15 @@ import Prelude
 
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
-    ':not'      { TokenLoc TNot _ _ }
-    where       { TokenLoc TWhere _ _ }
-    is          { TokenLoc TIs _ _ }
-    has         { TokenLoc THas _ _ }
+    'not('      { TokenLoc TNot _ _ }
+    'where('    { TokenLoc TWhere _ _ }
+    'is('       { TokenLoc TIs _ _ }
+    'has('      { TokenLoc THas _ _ }
     'lang('     { TokenLoc TLang _ _ }
-    dir         { TokenLoc TDir _ _ }
+    'dir('      { TokenLoc TDir _ _ }
     heading     { TokenLoc THeading _ _ }
     host        { TokenLoc THost _ _ }
-    state       { TokenLoc TState _ _ }
+    'state('    { TokenLoc TState _ _ }
     activeViewTransitionType
                 { TokenLoc TActiveViewTransitionType _ _ }
     '('         { TokenLoc TOpen _ _ }
@@ -356,6 +356,8 @@ FeatureQuery :: { FeatureQuery }
     | 'not' FeatureQuery Os BOP Os FeatureQuery   { FqBop $4 (FqNot $2) $6 }
     | 'selector(' SelectorList ')'                { FqApp (FqSelectorFun $2) }
     | Ident Op PropVals ')'                       { FqApp (FqSomeFun $1 $3) }
+SL :: { SelectorList }
+    :  SelectorList ')'                           { $1 }
 ESL :: { SelectorList }
     : '(' SelectorList ')'                        { $2 }
 SelectorPair :: { MonoPair SelectorList }
@@ -615,13 +617,8 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                   { mkLeaf $1 $3 : $5 }
     | PropertyName ':' PropValsList               { [ mkLeaf $1 $3 ] }
     | PropertyName ':' Os ';' OsCssRuleBody       { $5 }
-    | IdKwd ':not' '-' IdKwd Important ';' OsCssRuleBody
-                                                  { fixNotClass (PropertyName $1) $4 $5 : $7 }
-    | IdKwd ':not' '-' IdKwd Important            { [fixNotClass (PropertyName $1) $4 $5] }
-    | IdKwd ':not' '(' SelectorList ')' ContinueRule OsCssRuleBody
-                                                  { upsertHeadTagSelector (setTag $1 . addClass (NotClass $4)) $6 $7 }
-    | IdKwd ':not' '(' SelectorList ')' ERB OsCssRuleBody
-                                                  { newRule (setTag $1 . addClass (NotClass $4)) $6 $7 }
+    | IdKwd 'not(' SL  ContinueRule OsCssRuleBody { upsertHeadTagSelector (setTag $1 . addClass (NotClass $3)) $4 $5 }
+    | IdKwd 'not(' SL ERB OsCssRuleBody           { newRule (setTag $1 . addClass (NotClass $3)) $4 $5 }
     | IdKwd '{' OsCssRuleBody '}' OsCssRuleBody   { CssNestedRule (tagNameRule $1 $3) : $5 }
     | IdKwd '>' Os ContinueRule OsCssRuleBody     {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 Child $4) }
     | IdKwd ' ' ContinueRule OsCssRuleBody        {% fmap ((: $4) . CssNestedRule) (prependIdentToRule $1 Descendant $3) }
@@ -648,12 +645,13 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | IdKwd pseudc ' ' PropValsList               { [rewritePseudoClassAsPropVals $1 $2 $4] }
     | IdKwd pseudc ' ' PropValsList ';' OsCssRuleBody
                                                   { rewritePseudoClassAsPropVals $1 $2 $4 : $6 }
-    | IdKwd where ESL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Where $3)) $4 $5 }
-    | IdKwd where ESL ERB OsCssRuleBody           { newRule (setTag $1 . addClass (Where $3)) $4 $5 }
-    | IdKwd is    ESL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Is $3)) $4 $5 }
-    | IdKwd is    ESL ERB          OsCssRuleBody  { newRule (setTag $1 . addClass (Is $3)) $4 $5 }
-    | IdKwd has   ESL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Has $3)) $4 $5 }
-    | IdKwd has   ESL ERB          OsCssRuleBody  { newRule (setTag $1 . addClass (Has $3)) $4 $5 }
+    | IdKwd 'where(' SL ContinueRule OsCssRuleBody
+                                                  { upsertHeadTagSelector (setTag $1 . addClass (Where $3)) $4 $5 }
+    | IdKwd 'where(' SL ERB OsCssRuleBody         { newRule (setTag $1 . addClass (Where $3)) $4 $5 }
+    | IdKwd 'is('  SL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Is $3)) $4 $5 }
+    | IdKwd 'is('  SL ERB          OsCssRuleBody  { newRule (setTag $1 . addClass (Is $3)) $4 $5 }
+    | IdKwd 'has(' SL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Has $3)) $4 $5 }
+    | IdKwd 'has(' SL ERB          OsCssRuleBody  { newRule (setTag $1 . addClass (Has $3)) $4 $5 }
 
     | IdKwd 'lang(' Str ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector (setTag $1 . addClass (Lang (Language $3))) $5 $6 }
@@ -672,12 +670,13 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       . addClass (ActiveViewTransitionType (Embraced $4)))
                                                       $7 $8
                                                   }
-    | IdKwd dir Op IdKwd Os ')' ContinueRule CssRuleBody
+    | IdKwd 'dir(' Os IdKwd Os ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector
                                                       (setTag $1 . addClass (Dir (Embraced $4)))
                                                       $7 $8
                                                   }
-    | IdKwd dir Op IdKwd Os ')' ERB OsCssRuleBody { newRule
+    | IdKwd 'dir(' Os IdKwd Os ')' ERB OsCssRuleBody
+                                                  { newRule
                                                       ( setTag $1
                                                       . addClass (Dir (Embraced $4)))
                                                       $7 $8
@@ -709,12 +708,13 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       (setTag $1 . addClass (AtomicPseudoClass P.Host)) $3 $4 }
     | IdKwd host ERB OsCssRuleBody                { newRule (addClass (AtomicPseudoClass P.Host) . setTag $1) $3 $4 }
 
-    | IdKwd state Op IdKwd Os ')' ContinueRule CssRuleBody
+    | IdKwd 'state(' Os IdKwd Os ')' ContinueRule CssRuleBody
                                                   { upsertHeadTagSelector
                                                       (setTag $1 . addClass (State (Embraced $4)))
                                                       $7 $8
                                                   }
-    | IdKwd state Op IdKwd Os ')' ERB CssRuleBody { newRule
+    | IdKwd 'state(' Os IdKwd Os ')' ERB CssRuleBody
+                                                  { newRule
                                                       ( setTag $1
                                                       . addClass (State (Embraced $4)))
                                                       $7 $8
@@ -774,18 +774,19 @@ TagClasses :: { [ TagSubSelector ] }
 TagClass :: { TagSubSelector }
     : '.' IdKwd                                   { AtomicClass $2 }
     | pseudc                                      { AtomicPseudoClass $1 }
-    | ':not' ESL                                  { NotClass $2 }
+    | 'not(' SL                                   { NotClass $2 }
     | 'lang(' Str ')'                             { Lang (Language $2) }
-    | activeViewTransitionType Op CslOfIdents Os ')'  { ActiveViewTransitionType (Embraced $3) }
-    | dir Op IdKwd Os ')'                         { Dir (Embraced $3) }
+    | activeViewTransitionType Op CslOfIdents Os ')'
+                                                  { ActiveViewTransitionType (Embraced $3) }
+    | 'dir(' Os IdKwd Os ')'                      { Dir (Embraced $3) }
     | heading Op CslOfInts Os ')'                 { Heading (Embraced $3) }
     | heading                                     { AtomicPseudoClass P.Heading }
     | host ESL                                    { Host (Embraced $2) }
     | host                                        { AtomicPseudoClass P.Host }
-    | state Op IdKwd Os ')'                       { State (Embraced $3) }
-    | where ESL                                   { Where $2 }
-    | is ESL                                      { Is $2 }
-    | has ESL                                     { Has $2 }
+    | 'state(' Os IdKwd Os ')'                    { State (Embraced $3) }
+    | 'where(' SL                                 { Where $2 }
+    | 'is(' SL                                    { Is $2 }
+    | 'has(' SL                                   { Has $2 }
     | pseudf Os Nth                               { call $1 $3 }
     | '[' Attr                                    { $2 }
     | Hash                                        { $1 }

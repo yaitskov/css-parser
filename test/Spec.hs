@@ -179,6 +179,7 @@ properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
   , "color:currentColor;"
+  , "isolation:isolate;"
   , "background-position:right -1rem center;"
   , "background-position:right;"
   , "-o-object-fit: contain !important;"
