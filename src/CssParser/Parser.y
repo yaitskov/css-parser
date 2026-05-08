@@ -421,7 +421,7 @@ CommaSeparatedList :: { NonEmpty PropVals }
                                                   { (PropVals $1 $2) <| $4 }
 UnicodeRange :: { UnicodeRange }
     : unRangeVal                                  { UnicodeRange (pack $1) }
-Keyframe
+Keyframe :: { Keyframe }
     : NonEmpty(',', KeyframeAdr) Os Ocb PropEntries '}'
                                                   { Keyframe (CslNe $1) $4 }
 KeyframeAdr
@@ -435,6 +435,7 @@ PropertyName :: { PropertyName }
     | Var                                         { VarProp $1 }
 PropEntry :: { PropEntry }
     : PropertyName ':' PropVals ';'               { PropEntry $1 $3 }
+    | PropertyName ':' PropVals                   { PropEntry $1 $3 }
 PageSelectorList
     : PageSelector                                { [ $1 ] }
     | PageSelector Os PageSelectorList            { $1 : $3 }
@@ -637,6 +638,8 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       (setTag $1 . addClass (AtomicPseudoClass $2)) $3 $4 }
     | IdKwd pseudc ERB OsCssRuleBody              { newRule (addClass (AtomicPseudoClass $2) . setTag $1) $3 $4 }
     | IdKwd pseudc IdKwd Important                { [rewritePseudoClassAsDescValueBeforeIdent $1 $2 $3 $4 ] }
+    | IdKwd pseudc IdKwd Important ';' OsCssRuleBody
+                                                  { rewritePseudoClassAsDescValueBeforeIdent $1 $2 $3 $4 : $6 }
     | IdKwd pseudc Important                      { [rewritePseudoClassAsDescValue $1 $3 $2] }
     | IdKwd pseudc Important ';' OsCssRuleBody    { rewritePseudoClassAsDescValue $1 $3 $2 : $5 }
     | IdKwd pseudc Important ',' PropValsList     { [rewritePseudoClassAsPropValsImp $1 $2 $3 $5] }

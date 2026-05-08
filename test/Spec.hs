@@ -178,6 +178,7 @@ properties :: [String]
 properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
+  , "color:currentColor;"
   , "background-position:right -1rem center;"
   , "background-position:right;"
   , "-o-object-fit: contain !important;"
@@ -253,6 +254,7 @@ keyframe :: [String]
 keyframe =
   [ "@keyframes spinAround { from, to {transform:rotate(0deg);} to {transform: rotate(359deg);}}"
   , "@-webkit-keyframes spinAround { 0% {} 100% {}}"
+  , "@keyframes x{from{transform:rotate(0deg)}to{transform:rotate(359deg)}}"
   ]
 
 atImport :: [String]
