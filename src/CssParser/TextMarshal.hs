@@ -4,13 +4,11 @@ module CssParser.TextMarshal
   ) where
 
 import CssParser.Prelude
-import CssParser.Utils (dropEnd)
 import Data.List qualified as Li
 import Data.Text.Lazy qualified as L
 import Data.Text.Lazy.Builder (toLazyText)
 import Data.Text.Lazy.Builder.Int (decimal)
 import Text.Read (readEither)
-
 
 numToText :: Integral a => a -> LText
 numToText = toLazyText . decimal

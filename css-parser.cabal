@@ -48,6 +48,7 @@ library
     , CssParser.FixRule
     , CssParser.Fun
     , CssParser.Ident
+    , CssParser.List
     , CssParser.MonoPair
     , CssParser.Norm
     , CssParser.Parser.Monad

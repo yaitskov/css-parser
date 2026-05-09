@@ -11,6 +11,7 @@ import CssParser.Parser.Monad
 import CssParser.Rule
 import CssParser.Show ( CssShow(toCssText) )
 import CssParser.Rule.Value
+import CssParser.Rule.Show ()
 import Data.Text qualified as T
 import Data.Text.Lazy qualified as L
 import CssParser.Rule.Pseudo (AtomicPseudoClass)
@@ -22,8 +23,11 @@ setTag :: Ident -> TagSelector -> TagSelector
 setTag tn ts = ts { tagName = TagName tn }
 
 identOnly :: PropertyName -> (Ident -> a) -> P a
-identOnly (PropertyName i) f = Ok (f i)
-identOnly (VarProp i) _ = Failed $ "Var " <> show i <> " is not expected"
+identOnly pn f = identOnlyP pn (pure . f)
+
+identOnlyP :: PropertyName -> (Ident -> P a) -> P a
+identOnlyP (PropertyName i) f = f i
+identOnlyP (VarProp i) _ = Failed $ "Var " <> show i <> " is not expected"
 
 setHash :: TagSubSelector -> TagSelector -> TagSelector
 setHash = addClass
@@ -73,6 +77,72 @@ updateFirstTagSelector f = \case
   Selector ftr fts ots -> Selector ftr (f fts) ots
   PeSelector ftr fts ots pe -> PeSelector ftr (f fts) ots pe
   PeSelectorOnly pe -> PeSelector Nothing (f nullTagSelector) [] pe
+
+-- a b c {
+--       ^
+-- p #x
+--
+-- p :first {
+--   ^
+-- p.c :first x ::pe
+--  ^
+-- p ::pe
+--   ^
+-- a b + c
+-- a b > c
+-- a b ~ c
+--     ^
+-- a b / b
+--         ^
+-- p, --x:left {
+-- {x
+--  TagSelector [(TagRelation, TagSelector)]
+propValToTagSel :: PropVal -> P TagSelector
+propValToTagSel = \case
+  HexColor (HC hc) -> pure $ setHash (Hash (Ident hc)) nullTagSelector
+  IdentRef i -> pure $ tagSelectorOnly i
+  o -> Failed $ "Ident or HexColor is expected but: " <> show o
+
+propValsToSelector :: PropVals -> P Selector
+propValsToSelector = \case
+  PropVals pvs Nothing -> do
+    mapM propValToTagSel pvs >>= \case
+      (fts :| tss) ->
+        pure . Selector Nothing fts $ fmap (Descendant,) tss
+  badPvs -> Failed $ "!important is unexpected: " <> show badPvs
+
+propValsListToSelectorList :: PropertyName -> AtomicPseudoClass -> NonEmpty PropVals -> P SelectorList
+propValsListToSelectorList pn pc pvs =
+  identOnlyP pn $ \pn' -> (firstSelector pn' pc <|) <$> mapM propValsToSelector pvs
+
+firstSelector :: Ident -> AtomicPseudoClass -> Selector
+firstSelector pn pc =
+  Selector Nothing (addClass (AtomicPseudoClass pc) (tagSelectorOnly pn)) []
+
+fuseSelectors :: Selector -> Selector -> P Selector
+fuseSelectors s1 s2 =
+  case s1 of
+    Selector ftr1 fts1 tss1 -> pure $
+      case s2 of
+        Selector ftr2 fts2 tss2 ->
+          Selector ftr1 fts1 $ tss1 <> ((fromMaybe Descendant ftr2, fts2) : tss2)
+        PeSelector ftr2 fts2 tss2 pe ->
+          PeSelector ftr1 fts1 (tss1 <> ((fromMaybe Descendant ftr2, fts2) : tss2)) pe
+        PeSelectorOnly pe ->
+          PeSelector ftr1 fts1 tss1 pe
+    _bad ->
+      Failed $ "Expected selector without pseudo element: " <>
+        unpack (toCssText s1) <> " <-> " <>  unpack (toCssText s2)
+
+fuseSelectorLists :: SelectorList -> SelectorList -> P SelectorList
+fuseSelectorLists sl1 (fe2 :| sl2) =
+  case unsnocNe sl1 of
+    (sl1', le1) ->
+      prependList sl1' . (:| sl2) <$> fuseSelectors le1 fe2
+
+prepValsListToSelectorList :: PropertyName -> AtomicPseudoClass -> NonEmpty PropVals -> SelectorList -> P SelectorList
+prepValsListToSelectorList pn pc pvs sl =
+  identOnlyP pn $ \pn' -> (firstSelector pn' pc <|) <$> ((`fuseSelectorLists` sl) =<< mapM propValsToSelector pvs)
 
 upsertHeadTagSelector :: (TagSelector -> TagSelector) -> CssRule -> [CssRuleBodyItem] -> [CssRuleBodyItem]
 upsertHeadTagSelector f cr bodyItems =

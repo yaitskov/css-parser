@@ -1,4 +1,3 @@
--- vim:ft=haskell
 {
 module CssParser.Parser where
 
@@ -53,7 +52,6 @@ import CssParser.Show
 import Data.Text (Text, pack)
 import Data.Text.Lazy (toStrict)
 import Prelude
-
 }
 
 %monad { P } { thenP } { returnP }
@@ -114,16 +112,12 @@ import Prelude
     import      { TokenLoc ImportT _ _ }
     layer       { TokenLoc LayerT _ _ }
     page        { TokenLoc PageT _ _ }
-
     pageMargin  { TokenLoc (PageMarginT $$) _ _ }
-
     media       { TokenLoc MediaT _ _ }
-
     'only'      { TokenLoc OnlyT _ _ }
     'not'       { TokenLoc NotT _ _ }
     'or'        { TokenLoc OrT _ _ }
     'and'       { TokenLoc AndT _ _ }
-
     'url('      { TokenLoc UrlT _ _ }
     'uqUrl'     { TokenLoc (UnquotedUrlT $$) _ _ }
     'selector(' { TokenLoc SelectorFunT _ _ }
@@ -161,7 +155,6 @@ import Prelude
     pm          { TokenLoc (TPM $$) _ _ }
     'n'         { TokenLoc TN _ _ }
     int         { TokenLoc (TInt $$) _ _ }
-
     'ratio'     { TokenLoc (RatioT $$) _ _ }
     cap         { TokenLoc (L.Cap $$) _ _ }
     ch          { TokenLoc (L.Ch $$) _ _ }
@@ -218,7 +211,6 @@ import Prelude
     vmin        { TokenLoc (L.Vmin $$) _ _ }
     vw          { TokenLoc (L.Vw $$) _ _ }
     unitLessNum { TokenLoc (L.UnitLessNum $$) _ _ }
-
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
     'not('      { TokenLoc TNot _ _ }
@@ -238,10 +230,8 @@ import Prelude
 
 -- %left 'not'
 -- %left 'or' 'and'
-
 -- %left '+' '-'
 -- %left '*' '/'
-
 %%
 
 CssFile :: { CssFile }
@@ -250,8 +240,7 @@ Import -- :: { Import SelectorList }
     : Source Os                                   { ImportUrlSupports $1 Nothing [] }
     | Source Os layer Os                          { ImportDefaultLayer $1 }
     | Source Os layer LayerNameMb Os              { ImportUrlLayer $1 $4 Nothing [] }
-    | Source Os layer LayerNameMb Os Supports Os
-                                                  { ImportUrlLayer $1 $4 (Just $6) [] }
+    | Source Os layer LayerNameMb Os Supports Os  { ImportUrlLayer $1 $4 (Just $6) [] }
     | Source Os layer LayerNameMb Os Supports Os MediaQueryList Os
                                                   { ImportUrlLayer $1 $4 (Just $6) $8 }
     | Source Os layer LayerNameMb Os MediaQueryList Os
@@ -521,7 +510,6 @@ MfRel :: { MfRelation }
     | '<='                                        { MfLe }
     | '>='                                        { MfGe }
     | '='                                         { MfEq }
-
 Scalar :: { (String, PropValType) }
     : cap                                         { ($1, Vl.Cap) }
     | ch                                          { ($1, Vl.Ch) }
@@ -633,8 +621,15 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                     (\tn -> newRule (addClass (AtomicPseudoClass $2) . setTag tn) $3 $4) }
     | PropN pseudc PropValsList                   { [rewritePclassAsValue $1 $2 $3] }
     | PropN pseudc PropValsList ';' OsCssRuleBody { rewritePclassAsValue $1 $2 $3 : $5 }
+    | PropN pseudc ',' PropValsList               { [rewritePclassAsValueComma $1 $2 $4] }
     | PropN pseudc ',' PropValsList ';' OsCssRuleBody
                                                   { rewritePclassAsValueComma $1 $2 $4 : $6 }
+    | PropN pseudc ',' PropValsList SelectorList ERB OsCssRuleBody
+                                                  {% fmap ((: $7) . CssNestedRule . (`CssRule` $6))
+                                                       (prepValsListToSelectorList $1 $2 $4 $5) }
+    | PropN pseudc ',' PropValsList ERB OsCssRuleBody
+                                                  {% fmap ((: $6) . CssNestedRule . (`CssRule` $5))
+                                                       (propValsListToSelectorList $1 $2 $4) }
     | PropN pseudc Important                      { [rewritePseudoClassAsDescValue $1 $3 $2] }
     | PropN pseudc Important ';' OsCssRuleBody    { rewritePseudoClassAsDescValue $1 $3 $2 : $5 }
     | PropN pseudc Important ',' PropValsList     { [rewritePseudoClassAsPropValsImp $1 $2 $3 $5] }
@@ -717,7 +712,6 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
                                                       . addClass (State (Embraced $4)))
                                                       $7 $8
                                                   }
-
     | IdKwd PsTgSel ERB OsCssRuleBody             { newPseude (setTag $1) $2 $3 $4 }
     | IdKwd PsTgSel ',' ContinueRule OsCssRuleBody
                                                   { CssNestedRule (pushPeSelector (setTag $1) $2 $4) : $5 }
@@ -727,10 +721,11 @@ PropValsList :: { NonEmpty PropVals }
 PropVals :: { PropVals }
     : CssPropertyVals Important                   { PropVals $1 $2 }
 Important :: { Maybe Important }
-    : Os Maybe(important)                         { fmap (const Important) $2 }
+    : ' ' important                               { Just Important }
+    |                                             { Nothing }
 CssPropertyVals :: { NonEmpty PropVal }
-    : PropVal Os                                  { $1 :| [] }
-    | PropVal Os CssPropertyVals                  { $1 <| $3 }
+    : PropVal                                     { $1 :| [] }
+    | PropVal ' ' CssPropertyVals                 { $1 <| $3 }
 SelectorList :: { NonEmpty Selector }
     : NonEmpty(',', Selector)                     { $1 }
 Selector :: { Selector }
@@ -806,8 +801,7 @@ TagRelation :: { TagRelation }
     | '+' Os                                      { NextSibling }
     | '>' Os                                      { Child }
     | '~' Os                                      { GeneralSibling }
-Nth
-    : nth Os ')'                                  { $1 }
+Nth : nth Os ')'                                  { $1 }
     | PMOpt IntOpt 'n' Os ')'                     { Nth (call $1 $2) 0 }
     | PMOpt IntOpt 'n' Os pm Os int Os ')'        { Nth (call $1 $2) (call $5 $7) }
     | PMOpt int Os ')'                            { Nth 0 (call $1 $2) }
@@ -825,8 +819,7 @@ Os  :                                             { () }
 Attr
     : IdKwd ']'                                   { HasAttr (AttrName NoBar $1) }
     | IdKwd '|' IdKwd ']'                         { HasAttr (AttrName (R.Namespace $1) $3) }
-    | IdKwd '|' IdKwd AttrOp IdTxt ']'
-                                                  { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
+    | IdKwd '|' IdKwd AttrOp IdTxt ']'            { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
     | IdKwd '|' IdKwd AttrOp Str ']'              { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
     | IdKwd AttrOp IdTxt ']'                      { Attr (AttrName NoBar $1) $2 $3 }
     | IdKwd AttrOp Str ']'                        { Attr (AttrName NoBar $1) $2 $3 }
@@ -843,7 +836,6 @@ AttrOp ::  { AttrOp }
     | '^='                                        { PrefixMatch }
     | '$='                                        { SuffixMatch }
     | '*='                                        { SubstringMatch }
-
 IdKwd :: { R.Ident }
     : Ident                                       { $1 }
     | MediaKeywordAsIdent                         { $1 }
@@ -852,7 +844,6 @@ IdKwd :: { R.Ident }
     | result                                      { R.Ident "result" }
     | returns                                     { R.Ident "returns" }
     | AtId                                        { $1 }
-
 AtId :: { R.Ident }
     : charset                                     { R.Ident "charset" }
     | colorProfile                                { R.Ident "color-profile" }
@@ -861,7 +852,6 @@ AtId :: { R.Ident }
     | fontFace                                    { R.Ident "font-face" }
     | fontFeatureValues                           { R.Ident "font-feature-values" }
     | fontPaletteValues                           { R.Ident "font-palette-values" }
-
     | function                                    { R.Ident "function" }
     | import                                      { R.Ident "import" }
     | keyframes                                   { R.Ident "keyframes" }
@@ -908,6 +898,5 @@ happyError :: [TokenLoc] -> P a
 happyError (~(TokenLoc t s ~(Just (AlexPn _ l c))):_) =
   failP $ "Can not parse CSS: unpexected token \"" <>
     s <> "\" at (" <> show l <> ", " <> show c <> ")"
-happyError _ =
-  failP "Unexpected end of a CSS string"
+happyError _ = failP "Unexpected end of a CSS string"
 }

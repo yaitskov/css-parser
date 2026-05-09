@@ -5,6 +5,7 @@ module CssParser.Prelude
   ) where
 
 import Control.Monad.Fail as X
+import CssParser.List as X
 import Data.Char as X
 import Data.Either as X (partitionEithers)
 import Data.Either.Combinators as X

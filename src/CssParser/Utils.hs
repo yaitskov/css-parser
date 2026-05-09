@@ -1,25 +1,10 @@
 module CssParser.Utils where
 
-import Control.Arrow (first)
+import CssParser.List ( _initLast )
 import Data.Char (chr, digitToInt, intToDigit, isAsciiLower, isAsciiUpper, isHexDigit, isDigit, ord)
 import Data.Text (Text, cons, pack, singleton)
 import qualified Data.Text.Lazy as LT
 import Prelude
-
-dropEnd :: Int -> [a] -> [a]
-dropEnd i xs
-  | i <= 0 = xs
-  | otherwise = f xs (drop i xs)
-  where
-    f (x:xs') (_y:ys) = x : f xs' ys
-    f _ _             = []
-
-_initLast :: [a] -> Maybe ([a], a)
-_initLast [] = Nothing
-_initLast (a : as) = Just (go as a)
-  where
-    go [] x = ([], x)
-    go (y : ys) x = first (x :) (go ys y)
 
 _isQuote :: Char -> Bool
 _isQuote '"' = True

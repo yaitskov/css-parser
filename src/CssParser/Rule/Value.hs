@@ -300,6 +300,6 @@ newtype CommaSeparatedList
 
 instance ShowSpaceBetween CommaSeparatedList CommaSeparatedList where
   cssSpace _ _ = "; "
-
+type SrcVal = CommaSeparatedList
 instance CssShow CommaSeparatedList where
   toCssText (CommaSeparatedList l) = toCssText l

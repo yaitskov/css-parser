@@ -9,14 +9,16 @@ import CssParser.At.MediaQuery (MediaType(..))
 import CssParser.At.Page
 import CssParser.Fun
 import CssParser.Ident qualified as I
+import CssParser.Prelude hiding (Space)
 import CssParser.Rule hiding (Heading, Host)
 import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition)
 import CssParser.Rule.Pseudo qualified as P
 import CssParser.Rule.Value (Ratio(..), readRatio)
 import CssParser.TextMarshal
-import CssParser.Utils(readCssString, readIdentifier, dropEnd)
+import CssParser.Utils(readCssString, readIdentifier)
+
 import Data.Text (pack)
-import Prelude
+
 import Text.Read (readEither)
 }
 

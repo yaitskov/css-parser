@@ -139,6 +139,13 @@ misc :: [String]
 misc =
   [ "@position-try --x {x: 1px;}"
   , "@starting-style {}"
+  , "a{a:muted, |*{}}"
+  , "a{a:muted, a #f{}}"
+  , "a{a:muted, a b{}}"
+  , "a{a:muted, a + b{}}"
+  , "a{a:muted, a > b{}}"
+  , "a{a:muted, a b;}"
+  , "a{a:muted, a b}"
   , "strong{color:currentColor}"
   , "@charset \"utf-8\"; /* */ /* */ @namespace \"x\"; "
   , "@namespace \"x\"; /* */ /* */ @namespace \"y\";"
