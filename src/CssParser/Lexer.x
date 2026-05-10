@@ -286,7 +286,7 @@ tokens :-
   @c@a@l@c "("                                         { constoken CalcFunT }
   @t@y@p@e "("                                         { constoken TypeFunT }
   @url "("                                             { constoken UrlT }
-  @url "(" @wo [^\"\'][^\)]* ")"                       { tokenize (UnquotedUrlT . readUnquotedUrl) }
+  @url "(" [^\"\'\)]* ")"                              { tokenize (UnquotedUrlT . readUnquotedUrl) }
   "."                                                  { constoken Dot }
   "." @ident                                           { tokenize (ClassT . readIdentifier . drop 1) }
   "*"                                                  { constoken Asterisk }

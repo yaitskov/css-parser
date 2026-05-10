@@ -257,8 +257,7 @@ Supports :: { FeatureQuery }
     : supports Op MediaFeature ')'                { FqMediaFeature $3 }
     | supports Op FeatureQuery ')'                { normalize $3 }
 Source
-    : 'url(' Str ')'                              { UrlSource (Url $2) }
-    | 'uqUrl'                                     { UrlSource (UnquotedUrl (pack $1)) }
+    : Url                                         { UrlSource $1 }
     | Str                                         { StrSource $1 }
 LayerNames :: { [LayerName] }
     : LayerName                                   { [$1] }
@@ -589,6 +588,9 @@ Scalar :: { (String, PropValType) }
     | vmin                                        { ($1, Vl.Vmin) }
     | vw                                          { ($1, Vl.Vw) }
     | unitLessNum                                 { ($1, Vl.K) }
+Url :: { Url }
+    : 'url(' Str ')'                              { Url $2 }
+    | 'uqUrl'                                     { UnquotedUrl (pack $1) }
 PropVal :: { PropVal }
     : Scalar                                      { IntVal (mkRawNum (fst $1)) (snd $1) }
     | 'ratio'                                     { RatioVal $1 }
@@ -598,9 +600,7 @@ PropVal :: { PropVal }
     | PropN Op PropValsList ')'                   { mkAppFun $1 $3 }
     | PropN Op ')'                                { AppConst $1 }
     | Str                                         { StrVal $1 }
-    | 'url(' Str ')'                              { UrlVal (Url $2) }
-    | 'url(' Os ')'                               { UrlVal (Url "") }
-    | 'uqUrl'                                     { UrlVal (UnquotedUrl (pack $1)) }
+    | Url                                         { UrlVal $1 }
     | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (validationToP $3 (reorder $3)) }
     | hash                                        { HexColor (HC (pack $1)) }
 CalcOp :: { CalcOp }
