@@ -624,6 +624,7 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | Desc Os PropValsList ';' OsCssRuleBody      { mkLeaf $1 $3 : $5 }
     | Desc Os PropValsList                        { [ mkLeaf $1 $3 ] }
     | Desc Os ';' OsCssRuleBody                   { $4 }
+    | Desc Os                                     { [] }
     | CssRule OsCssRuleBody                       { CssNestedRule $1 : $2 }
 PropValsList :: { NonEmpty PropVals }
     : NonEmpty(',', PropVals)                     { $1 }

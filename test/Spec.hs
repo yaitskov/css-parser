@@ -139,6 +139,7 @@ misc :: [String]
 misc =
   [ "@position-try --x {x: 1px;}"
   , "@starting-style {}"
+  , "[data-bs-theme=light]{--bs-btn-close-filter: }"
   , "a{a:muted, |*{}}"
   , "a{a:muted, a #f{}}"
   , "a{a:muted, a b{}}"
