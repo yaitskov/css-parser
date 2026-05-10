@@ -35,6 +35,18 @@
       url = https://github.com/StackExchange/Stacks/archive/refs/tags/@stackoverflow/stacks-svelte@0.6.0.tar.gz;
       flake = false;
     };
+    materialize = {
+      url = "github:materializecss/materialize";
+      flake = false;
+    };
+    beer = {
+      url = "github:beercss/beercss";
+      flake = false;
+    };
+    cirrus = {
+      url = "github:Spiderpig86/Cirrus";
+      flake = false;
+    };
 
     # = {
     #   url = "github:";
@@ -50,8 +62,11 @@
           default = pkgs.mkShell {
             buildInputs = [];
             shellHook = ''
-              export CSS_FRAMEWORKS="${inputs.bulma} ${inputs.bootstrap} ${inputs.stack-overflow} ${inputs.uswds}"
-              export CSS_FRAMEWORKS="$CSS_FRAMEWORKS ${inputs.ress} ${inputs.sakura} ${inputs.foundation}"
+              export CSS_FRAMEWORKS=(
+                 ${inputs.cirrus} ${inputs.beer} ${inputs.materialize}
+                 ${inputs.bulma} ${inputs.bootstrap} ${inputs.stack-overflow}
+                 ${inputs.uswds}
+                 ${inputs.ress} ${inputs.sakura} ${inputs.foundation})
               function err() { echo "Error: $@" ; exit 1; }
               function findcss() {
                 for CSS_FR in $CSS_FRAMEWORKS ; do
@@ -64,7 +79,7 @@
                 CSS_PARSER=$(find ../dist-newstyle/build -type f -name css-parser | head -n 1)
                 [ -x "$CSS_PARSER" ] || err "CSS_PARSER is not found"
                 mkdir -p .css-hashes
-                for CSS_FR in $CSS_FRAMEWORKS ; do
+                for CSS_FR in ''${CSS_FRAMEWORKS[@]} ; do
                   # echo "$CSS_FR framework"
                   find $CSS_FR -type f -name '*.css' | while read CSS_FILE ; do
                     # set +e

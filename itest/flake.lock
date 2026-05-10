@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "beer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778169730,
+        "narHash": "sha256-4WFLAxZ5HheT0acj5QJ410MStM9izGFQdoE60Tcc3sI=",
+        "owner": "beercss",
+        "repo": "beercss",
+        "rev": "caed43d62e3ca89e29540d02c879c79da2adbddd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "beercss",
+        "repo": "beercss",
+        "type": "github"
+      }
+    },
     "bootstrap": {
       "flake": false,
       "locked": {
@@ -29,6 +45,22 @@
       "original": {
         "owner": "jgthms",
         "repo": "bulma",
+        "type": "github"
+      }
+    },
+    "cirrus": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775630340,
+        "narHash": "sha256-fYb1a5pduul7vUyLcxtpp/WAnQK4KE/8tIklHb8HlE8=",
+        "owner": "Spiderpig86",
+        "repo": "Cirrus",
+        "rev": "d09a1002a22edda2aa01460459ba329a4718f307",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Spiderpig86",
+        "repo": "Cirrus",
         "type": "github"
       }
     },
@@ -66,6 +98,22 @@
         "type": "github"
       }
     },
+    "materialize": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776004932,
+        "narHash": "sha256-kZDiYkE/WhTqy9YIN/hswMnP6YnpD2cdGvYHDBWh5/8=",
+        "owner": "materializecss",
+        "repo": "materialize",
+        "rev": "0f4376beac1c5b3efeccddc06093d268468311a0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "materializecss",
+        "repo": "materialize",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1770195405,
@@ -100,10 +148,13 @@
     },
     "root": {
       "inputs": {
+        "beer": "beer",
         "bootstrap": "bootstrap",
         "bulma": "bulma",
+        "cirrus": "cirrus",
         "flake-utils": "flake-utils",
         "foundation": "foundation",
+        "materialize": "materialize",
         "nixpkgs": "nixpkgs",
         "ress": "ress",
         "sakura": "sakura",
