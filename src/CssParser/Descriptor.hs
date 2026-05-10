@@ -535,6 +535,7 @@ data Descriptor
   | WillChangeT
   | WordBreakT
   | WordSpacingT
+  | WordWrapT
   | WritingModeT
   | XT
   | YT
@@ -1072,6 +1073,7 @@ instance CssShow Descriptor where
     WillChangeT                     -> "will-change:"
     WordBreakT                      -> "word-break:"
     WordSpacingT                    -> "word-spacing:"
+    WordWrapT                       -> "word-wrap:"
     WritingModeT                    -> "writing-mode:"
     XT                              -> "x:"
     YT                              -> "y:"

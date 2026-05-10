@@ -100,6 +100,7 @@ data TagSubSelector
   | AtomicPseudoClass AtomicPseudoClass
   | NotClass SelectorList
   | Lang Language
+  | Global SelectorList
   | Where SelectorList
   | Has SelectorList
   | Is SelectorList

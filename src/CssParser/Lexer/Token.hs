@@ -33,6 +33,9 @@ data Token
   | Deg NumberStr
   | Rad NumberStr
   | Grad NumberStr
+  | Fr NumberStr
+  | Hz NumberStr
+  | KHz NumberStr
   | Turn NumberStr
 
   | Px NumberStr
@@ -101,11 +104,11 @@ data Token
   | LessEqual
   | Tilde
   | Dot
+  | GlobalT
   | ClassT String
 
   | PageT
   | PageMarginT PageMargin
-
   | ReturnsT
   | SelectorFunT
   | CalcFunT

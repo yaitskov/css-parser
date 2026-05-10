@@ -186,6 +186,9 @@ properties :: [String]
 properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
+  , "min-width: 0\\0;"
+  , "margin: 1fr 2Hz 3kHz;"
+  , "word-wrap: normal;"
   , "color:currentColor;"
   , "isolation:isolate;"
   , "--bulma-table-cell-text-align:left;"
@@ -324,6 +327,7 @@ validSelectors :: [String]
 validSelectors =
   [ "body > p"
   , "div ol>li p"
+  , ":global(.x)"
   , "i:heading(0)"
   , "i:host(p)"
   , "i:state(p)"

@@ -47,59 +47,59 @@ $pm       = [\-\+]
 @string2 = \"([^\n\r\f\\\"] | \\@nl | @nonaesc )*\"   -- strings with double quotes
 @string  = @string1 | @string2
 
-@a       = a
-@b       = b
-@c       = c
-@d       = d
-@e       = e
-@f       = f
-@g       = g
-@h       = h
-@i       = i
-@j       = j
-@k       = k
-@l       = l
-@m       = m
-@n       = n
-@o       = o
-@p       = p
-@q       = q
-@r       = r
-@s       = s
-@t       = t
-@u       = u|U
-@v       = v
-@w       = w
-@x       = x
-@y       = y
-@z       = z
-
--- @a       = a|A
--- @b       = b|B
--- @c       = c|C
--- @d       = d|D
--- @e       = e|E
--- @f       = f|F
--- @g       = g|G
--- @h       = h|H
--- @i       = i|I
--- @j       = j|J
--- @k       = k|K
--- @l       = l|L
--- @m       = m|M
--- @n       = n|N
--- @o       = o|O
--- @p       = p|P
--- @q       = q|Q
--- @r       = r|R
--- @s       = s|S
--- @t       = t|T
+-- @a       = a
+-- @b       = b
+-- @c       = c
+-- @d       = d
+-- @e       = e
+-- @f       = f
+-- @g       = g
+-- @h       = h
+-- @i       = i
+-- @j       = j
+-- @k       = k
+-- @l       = l
+-- @m       = m
+-- @n       = n
+-- @o       = o
+-- @p       = p
+-- @q       = q
+-- @r       = r
+-- @s       = s
+-- @t       = t
 -- @u       = u|U
--- @v       = v|V
--- @w       = w|W
--- @x       = x|X
--- @y       = y|Y
--- @z       = z|Z
+-- @v       = v
+-- @w       = w
+-- @x       = x
+-- @y       = y
+-- @z       = z
+
+@a       = a|A
+@b       = b|B
+@c       = c|C
+@d       = d|D
+@e       = e|E
+@f       = f|F
+@g       = g|G
+@h       = h|H
+@i       = i|I
+@j       = j|J
+@k       = k|K
+@l       = l|L
+@m       = m|M
+@n       = n|N
+@o       = o|O
+@p       = p|P
+@q       = q|Q
+@r       = r|R
+@s       = s|S
+@t       = t|T
+@u       = u|U
+@v       = v|V
+@w       = w|W
+@x       = x|X
+@y       = y|Y
+@z       = z|Z
 
 @moz     = "-" @m@o@z "-"
 @webkit  = "-" @w@e@b@k@i@t "-"
@@ -207,7 +207,7 @@ tokens :-
   @wo "$=" @wo                                         { constoken TSuffixMatch }
   @wo "*=" @wo                                         { constoken TSubstringMatch }
   @wo ","  @wo                                         { constoken Comma }
-  (@wo ";" @wo)+                                       { constoken Semicolon }
+  (@wo (\\ "0")? @wo ";" @wo)+                         { constoken Semicolon }
 
   "!" @wo @i@m@p@o@r@t@a@n@t                           { constoken ImportantT }
   @supports                                            { constoken SupportsT }
@@ -319,9 +319,12 @@ tokens :-
   @anum @d@v@m@i@n                                     { tokenize (Dvmin    . dropEnd 5) }
   @anum @e@m                                           { tokenize (Em       . dropEnd 2) }
   @anum @e@x                                           { tokenize (Ex       . dropEnd 2) }
+  @anum @f@r                                           { tokenize (Fr       . dropEnd 2) }
   @anum @g@r@a@d                                       { tokenize (Grad     . dropEnd 4) }
+  @anum @h@z                                           { tokenize (Hz       . dropEnd 2) }
   @anum @i@c                                           { tokenize (Ic       . dropEnd 2) }
   @anum @i@n                                           { tokenize (In       . dropEnd 2) }
+  @anum @k@h@z                                         { tokenize (KHz      . dropEnd 3) }
   @anum @l@h                                           { tokenize (Lh       . dropEnd 2) }
   @anum @l@v@b                                         { tokenize (Lvb      . dropEnd 3) }
   @anum @l@v@h                                         { tokenize (Lvh      . dropEnd 3) }
@@ -493,6 +496,7 @@ tokens :-
   @psc @nthh@lasth@child "("                           { constAndBegin (PseudoFunction NthFLastChild) nth_state }
   @psc @nthh@lasth@oftype "("                          { constAndBegin (PseudoFunction NthFLastOfType) nth_state }
   @psc @nthh@oftype "("                                { constAndBegin (PseudoFunction NthFOfType) nth_state }
+  @psc @g@l@o@b@a@l "("                                { constoken GlobalT }
   @psc @not "("                                        { constoken TNot }
   @psc @where "("                                      { constoken TWhere }
   @psc @has "("                                        { constoken THas }
@@ -1050,6 +1054,7 @@ tokens :-
   @w@i@l@l "-" @c@h@a@n@g@e @psc                                           { constoken (DescriptorT WillChangeT) }
   @w@o@r@d "-" @b@r@e@a@k @psc                                             { constoken (DescriptorT WordBreakT) }
   @w@o@r@d "-" @s@p@a@c@i@n@g @psc                                         { constoken (DescriptorT WordSpacingT) }
+  @w@o@r@d "-" @w@r@a@p @psc                                               { constoken (DescriptorT WordWrapT) }
   @w@r@i@t@i@n@g "-" @m@o@d@e @psc                                         { constoken (DescriptorT WritingModeT) }
   @x @psc                                                                  { constoken (DescriptorT XT) }
   @y @psc                                                                  { constoken (DescriptorT YT) }

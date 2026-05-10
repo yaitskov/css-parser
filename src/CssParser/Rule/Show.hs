@@ -110,6 +110,7 @@ instance CssShow TagSubSelector where
     AtomicPseudoClass apc -> toCssText apc
     NotClass nes -> ":not(" <> toCssText nes <> ")"
     Lang (Language l) -> ":lang(" <> fromStrict l <> ")"
+    Global nes -> ":global(" <> toCssText nes <> ")"
     Where nes -> ":where(" <> toCssText nes <> ")"
     Is nes -> ":is(" <> toCssText nes <> ")"
     Has nes -> ":has(" <> toCssText nes <> ")"

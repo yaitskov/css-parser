@@ -30,7 +30,7 @@ import CssParser.Lexer.Token
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
     , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
-    , NotT, OrT, AndT, OnlyT, ReturnsT
+    , NotT, OrT, AndT, OnlyT, ReturnsT, GlobalT
     , TOpen, TClose, DescriptorT, ClassT
     , Greater, Less, LessEqual, GreaterEqual
     , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
@@ -177,7 +177,10 @@ import Prelude
     dvmin       { TokenLoc (L.Dvmin $$) _ _ }
     em          { TokenLoc (L.Em $$) _ _ }
     ex          { TokenLoc (L.Ex $$) _ _ }
+    fr          { TokenLoc (L.Fr $$) _ _ }
     grad        { TokenLoc (L.Grad $$) _ _ }
+    hz          { TokenLoc (L.Hz $$) _ _ }
+    khz          { TokenLoc (L.KHz $$) _ _ }
     ic          { TokenLoc (L.Ic $$) _ _ }
     in          { TokenLoc (L.In $$) _ _ }
     lh          { TokenLoc (L.Lh $$) _ _ }
@@ -217,6 +220,7 @@ import Prelude
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
     'not('      { TokenLoc TNot _ _ }
+    'global('   { TokenLoc GlobalT _ _ }
     'where('    { TokenLoc TWhere _ _ }
     'is('       { TokenLoc TIs _ _ }
     'has('      { TokenLoc THas _ _ }
@@ -545,9 +549,12 @@ Scalar :: { (String, PropValType) }
     | dvmin                                       { ($1, Vl.Dvmin) }
     | em                                          { ($1, Vl.Em) }
     | ex                                          { ($1, Vl.Ex) }
+    | fr                                          { ($1, Vl.Fr) }
     | grad                                        { ($1, Vl.Grad) }
+    | hz                                          { ($1, Vl.Hz) }
     | ic                                          { ($1, Vl.Ic) }
     | in                                          { ($1, Vl.In) }
+    | khz                                         { ($1, Vl.KHz) }
     | lh                                          { ($1, Vl.Lh) }
     | lvb                                         { ($1, Vl.Lvb) }
     | lvh                                         { ($1, Vl.Lvh) }
@@ -680,6 +687,7 @@ TagClass :: { TagSubSelector }
     | host ESL                                    { Host (Embraced $2) }
     | host                                        { AtomicPseudoClass P.Host }
     | 'state(' Os IdKwd Os ')'                    { State (Embraced $3) }
+    | 'global(' SL                                { Global $2 }
     | 'where(' SL                                 { Where $2 }
     | 'is(' SL                                    { Is $2 }
     | 'has(' SL                                   { Has $2 }

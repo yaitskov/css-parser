@@ -65,9 +65,12 @@ data PropValType
   | Dvmin
   | Em
   | Ex
+  | Fr
   | Grad
+  | Hz
   | Ic
   | In
+  | KHz
   | Lh
   | Lvb
   | Lvh
@@ -124,7 +127,10 @@ instance CssShow PropValType where
     Dvmin -> "dvmin"
     Em -> "em"
     Ex -> "ex"
+    Fr -> "fr"
     Grad -> "grad"
+    Hz -> "Hz"
+    KHz -> "kHz"
     Ic -> "ic"
     In -> "in"
     Lh -> "lh"
