@@ -238,6 +238,7 @@ properties =
   , "transform: rotate(4turn);"
   , "transform: rotate(4rad);"
   , "border: 1px solid green;"
+  , "mask:url();"
   , "x: url(\"https://example.org/SWOP2006_Coated5v2.icc\");"
   , "x: url(./file.jpg);"
   , "x: url(/file.jpg);"

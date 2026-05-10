@@ -599,6 +599,7 @@ PropVal :: { PropVal }
     | PropN Op ')'                                { AppConst $1 }
     | Str                                         { StrVal $1 }
     | 'url(' Str ')'                              { UrlVal (Url $2) }
+    | 'url(' Os ')'                               { UrlVal (Url "") }
     | 'uqUrl'                                     { UrlVal (UnquotedUrl (pack $1)) }
     | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (validationToP $3 (reorder $3)) }
     | hash                                        { HexColor (HC (pack $1)) }
