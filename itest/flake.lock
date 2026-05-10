@@ -159,6 +159,7 @@
         "ress": "ress",
         "sakura": "sakura",
         "stack-overflow": "stack-overflow",
+        "uikit": "uikit",
         "uphack": "uphack",
         "uswds": "uswds"
       }
@@ -204,6 +205,22 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "uikit": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777971384,
+        "narHash": "sha256-MW7x741FoF0bGKa5EJkZRfqVq6n5nWTtZ34zo6h67mQ=",
+        "owner": "uikit",
+        "repo": "uikit",
+        "rev": "6dd3b351dd63e3674188c91d7f8fa55d0ff10fb0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "uikit",
+        "repo": "uikit",
         "type": "github"
       }
     },

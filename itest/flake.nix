@@ -47,7 +47,10 @@
       url = "github:Spiderpig86/Cirrus";
       flake = false;
     };
-
+    uikit = {
+      url = "github:uikit/uikit";
+      flake = false;
+    };
     # = {
     #   url = "github:";
     #   flake = false;
@@ -63,6 +66,7 @@
             buildInputs = [];
             shellHook = ''
               export CSS_FRAMEWORKS=(
+                 ${inputs.uikit}
                  ${inputs.cirrus} ${inputs.beer} ${inputs.materialize}
                  ${inputs.bulma} ${inputs.bootstrap} ${inputs.stack-overflow}
                  ${inputs.uswds}
