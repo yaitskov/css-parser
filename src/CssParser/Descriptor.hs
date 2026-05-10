@@ -266,6 +266,8 @@ data Descriptor
   | ImageRenderingT
   | ImageResolutionT
   | InitialLetterT
+  | InitialValueT
+  | InheritsT
   | InlineSizeT
   | InsetBlockEndT
   | InsetBlockStartT
@@ -467,6 +469,7 @@ data Descriptor
   | StrokeOpacityT
   | StrokeWidthT
   | StrokeT
+  | SyntaxT
   | TabSizeT
   | TableLayoutT
   | TextAlignLastT
@@ -805,7 +808,9 @@ instance CssShow Descriptor where
     ImageOrientationT               -> "image-orientation:"
     ImageRenderingT                 -> "image-rendering:"
     ImageResolutionT                -> "image-resolution:"
+    InheritsT                       -> "inherits:"
     InitialLetterT                  -> "initial-letter:"
+    InitialValueT                   -> "initial-value:"
     InlineSizeT                     -> "inline-size:"
     InsetBlockEndT                  -> "inset-block-end:"
     InsetBlockStartT                -> "inset-block-start:"
@@ -1007,6 +1012,7 @@ instance CssShow Descriptor where
     StrokeOpacityT                  -> "stroke-opacity:"
     StrokeWidthT                    -> "stroke-width:"
     StrokeT                         -> "stroke:"
+    SyntaxT                         -> "syntax:"
     TabSizeT                        -> "tab-size:"
     TableLayoutT                    -> "table-layout:"
     TextAlignLastT                  -> "text-align-last:"

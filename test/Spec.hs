@@ -99,12 +99,17 @@ at :: [String]
 at =
   colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <>
   container <> misc <> supports <> unknown <> media <> page <> layer <>
-  atImport <> atFunction <> keyframe
+  atImport <> atFunction <> keyframe <> atProperty
 
 colorProfile :: [String]
 colorProfile =
   [ "@color-profile xx { src: url(\"https://example.org/SWOP2006_Coated5v2.icc\"); }"
   , "@color-profile y { src: url(example.org); src: url(example.com); }"
+  ]
+
+atProperty :: [String]
+atProperty =
+  [ "@property --ga { syntax: \"<angle>\"; initial-value: 0deg; inherits: false; }"
   ]
 
 fontFace :: [String]

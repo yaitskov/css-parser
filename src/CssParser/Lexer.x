@@ -786,8 +786,10 @@ tokens :-
   @i@m@a@g@e "-" @o@r@i@e@n@t@a@t@i@o@n @psc                               { constoken (DescriptorT ImageOrientationT) }
   @i@m@a@g@e "-" @r@e@n@d@e@r@i@n@g @psc                                   { constoken (DescriptorT ImageRenderingT) }
   @i@m@a@g@e "-" @r@e@s@o@l@u@t@i@o@n @psc                                 { constoken (DescriptorT ImageResolutionT) }
+  @i@n@h@e@r@i@t@s @psc                                                    { constoken (DescriptorT InheritsT) }
   @i@n@i@t@i@a@l "-" @l@e@t@t@e@r @psc                                     { constoken (DescriptorT InitialLetterT) }
   @i@n@l@i@n@e "-" @s@i@z@e @psc                                           { constoken (DescriptorT InlineSizeT) }
+  @i@n@i@t@i@a@l "-" @v@a@l@u@e @psc                                       { constoken (DescriptorT InitialValueT) }
   @i@n@s@e@t "-" @b@l@o@c@k "-" @e@n@d @psc                                { constoken (DescriptorT InsetBlockEndT) }
   @i@n@s@e@t "-" @b@l@o@c@k "-" @s@t@a@r@t @psc                            { constoken (DescriptorT InsetBlockStartT) }
   @i@n@s@e@t "-" @b@l@o@c@k @psc                                           { constoken (DescriptorT InsetBlockT) }
@@ -988,6 +990,7 @@ tokens :-
   @s@t@r@o@k@e "-" @o@p@a@c@i@t@y @psc                                     { constoken (DescriptorT StrokeOpacityT) }
   @s@t@r@o@k@e "-" @w@i@d@t@h @psc                                         { constoken (DescriptorT StrokeWidthT) }
   @s@t@r@o@k@e @psc                                                        { constoken (DescriptorT StrokeT) }
+  @s@y@n@t@a@x @psc                                                        { constoken (DescriptorT SyntaxT) }
   @t@a@b "-" @s@i@z@e @psc                                                 { constoken (DescriptorT TabSizeT) }
   @t@a@b@l@e "-" @l@a@y@o@u@t @psc                                         { constoken (DescriptorT TableLayoutT) }
   @t@e@x@t "-" @a@l@i@g@n "-" @l@a@s@t @psc                                { constoken (DescriptorT TextAlignLastT) }
@@ -1035,7 +1038,8 @@ tokens :-
   @t@r@a@n@s@i@t@i@o@n "-" @d@e@l@a@y @psc                                 { constoken (DescriptorT TransitionDelayT) }
   @t@r@a@n@s@i@t@i@o@n "-" @d@u@r@a@t@i@o@n @psc                           { constoken (DescriptorT TransitionDurationT) }
   @t@r@a@n@s@i@t@i@o@n "-" @p@r@o@p@e@r@t@y @psc                           { constoken (DescriptorT TransitionPropertyT) }
-  @t@r@a@n@s@i@t@i@o@n "-" @t@i@m@i@n@g "-" @f@u@n@c@t@i@o@n @psc          { constoken (DescriptorT TransitionTimingFunctionT) }
+  @t@r@a@n@s@i@t@i@o@n "-" @t@i@m@i@n@g "-" @f@u@n@c@t@i@o@n @psc          { constoken
+                                                                               (DescriptorT TransitionTimingFunctionT) }
   @t@r@a@n@s@i@t@i@o@n @psc                                                { constoken (DescriptorT TransitionT) }
   @t@r@a@n@s@l@a@t@e @psc                                                  { constoken (DescriptorT TranslateT) }
   @u@n@i@c@o@d@e "-" @b@i@d@i @psc                                         { constoken (DescriptorT UnicodeBidiT) }
