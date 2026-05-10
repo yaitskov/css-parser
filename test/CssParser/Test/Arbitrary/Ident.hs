@@ -17,6 +17,7 @@ instance Arbitrary Descriptor where
                   BrowserSpecificDescriptor Na i -> BrowserSpecificDescriptor Opera i
                   o -> o) <$> genericArbitrary
 
+deriving via (GenericArbitrary KnownDescriptor) instance Arbitrary KnownDescriptor
 deriving via (GenericArbitrary BrowserPrefix) instance Arbitrary BrowserPrefix
 deriving via (GenericArbitrary Var) instance Arbitrary Var
 deriving via (GenericArbitrary PropertyName) instance Arbitrary PropertyName

@@ -72,6 +72,7 @@ library
     , either < 6
     , reorder-expression < 1
     , these < 2
+    , unordered-containers < 1
   build-tool-depends:
     , alex:alex
     , happy:happy

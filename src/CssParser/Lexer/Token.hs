@@ -11,6 +11,7 @@ import CssParser.Rule.Pseudo ( AtomicPseudoClass, Nth, PseudoElement )
 import CssParser.Rule.Value (Ratio)
 import CssParser.Utils ( readIdentifier )
 import Data.Text (pack)
+import Data.HashMap.Strict qualified as HM
 
 type NumberStr = String
 
@@ -21,7 +22,7 @@ data Token
   | TPrefixMatch
   | TSuffixMatch
   | TSubstringMatch
-  | IdentT String
+  | IdentT Text
   | String String
   | UnicodeRangeVal String
   | FontFeatureValuesT
@@ -190,3 +191,12 @@ readCustomDescriptor =
 readBpDescriptor :: BrowserPrefix -> String -> Token
 readBpDescriptor bp =
   DescriptorT . BrowserSpecificDescriptor bp . Ident . pack . readIdentifier . dropEnd 1 . drop (bpLength bp)
+
+descriptorKeywords :: HM.HashMap Text Token
+descriptorKeywords =
+  HM.fromList
+  [ ("container", ContainerT)
+  , ("position-try", PositionTryT)
+  , ("page", PageT)
+  , ("all", MediaTypeT AllMt)
+  ]

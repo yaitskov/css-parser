@@ -2,7 +2,7 @@
 module CssParser.FixRule where
 
 import Control.Monad ( foldM )
-import CssParser.Descriptor (Descriptor (CustomDescriptor, ResultT))
+import CssParser.Descriptor (Descriptor (CustomDescriptor, KnownDescriptor), KnownDescriptor (ResultT))
 import CssParser.At.Function ( ConstEntry(..) )
 import CssParser.Ident
 import CssParser.Prelude
@@ -30,7 +30,7 @@ identOnlyP (VarProp i) _ = Failed $ "Var " <> show i <> " is not expected"
 varOrResult :: Descriptor -> NonEmpty PropVals -> P (Either ConstEntry (NonEmpty PropVals))
 varOrResult d pvs =
   case d of
-    ResultT -> pure $ Right pvs
+    KnownDescriptor ResultT -> pure $ Right pvs
     CustomDescriptor i -> pure . Left $ ConstEntry (Var i) (PropValsList pvs)
     o -> Failed $ "Expected var or result but got " <> unpack (toCssText o)
 

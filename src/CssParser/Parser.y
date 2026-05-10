@@ -10,7 +10,7 @@ import CssParser.At.Keyframe
 import CssParser.At.MediaQuery
 import CssParser.At.Page
 import CssParser.At.Supports hiding (FeatureQuery)
-import CssParser.Descriptor (Descriptor (ResultT), toPropertyName)
+import CssParser.Descriptor (Descriptor, toPropertyName)
 import CssParser.Norm
 import CssParser.Rule.Pseudo qualified as P
 import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition, Heading, Host)
@@ -281,8 +281,8 @@ AtRule :: { AtRule }
     | layer ' ' LayerName ERB                     { LayerBlock (Just $3) $4 }
     | layer ' ' '{' OsCssRuleBody '}'             { LayerBlock Nothing $4 }
     | layer '{' OsCssRuleBody '}'                 { LayerBlock Nothing $3 }
-    | page '{' OsCssRuleBody '}'                  { Page (PageSelectorList []) $3 }
-    | page PageSelectorList ERB                   { Page (PageSelectorList $2) $3 }
+    | page Os '{' OsCssRuleBody '}'               { Page (PageSelectorList []) $4 }
+    | page Os PageSelectorList ERB                { Page (PageSelectorList $3) $4 }
     | pageMargin ERB                              { PageMarginBlock $1 $2 }
     | counterStyle IdKwd ERB                      { CounterStyle $2 $3 }
     | property Var ERB                            { Property $2 $3 }
@@ -784,11 +784,11 @@ MediaKeywordAsIdent
     | 'and'                                       { R.Ident "and" }
     | 'only'                                      { R.Ident "only" }
 Ident :: { R.Ident }
-    : ident                                       { R.Ident (pack $1) }
+    : ident                                       { R.Ident $1 }
 Class :: { R.Ident }
     : class                                       { R.Ident (pack $1) }
 IdTxt :: { Text }
-    : ident                                       { pack $1 }
+    : ident                                       { $1 }
 Str :: { Text }
     : string                                      { pack $1 }
 Var :: { R.Var }
