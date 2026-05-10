@@ -633,9 +633,8 @@ Important :: { Maybe Important }
     : important                                   { Just Important }
     |                                             { Nothing }
 CssPropertyVals :: { NonEmpty PropVal }
-    : PropVal                                     { $1 :| [] }
-    | PropVal ' '                                 { $1 :| [] }
-    | PropVal ' ' CssPropertyVals                 { $1 <| $3 }
+    : PropVal Os                                  { $1 :| [] }
+    | PropVal Os CssPropertyVals                  { $1 <| $3 }
 SelectorList :: { NonEmpty Selector }
     : NonEmpty(',', Selector)                     { $1 }
 Selector :: { Selector }
