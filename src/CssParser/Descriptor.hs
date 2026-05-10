@@ -248,6 +248,7 @@ data Descriptor
   | GridColumnEndT
   | GridColumnStartT
   | GridColumnT
+  | GridGapT
   | GridRowEndT
   | GridRowStartT
   | GridRowT
@@ -787,6 +788,7 @@ instance CssShow Descriptor where
     GridColumnEndT                  -> "grid-column-end:"
     GridColumnStartT                -> "grid-column-start:"
     GridColumnT                     -> "grid-column:"
+    GridGapT                        -> "grid-gap:"
     GridRowEndT                     -> "grid-row-end:"
     GridRowStartT                   -> "grid-row-start:"
     GridRowT                        -> "grid-row:"

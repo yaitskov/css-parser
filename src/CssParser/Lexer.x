@@ -769,6 +769,7 @@ tokens :-
   @g@r@i@d "-" @c@o@l@u@m@n "-" @e@n@d @psc                                { constoken (DescriptorT GridColumnEndT) }
   @g@r@i@d "-" @c@o@l@u@m@n "-" @s@t@a@r@t @psc                            { constoken (DescriptorT GridColumnStartT) }
   @g@r@i@d "-" @c@o@l@u@m@n @psc                                           { constoken (DescriptorT GridColumnT) }
+  @g@r@i@d "-" @g@a@p @psc                                                 { constoken (DescriptorT GridGapT) }
   @g@r@i@d "-" @r@o@w "-" @e@n@d @psc                                      { constoken (DescriptorT GridRowEndT) }
   @g@r@i@d "-" @r@o@w "-" @s@t@a@r@t @psc                                  { constoken (DescriptorT GridRowStartT) }
   @g@r@i@d "-" @r@o@w @psc                                                 { constoken (DescriptorT GridRowT) }

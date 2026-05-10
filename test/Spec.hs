@@ -186,6 +186,7 @@ properties :: [String]
 properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
+  , "grid-gap: 2;"
   , "min-width: 0\\0;"
   , "font-feature-settings:\"kern\"1, \"liga\" 0;"
   , "margin: 1fr 2Hz 3kHz;"
