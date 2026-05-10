@@ -522,12 +522,12 @@ tokens :-
   @wo @cmo                                             { begin comment }
   "<!--"                                               { begin htmlComment }
 -- begin descriptor list
-  "-" "-" @ident @psc                                  { tokenize (readCustomDescriptor) }
-  @moz @ident @psc                                     { tokenize (readBpDescriptor I.Moz) }
-  @ms @ident @psc                                      { tokenize (readBpDescriptor I.Microsoft) }
-  @apple @ident @psc                                   { tokenize (readBpDescriptor I.Apple) }
-  @opera @ident @psc                                   { tokenize (readBpDescriptor I.Opera) }
-  @webkit @ident @psc                                  { tokenize (readBpDescriptor I.WebKit) }
+  "--" @name @psc                                      { tokenize (readCustomDescriptor) }
+  @moz @name @psc                                      { tokenize (readBpDescriptor I.Moz) }
+  @ms @name @psc                                       { tokenize (readBpDescriptor I.Microsoft) }
+  @apple @name @psc                                    { tokenize (readBpDescriptor I.Apple) }
+  @opera @name @psc                                    { tokenize (readBpDescriptor I.Opera) }
+  @webkit @name @psc                                   { tokenize (readBpDescriptor I.WebKit) }
 
   @a@c@c@e@n@t "-" @c@o@l@o@r @psc                                         { constoken (DescriptorT AccentColorT) }
   @a@l@i@g@n "-" @c@o@n@t@e@n@t @psc                                       { constoken (DescriptorT AlignContentT) }
