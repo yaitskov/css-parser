@@ -657,7 +657,9 @@ tokens :-
   @c@l@i@p "-" @p@a@t@h @psc                                               { constoken (DescriptorT ClipPathT) }
   @c@l@i@p "-" @r@u@l@e @psc                                               { constoken (DescriptorT ClipRuleT) }
   @c@l@i@p @psc                                                            { constoken (DescriptorT ClipT) }
-  @c@o@l@o@r "-" @i@n@t@e@r@p@o@l@a@t@i@o@n "-" @f@i@l@t@e@r@s @psc        { constoken (DescriptorT ColorInterpolationFiltersT) }
+  @c@o@l@o@r "-" @a@d@j@u@s@t @psc                                         { constoken (DescriptorT ColorAdjustT) }
+  @c@o@l@o@r "-" @i@n@t@e@r@p@o@l@a@t@i@o@n "-" @f@i@l@t@e@r@s @psc        { constoken (DescriptorT
+                                                                                          ColorInterpolationFiltersT) }
   @c@o@l@o@r "-" @i@n@t@e@r@p@o@l@a@t@i@o@n @psc                           { constoken (DescriptorT ColorInterpolationT) }
   @c@o@l@o@r "-" @s@c@h@e@m@e @psc                                         { constoken (DescriptorT ColorSchemeT) }
   @c@o@l@o@r @psc                                                          { constoken (DescriptorT ColorT) }

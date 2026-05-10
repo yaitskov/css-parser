@@ -138,6 +138,7 @@ data Descriptor
   | ClipPathT
   | ClipRuleT
   | ClipT
+  | ColorAdjustT
   | ColorInterpolationFiltersT
   | ColorInterpolationT
   | ColorSchemeT
@@ -676,6 +677,7 @@ instance CssShow Descriptor where
     ClipPathT                       -> "clip-path:"
     ClipRuleT                       -> "clip-rule:"
     ClipT                           -> "clip:"
+    ColorAdjustT                    -> "color-adjust:"
     ColorInterpolationFiltersT      -> "color-interpolation-filters:"
     ColorInterpolationT             -> "color-interpolation:"
     ColorSchemeT                    -> "color-scheme:"
