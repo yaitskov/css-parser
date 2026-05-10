@@ -200,6 +200,7 @@ $pm       = [\-\+]
 
 tokens :-
  <0> {
+  \\ "0"                                               ;
   @wo "=" @wo                                          { constoken TEqual }
   @wo "~=" @wo                                         { constoken TIncludes }
   @wo "|=" @wo                                         { constoken TDashMatch }
@@ -207,7 +208,7 @@ tokens :-
   @wo "$=" @wo                                         { constoken TSuffixMatch }
   @wo "*=" @wo                                         { constoken TSubstringMatch }
   @wo ","  @wo                                         { constoken Comma }
-  (@wo (\\ "0")? @wo ";" @wo)+                         { constoken Semicolon }
+  (@wo ";" @wo)+                                       { constoken Semicolon }
 
   "!" @wo @i@m@p@o@r@t@a@n@t                           { constoken ImportantT }
   @supports                                            { constoken SupportsT }
