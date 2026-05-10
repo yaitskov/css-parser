@@ -28,8 +28,8 @@ data KnownDescriptor
   = AccentColorT
   | AlignContentT
   | AlignItemsT
-  | AlignSelfT
   | AlignmentBaselineT
+  | AlignSelfT
   | AllT
   | AnchorNameT
   | AnchorScopeT
@@ -44,9 +44,11 @@ data KnownDescriptor
   | AnimationRangeEndT
   | AnimationRangeStartT
   | AnimationRangeT
+  | AnimationT
   | AnimationTimelineT
   | AnimationTimingFunctionT
-  | AnimationT
+  | AnyHoverT
+  | AnyPointerT
   | AppearanceT
   | AspectRatioT
   | BackdropFilterT
@@ -57,36 +59,36 @@ data KnownDescriptor
   | BackgroundColorT
   | BackgroundImageT
   | BackgroundOriginT
+  | BackgroundPositionT
   | BackgroundPositionXT
   | BackgroundPositionYT
-  | BackgroundPositionT
   | BackgroundRepeatT
   | BackgroundRepeatXT
   | BackgroundRepeatYT
   | BackgroundSizeT
   | BackgroundT
-  | BasePaletteT
   | BaselineShiftT
   | BaselineSourceT
+  | BasePaletteT
   | BlockSizeT
   | BorderBlockColorT
   | BorderBlockEndColorT
   | BorderBlockEndStyleT
-  | BorderBlockEndWidthT
   | BorderBlockEndT
+  | BorderBlockEndWidthT
   | BorderBlockStartColorT
   | BorderBlockStartStyleT
-  | BorderBlockStartWidthT
   | BorderBlockStartT
+  | BorderBlockStartWidthT
   | BorderBlockStyleT
-  | BorderBlockWidthT
   | BorderBlockT
+  | BorderBlockWidthT
   | BorderBottomColorT
   | BorderBottomLeftRadiusT
   | BorderBottomRightRadiusT
   | BorderBottomStyleT
-  | BorderBottomWidthT
   | BorderBottomT
+  | BorderBottomWidthT
   | BorderCollapseT
   | BorderColorT
   | BorderEndEndRadiusT
@@ -95,41 +97,41 @@ data KnownDescriptor
   | BorderImageRepeatT
   | BorderImageSliceT
   | BorderImageSourceT
-  | BorderImageWidthT
   | BorderImageT
+  | BorderImageWidthT
   | BorderInlineColorT
   | BorderInlineEndColorT
   | BorderInlineEndStyleT
-  | BorderInlineEndWidthT
   | BorderInlineEndT
+  | BorderInlineEndWidthT
   | BorderInlineStartColorT
   | BorderInlineStartStyleT
-  | BorderInlineStartWidthT
   | BorderInlineStartT
+  | BorderInlineStartWidthT
   | BorderInlineStyleT
-  | BorderInlineWidthT
   | BorderInlineT
+  | BorderInlineWidthT
   | BorderLeftColorT
   | BorderLeftStyleT
-  | BorderLeftWidthT
   | BorderLeftT
+  | BorderLeftWidthT
   | BorderRadiusT
   | BorderRightColorT
   | BorderRightStyleT
-  | BorderRightWidthT
   | BorderRightT
+  | BorderRightWidthT
   | BorderSpacingT
   | BorderStartEndRadiusT
   | BorderStartStartRadiusT
   | BorderStyleT
+  | BorderT
   | BorderTopColorT
   | BorderTopLeftRadiusT
   | BorderTopRightRadiusT
   | BorderTopStyleT
-  | BorderTopWidthT
   | BorderTopT
+  | BorderTopWidthT
   | BorderWidthT
-  | BorderT
   | BottomT
   | BoxAlignT
   | BoxDecorationBreakT
@@ -155,6 +157,8 @@ data KnownDescriptor
   | ClipRuleT
   | ClipT
   | ColorAdjustT
+  | ColorGamutT
+  | ColorIndexT
   | ColorInterpolationFiltersT
   | ColorInterpolationT
   | ColorSchemeT
@@ -165,23 +169,23 @@ data KnownDescriptor
   | ColumnHeightT
   | ColumnRuleColorT
   | ColumnRuleStyleT
-  | ColumnRuleWidthT
   | ColumnRuleT
+  | ColumnRuleWidthT
   | ColumnSpanT
+  | ColumnsT
   | ColumnWidthT
   | ColumnWrapT
-  | ColumnsT
+  | ContainerD
+  | ContainerNameT
+  | ContainerTypeT
   | ContainIntrinsicBlockSizeT
   | ContainIntrinsicHeightT
   | ContainIntrinsicInlineSizeT
   | ContainIntrinsicSizeT
   | ContainIntrinsicWidthT
   | ContainT
-  | ContainerNameT
-  | ContainerTypeT
-  | ContainerD
-  | ContentVisibilityT
   | ContentT
+  | ContentVisibilityT
   | CornerBlockEndShapeT
   | CornerBlockStartShapeT
   | CornerBottomLeftShapeT
@@ -205,11 +209,17 @@ data KnownDescriptor
   | CursorT
   | CxT
   | CyT
-  | DT
+  | DeviceAspectRatioT
+  | DeviceHeightT
+  | DevicePostureT
+  | DeviceWidthT
   | DirectionT
+  | DisplayModeT
   | DisplayT
   | DominantBaselineT
+  | DT
   | DynamicRangeLimitT
+  | DynamicRangeT
   | EmptyCellsT
   | FieldSizingT
   | FillOpacityT
@@ -221,8 +231,8 @@ data KnownDescriptor
   | FlexFlowT
   | FlexGrowT
   | FlexShrinkT
-  | FlexWrapT
   | FlexT
+  | FlexWrapT
   | FloatT
   | FloodColorT
   | FloodOpacityT
@@ -241,8 +251,9 @@ data KnownDescriptor
   | FontSynthesisPositionT
   | FontSynthesisSmallCapsT
   | FontSynthesisStyleT
-  | FontSynthesisWeightT
   | FontSynthesisT
+  | FontSynthesisWeightT
+  | FontT
   | FontVariantAlternatesT
   | FontVariantCapsT
   | FontVariantEastAsianT
@@ -254,9 +265,8 @@ data KnownDescriptor
   | FontVariationSettingsT
   | FontWeightT
   | FontWidthT
-  | FontT
-  | ForcedColorsT
   | ForcedColorAdjustT
+  | ForcedColorsT
   | GapT
   | GridAreaT
   | GridAutoColumnsT
@@ -269,22 +279,24 @@ data KnownDescriptor
   | GridRowEndT
   | GridRowStartT
   | GridRowT
+  | GridT
   | GridTemplateAreasT
   | GridTemplateColumnsT
   | GridTemplateRowsT
   | GridTemplateT
-  | GridT
   | HangingPunctuationT
   | HeightT
+  | HorizontalViewportSegmentsT
+  | HoverT
   | HyphenateCharacterT
   | HyphenateLimitCharsT
   | HyphensT
   | ImageOrientationT
   | ImageRenderingT
   | ImageResolutionT
+  | InheritsT
   | InitialLetterT
   | InitialValueT
-  | InheritsT
   | InlineSizeT
   | InsetBlockEndT
   | InsetBlockStartT
@@ -294,10 +306,11 @@ data KnownDescriptor
   | InsetInlineT
   | InsetT
   | InteractivityT
-  | InterestDelayT
   | InterestDelayEndT
   | InterestDelayStartT
+  | InterestDelayT
   | InterpolateSizeT
+  | InvertedColorsT
   | IsolationT
   | JustifyContentT
   | JustifyItemsT
@@ -311,8 +324,8 @@ data KnownDescriptor
   | LineHeightT
   | ListStyleImageT
   | ListStylePositionT
-  | ListStyleTypeT
   | ListStyleT
+  | ListStyleTypeT
   | MarginBlockEndT
   | MarginBlockStartT
   | MarginBlockT
@@ -322,9 +335,9 @@ data KnownDescriptor
   | MarginInlineT
   | MarginLeftT
   | MarginRightT
+  | MarginT
   | MarginTopT
   | MarginTrimT
-  | MarginT
   | MarkerEndT
   | MarkerMidT
   | MarkerStartT
@@ -334,8 +347,8 @@ data KnownDescriptor
   | MaskBorderRepeatT
   | MaskBorderSliceT
   | MaskBorderSourceT
-  | MaskBorderWidthT
   | MaskBorderT
+  | MaskBorderWidthT
   | MaskClipT
   | MaskCompositeT
   | MaskImageT
@@ -344,8 +357,8 @@ data KnownDescriptor
   | MaskPositionT
   | MaskRepeatT
   | MaskSizeT
-  | MaskTypeT
   | MaskT
+  | MaskTypeT
   | MathDepthT
   | MathShiftT
   | MathStyleT
@@ -358,6 +371,7 @@ data KnownDescriptor
   | MinInlineSizeT
   | MinWidthT
   | MixBlendModeT
+  | MonochromeT
   | ObjectFitT
   | ObjectPositionT
   | ObjectViewBoxT
@@ -369,27 +383,28 @@ data KnownDescriptor
   | OffsetT
   | OpacityT
   | OrderT
+  | OrientationT
   | OrphansT
   | OutlineColorT
   | OutlineOffsetT
   | OutlineStyleT
-  | OutlineWidthT
   | OutlineT
+  | OutlineWidthT
   | OverflowAnchorT
   | OverflowBlockT
   | OverflowClipMarginT
   | OverflowInlineT
+  | OverflowT
   | OverflowWrapT
   | OverflowXT
   | OverflowYT
-  | OverflowT
   | OverlayT
   | OverrideColorsT
   | OverscrollBehaviorBlockT
   | OverscrollBehaviorInlineT
+  | OverscrollBehaviorT
   | OverscrollBehaviorXT
   | OverscrollBehaviorYT
-  | OverscrollBehaviorT
   | PaddingBlockEndT
   | PaddingBlockStartT
   | PaddingBlockT
@@ -399,8 +414,8 @@ data KnownDescriptor
   | PaddingInlineT
   | PaddingLeftT
   | PaddingRightT
-  | PaddingTopT
   | PaddingT
+  | PaddingTopT
   | PageBreakAfterT
   | PageBreakBeforeT
   | PageBreakInsideT
@@ -412,29 +427,41 @@ data KnownDescriptor
   | PlaceItemsT
   | PlaceSelfT
   | PointerEventsT
+  | PointerT
   | PositionAnchorT
   | PositionAreaT
+  | PositionT
+  | PositionTryD
   | PositionTryFallbacksT
   | PositionTryOrderT
-  | PositionTryD
   | PositionVisibilityT
-  | PositionT
+  | PrefersColorSchemeT
+  | PrefersContrastT
+  | PrefersReducedDataT
+  | PrefersReducedMotionT
+  | PrefersReducedTransparencyT
   | PrintColorAdjustT
   | QuotesT
-  | RT
   | ReadingFlowT
   | ReadingOrderT
   | ResizeT
+  | ResolutionT
   | ResultT
   | RightT
   | RotateT
   | RowGapT
+  | RT
   | RubyAlignT
   | RubyOverhangT
   | RubyPositionT
   | RxT
   | RyT
   | ScaleT
+  | ScanT
+  | ScriptingT
+  | ScrollbarColorT
+  | ScrollbarGutterT
+  | ScrollbarWidthT
   | ScrollBehaviorT
   | ScrollInitialTargetT
   | ScrollMarginBlockEndT
@@ -446,8 +473,8 @@ data KnownDescriptor
   | ScrollMarginInlineT
   | ScrollMarginLeftT
   | ScrollMarginRightT
-  | ScrollMarginTopT
   | ScrollMarginT
+  | ScrollMarginTopT
   | ScrollMarkerGroupT
   | ScrollPaddingBlockEndT
   | ScrollPaddingBlockStartT
@@ -458,8 +485,8 @@ data KnownDescriptor
   | ScrollPaddingInlineT
   | ScrollPaddingLeftT
   | ScrollPaddingRightT
-  | ScrollPaddingTopT
   | ScrollPaddingT
+  | ScrollPaddingTopT
   | ScrollSnapAlignT
   | ScrollSnapStopT
   | ScrollSnapTypeT
@@ -467,13 +494,11 @@ data KnownDescriptor
   | ScrollTimelineAxisT
   | ScrollTimelineNameT
   | ScrollTimelineT
-  | ScrollbarColorT
-  | ScrollbarGutterT
-  | ScrollbarWidthT
   | ShapeImageThresholdT
   | ShapeMarginT
   | ShapeOutsideT
   | ShapeRenderingT
+  | ShapeT
   | SpeakAsT
   | SrcT
   | StopColorT
@@ -484,18 +509,18 @@ data KnownDescriptor
   | StrokeLinejoinT
   | StrokeMiterlimitT
   | StrokeOpacityT
-  | StrokeWidthT
   | StrokeT
+  | StrokeWidthT
   | SyntaxT
-  | TabSizeT
   | TableLayoutT
+  | TabSizeT
   | TextAlignLastT
   | TextAlignT
   | TextAnchorT
   | TextAutospaceT
   | TextBoxEdgeT
-  | TextBoxTrimT
   | TextBoxT
+  | TextBoxTrimT
   | TextCombineUprightT
   | TextDecorationColorT
   | TextDecorationInsetT
@@ -503,8 +528,8 @@ data KnownDescriptor
   | TextDecorationSkipInkT
   | TextDecorationSkipT
   | TextDecorationStyleT
-  | TextDecorationThicknessT
   | TextDecorationT
+  | TextDecorationThicknessT
   | TextEmphasisColorT
   | TextEmphasisPositionT
   | TextEmphasisStyleT
@@ -534,15 +559,18 @@ data KnownDescriptor
   | TransitionDelayT
   | TransitionDurationT
   | TransitionPropertyT
-  | TransitionTimingFunctionT
   | TransitionT
+  | TransitionTimingFunctionT
   | TranslateT
   | UnicodeBidiT
   | UnicodeRangeT
+  | UpdateT
   | UserModifyT
   | UserSelectT
   | VectorEffectT
   | VerticalAlignT
+  | VerticalViewportSegmentsT
+  | VideoDynamicRangeT
   | ViewTimelineAxisT
   | ViewTimelineInsetT
   | ViewTimelineNameT
@@ -581,8 +609,8 @@ instance CssShow KnownDescriptor where
     AccentColorT                    -> "accent-color"
     AlignContentT                   -> "align-content"
     AlignItemsT                     -> "align-items"
-    AlignSelfT                      -> "align-self"
     AlignmentBaselineT              -> "alignment-baseline"
+    AlignSelfT                      -> "align-self"
     AllT                            -> "all"
     AnchorNameT                     -> "anchor-name"
     AnchorScopeT                    -> "anchor-scope"
@@ -597,9 +625,11 @@ instance CssShow KnownDescriptor where
     AnimationRangeEndT              -> "animation-range-end"
     AnimationRangeStartT            -> "animation-range-start"
     AnimationRangeT                 -> "animation-range"
+    AnimationT                      -> "animation"
     AnimationTimelineT              -> "animation-timeline"
     AnimationTimingFunctionT        -> "animation-timing-function"
-    AnimationT                      -> "animation"
+    AnyHoverT                     -> "any-hover"
+    AnyPointerT                   -> "any-pointer"
     AppearanceT                     -> "appearance"
     AspectRatioT                    -> "aspect-ratio"
     BackdropFilterT                 -> "backdrop-filter"
@@ -610,36 +640,36 @@ instance CssShow KnownDescriptor where
     BackgroundColorT                -> "background-color"
     BackgroundImageT                -> "background-image"
     BackgroundOriginT               -> "background-origin"
+    BackgroundPositionT             -> "background-position"
     BackgroundPositionXT            -> "background-position-x"
     BackgroundPositionYT            -> "background-position-y"
-    BackgroundPositionT             -> "background-position"
     BackgroundRepeatT               -> "background-repeat"
     BackgroundRepeatXT              -> "background-repeat-x"
     BackgroundRepeatYT              -> "background-repeat-y"
     BackgroundSizeT                 -> "background-size"
     BackgroundT                     -> "background"
-    BasePaletteT                    -> "base-palette"
     BaselineShiftT                  -> "baseline-shift"
     BaselineSourceT                 -> "baseline-source"
+    BasePaletteT                    -> "base-palette"
     BlockSizeT                      -> "block-size"
     BorderBlockColorT               -> "border-block-color"
     BorderBlockEndColorT            -> "border-block-end-color"
     BorderBlockEndStyleT            -> "border-block-end-style"
-    BorderBlockEndWidthT            -> "border-block-end-width"
     BorderBlockEndT                 -> "border-block-end"
+    BorderBlockEndWidthT            -> "border-block-end-width"
     BorderBlockStartColorT          -> "border-block-start-color"
     BorderBlockStartStyleT          -> "border-block-start-style"
-    BorderBlockStartWidthT          -> "border-block-start-width"
     BorderBlockStartT               -> "border-block-start"
+    BorderBlockStartWidthT          -> "border-block-start-width"
     BorderBlockStyleT               -> "border-block-style"
-    BorderBlockWidthT               -> "border-block-width"
     BorderBlockT                    -> "border-block"
+    BorderBlockWidthT               -> "border-block-width"
     BorderBottomColorT              -> "border-bottom-color"
     BorderBottomLeftRadiusT         -> "border-bottom-left-radius"
     BorderBottomRightRadiusT        -> "border-bottom-right-radius"
     BorderBottomStyleT              -> "border-bottom-style"
-    BorderBottomWidthT              -> "border-bottom-width"
     BorderBottomT                   -> "border-bottom"
+    BorderBottomWidthT              -> "border-bottom-width"
     BorderCollapseT                 -> "border-collapse"
     BorderColorT                    -> "border-color"
     BorderEndEndRadiusT             -> "border-end-end-radius"
@@ -648,41 +678,41 @@ instance CssShow KnownDescriptor where
     BorderImageRepeatT              -> "border-image-repeat"
     BorderImageSliceT               -> "border-image-slice"
     BorderImageSourceT              -> "border-image-source"
-    BorderImageWidthT               -> "border-image-width"
     BorderImageT                    -> "border-image"
+    BorderImageWidthT               -> "border-image-width"
     BorderInlineColorT              -> "border-inline-color"
     BorderInlineEndColorT           -> "border-inline-end-color"
     BorderInlineEndStyleT           -> "border-inline-end-style"
-    BorderInlineEndWidthT           -> "border-inline-end-width"
     BorderInlineEndT                -> "border-inline-end"
+    BorderInlineEndWidthT           -> "border-inline-end-width"
     BorderInlineStartColorT         -> "border-inline-start-color"
     BorderInlineStartStyleT         -> "border-inline-start-style"
-    BorderInlineStartWidthT         -> "border-inline-start-width"
     BorderInlineStartT              -> "border-inline-start"
+    BorderInlineStartWidthT         -> "border-inline-start-width"
     BorderInlineStyleT              -> "border-inline-style"
-    BorderInlineWidthT              -> "border-inline-width"
     BorderInlineT                   -> "border-inline"
+    BorderInlineWidthT              -> "border-inline-width"
     BorderLeftColorT                -> "border-left-color"
     BorderLeftStyleT                -> "border-left-style"
-    BorderLeftWidthT                -> "border-left-width"
     BorderLeftT                     -> "border-left"
+    BorderLeftWidthT                -> "border-left-width"
     BorderRadiusT                   -> "border-radius"
     BorderRightColorT               -> "border-right-color"
     BorderRightStyleT               -> "border-right-style"
-    BorderRightWidthT               -> "border-right-width"
     BorderRightT                    -> "border-right"
+    BorderRightWidthT               -> "border-right-width"
     BorderSpacingT                  -> "border-spacing"
     BorderStartEndRadiusT           -> "border-start-end-radius"
     BorderStartStartRadiusT         -> "border-start-start-radius"
     BorderStyleT                    -> "border-style"
+    BorderT                         -> "border"
     BorderTopColorT                 -> "border-top-color"
     BorderTopLeftRadiusT            -> "border-top-left-radius"
     BorderTopRightRadiusT           -> "border-top-right-radius"
     BorderTopStyleT                 -> "border-top-style"
-    BorderTopWidthT                 -> "border-top-width"
     BorderTopT                      -> "border-top"
+    BorderTopWidthT                 -> "border-top-width"
     BorderWidthT                    -> "border-width"
-    BorderT                         -> "border"
     BottomT                         -> "bottom"
     BoxAlignT                       -> "box-align"
     BoxDecorationBreakT             -> "box-decoration-break"
@@ -708,6 +738,8 @@ instance CssShow KnownDescriptor where
     ClipRuleT                       -> "clip-rule"
     ClipT                           -> "clip"
     ColorAdjustT                    -> "color-adjust"
+    ColorGamutT                   -> "color-gamut"
+    ColorIndexT                   -> "color-index"
     ColorInterpolationFiltersT      -> "color-interpolation-filters"
     ColorInterpolationT             -> "color-interpolation"
     ColorSchemeT                    -> "color-scheme"
@@ -718,23 +750,23 @@ instance CssShow KnownDescriptor where
     ColumnHeightT                   -> "column-height"
     ColumnRuleColorT                -> "column-rule-color"
     ColumnRuleStyleT                -> "column-rule-style"
-    ColumnRuleWidthT                -> "column-rule-width"
     ColumnRuleT                     -> "column-rule"
+    ColumnRuleWidthT                -> "column-rule-width"
     ColumnSpanT                     -> "column-span"
+    ColumnsT                        -> "columns"
     ColumnWidthT                    -> "column-width"
     ColumnWrapT                     -> "column-wrap"
-    ColumnsT                        -> "columns"
+    ContainerD                      -> "container"
+    ContainerNameT                  -> "container-name"
+    ContainerTypeT                  -> "container-type"
     ContainIntrinsicBlockSizeT      -> "contain-intrinsic-block-size"
     ContainIntrinsicHeightT         -> "contain-intrinsic-height"
     ContainIntrinsicInlineSizeT     -> "contain-intrinsic-inline-size"
     ContainIntrinsicSizeT           -> "contain-intrinsic-size"
     ContainIntrinsicWidthT          -> "contain-intrinsic-width"
     ContainT                        -> "contain"
-    ContainerNameT                  -> "container-name"
-    ContainerTypeT                  -> "container-type"
-    ContainerD                      -> "container"
-    ContentVisibilityT              -> "content-visibility"
     ContentT                        -> "content"
+    ContentVisibilityT              -> "content-visibility"
     CornerBlockEndShapeT            -> "corner-block-end-shape"
     CornerBlockStartShapeT          -> "corner-block-start-shape"
     CornerBottomLeftShapeT          -> "corner-bottom-left-shape"
@@ -758,11 +790,17 @@ instance CssShow KnownDescriptor where
     CursorT                         -> "cursor"
     CxT                             -> "cx"
     CyT                             -> "cy"
-    DT                              -> "d"
+    DeviceAspectRatioT            -> "device-aspect-ratio"
+    DeviceHeightT                 -> "device-height"
+    DevicePostureT                -> "device-posture"
+    DeviceWidthT                  -> "device-width"
     DirectionT                      -> "direction"
+    DisplayModeT                  -> "display-mode"
     DisplayT                        -> "display"
     DominantBaselineT               -> "dominant-baseline"
+    DT                              -> "d"
     DynamicRangeLimitT              -> "dynamic-range-limit"
+    DynamicRangeT                 -> "dynamic-range"
     EmptyCellsT                     -> "empty-cells"
     FieldSizingT                    -> "field-sizing"
     FillOpacityT                    -> "fill-opacity"
@@ -774,8 +812,8 @@ instance CssShow KnownDescriptor where
     FlexFlowT                       -> "flex-flow"
     FlexGrowT                       -> "flex-grow"
     FlexShrinkT                     -> "flex-shrink"
-    FlexWrapT                       -> "flex-wrap"
     FlexT                           -> "flex"
+    FlexWrapT                       -> "flex-wrap"
     FloatT                          -> "float"
     FloodColorT                     -> "flood-color"
     FloodOpacityT                   -> "flood-opacity"
@@ -794,8 +832,9 @@ instance CssShow KnownDescriptor where
     FontSynthesisPositionT          -> "font-synthesis-position"
     FontSynthesisSmallCapsT         -> "font-synthesis-small-caps"
     FontSynthesisStyleT             -> "font-synthesis-style"
-    FontSynthesisWeightT            -> "font-synthesis-weight"
     FontSynthesisT                  -> "font-synthesis"
+    FontSynthesisWeightT            -> "font-synthesis-weight"
+    FontT                           -> "font"
     FontVariantAlternatesT          -> "font-variant-alternates"
     FontVariantCapsT                -> "font-variant-caps"
     FontVariantEastAsianT           -> "font-variant-east-asian"
@@ -807,9 +846,8 @@ instance CssShow KnownDescriptor where
     FontVariationSettingsT          -> "font-variation-settings"
     FontWeightT                     -> "font-weight"
     FontWidthT                      -> "font-width"
-    FontT                           -> "font"
-    ForcedColorsT                   -> "forced-colors"
     ForcedColorAdjustT              -> "forced-color-adjust"
+    ForcedColorsT                   -> "forced-colors"
     GapT                            -> "gap"
     GridAreaT                       -> "grid-area"
     GridAutoColumnsT                -> "grid-auto-columns"
@@ -822,13 +860,15 @@ instance CssShow KnownDescriptor where
     GridRowEndT                     -> "grid-row-end"
     GridRowStartT                   -> "grid-row-start"
     GridRowT                        -> "grid-row"
+    GridT                           -> "grid"
     GridTemplateAreasT              -> "grid-template-areas"
     GridTemplateColumnsT            -> "grid-template-columns"
     GridTemplateRowsT               -> "grid-template-rows"
     GridTemplateT                   -> "grid-template"
-    GridT                           -> "grid"
     HangingPunctuationT             -> "hanging-punctuation"
     HeightT                         -> "height"
+    HorizontalViewportSegmentsT   -> "horizontal-viewport-segments"
+    HoverT                        -> "hover"
     HyphenateCharacterT             -> "hyphenate-character"
     HyphenateLimitCharsT            -> "hyphenate-limit-chars"
     HyphensT                        -> "hyphens"
@@ -847,10 +887,11 @@ instance CssShow KnownDescriptor where
     InsetInlineT                    -> "inset-inline"
     InsetT                          -> "inset"
     InteractivityT                  -> "interactivity"
-    InterestDelayT                  -> "interest-delay"
     InterestDelayEndT               -> "interest-delay-end"
     InterestDelayStartT             -> "interest-delay-start"
+    InterestDelayT                  -> "interest-delay"
     InterpolateSizeT                -> "interpolate-size"
+    InvertedColorsT               -> "inverted-colors"
     IsolationT                      -> "isolation"
     JustifyContentT                 -> "justify-content"
     JustifyItemsT                   -> "justify-items"
@@ -864,8 +905,8 @@ instance CssShow KnownDescriptor where
     LineHeightT                     -> "line-height"
     ListStyleImageT                 -> "list-style-image"
     ListStylePositionT              -> "list-style-position"
-    ListStyleTypeT                  -> "list-style-type"
     ListStyleT                      -> "list-style"
+    ListStyleTypeT                  -> "list-style-type"
     MarginBlockEndT                 -> "margin-block-end"
     MarginBlockStartT               -> "margin-block-start"
     MarginBlockT                    -> "margin-block"
@@ -875,9 +916,9 @@ instance CssShow KnownDescriptor where
     MarginInlineT                   -> "margin-inline"
     MarginLeftT                     -> "margin-left"
     MarginRightT                    -> "margin-right"
+    MarginT                         -> "margin"
     MarginTopT                      -> "margin-top"
     MarginTrimT                     -> "margin-trim"
-    MarginT                         -> "margin"
     MarkerEndT                      -> "marker-end"
     MarkerMidT                      -> "marker-mid"
     MarkerStartT                    -> "marker-start"
@@ -887,8 +928,8 @@ instance CssShow KnownDescriptor where
     MaskBorderRepeatT               -> "mask-border-repeat"
     MaskBorderSliceT                -> "mask-border-slice"
     MaskBorderSourceT               -> "mask-border-source"
-    MaskBorderWidthT                -> "mask-border-width"
     MaskBorderT                     -> "mask-border"
+    MaskBorderWidthT                -> "mask-border-width"
     MaskClipT                       -> "mask-clip"
     MaskCompositeT                  -> "mask-composite"
     MaskImageT                      -> "mask-image"
@@ -897,8 +938,8 @@ instance CssShow KnownDescriptor where
     MaskPositionT                   -> "mask-position"
     MaskRepeatT                     -> "mask-repeat"
     MaskSizeT                       -> "mask-size"
-    MaskTypeT                       -> "mask-type"
     MaskT                           -> "mask"
+    MaskTypeT                       -> "mask-type"
     MathDepthT                      -> "math-depth"
     MathShiftT                      -> "math-shift"
     MathStyleT                      -> "math-style"
@@ -911,6 +952,7 @@ instance CssShow KnownDescriptor where
     MinInlineSizeT                  -> "min-inline-size"
     MinWidthT                       -> "min-width"
     MixBlendModeT                   -> "mix-blend-mode"
+    MonochromeT                   -> "monochrome"
     ObjectFitT                      -> "object-fit"
     ObjectPositionT                 -> "object-position"
     ObjectViewBoxT                  -> "object-view-box"
@@ -922,27 +964,28 @@ instance CssShow KnownDescriptor where
     OffsetT                         -> "offset"
     OpacityT                        -> "opacity"
     OrderT                          -> "order"
+    OrientationT                  -> "orientation"
     OrphansT                        -> "orphans"
     OutlineColorT                   -> "outline-color"
     OutlineOffsetT                  -> "outline-offset"
     OutlineStyleT                   -> "outline-style"
-    OutlineWidthT                   -> "outline-width"
     OutlineT                        -> "outline"
+    OutlineWidthT                   -> "outline-width"
     OverflowAnchorT                 -> "overflow-anchor"
     OverflowBlockT                  -> "overflow-block"
     OverflowClipMarginT             -> "overflow-clip-margin"
     OverflowInlineT                 -> "overflow-inline"
+    OverflowT                       -> "overflow"
     OverflowWrapT                   -> "overflow-wrap"
     OverflowXT                      -> "overflow-x"
     OverflowYT                      -> "overflow-y"
-    OverflowT                       -> "overflow"
     OverlayT                        -> "overlay"
     OverrideColorsT                 -> "override-colors"
     OverscrollBehaviorBlockT        -> "overscroll-behavior-block"
     OverscrollBehaviorInlineT       -> "overscroll-behavior-inline"
+    OverscrollBehaviorT             -> "overscroll-behavior"
     OverscrollBehaviorXT            -> "overscroll-behavior-x"
     OverscrollBehaviorYT            -> "overscroll-behavior-y"
-    OverscrollBehaviorT             -> "overscroll-behavior"
     PaddingBlockEndT                -> "padding-block-end"
     PaddingBlockStartT              -> "padding-block-start"
     PaddingBlockT                   -> "padding-block"
@@ -952,8 +995,8 @@ instance CssShow KnownDescriptor where
     PaddingInlineT                  -> "padding-inline"
     PaddingLeftT                    -> "padding-left"
     PaddingRightT                   -> "padding-right"
-    PaddingTopT                     -> "padding-top"
     PaddingT                        -> "padding"
+    PaddingTopT                     -> "padding-top"
     PageBreakAfterT                 -> "page-break-after"
     PageBreakBeforeT                -> "page-break-before"
     PageBreakInsideT                -> "page-break-inside"
@@ -965,29 +1008,41 @@ instance CssShow KnownDescriptor where
     PlaceItemsT                     -> "place-items"
     PlaceSelfT                      -> "place-self"
     PointerEventsT                  -> "pointer-events"
+    PointerT                      -> "pointer"
     PositionAnchorT                 -> "position-anchor"
     PositionAreaT                   -> "position-area"
+    PositionT                       -> "position"
+    PositionTryD                    -> "position-try"
     PositionTryFallbacksT           -> "position-try-fallbacks"
     PositionTryOrderT               -> "position-try-order"
-    PositionTryD                    -> "position-try"
     PositionVisibilityT             -> "position-visibility"
-    PositionT                       -> "position"
+    PrefersColorSchemeT           -> "prefers-color-scheme"
+    PrefersContrastT              -> "prefers-contrast"
+    PrefersReducedDataT           -> "prefers-reduced-data"
+    PrefersReducedMotionT         -> "prefers-reduced-motion"
+    PrefersReducedTransparencyT   -> "prefers-reduced-transparency"
     PrintColorAdjustT               -> "print-color-adjust"
     QuotesT                         -> "quotes"
-    RT                              -> "r"
     ReadingFlowT                    -> "reading-flow"
     ReadingOrderT                   -> "reading-order"
     ResizeT                         -> "resize"
+    ResolutionT                   -> "resolution"
     ResultT                         -> "result"
     RightT                          -> "right"
     RotateT                         -> "rotate"
     RowGapT                         -> "row-gap"
+    RT                              -> "r"
     RubyAlignT                      -> "ruby-align"
     RubyOverhangT                   -> "ruby-overhang"
     RubyPositionT                   -> "ruby-position"
     RxT                             -> "rx"
     RyT                             -> "ry"
     ScaleT                          -> "scale"
+    ScanT                         -> "scan"
+    ScriptingT                    -> "scripting"
+    ScrollbarColorT                 -> "scrollbar-color"
+    ScrollbarGutterT                -> "scrollbar-gutter"
+    ScrollbarWidthT                 -> "scrollbar-width"
     ScrollBehaviorT                 -> "scroll-behavior"
     ScrollInitialTargetT            -> "scroll-initial-target"
     ScrollMarginBlockEndT           -> "scroll-margin-block-end"
@@ -999,8 +1054,8 @@ instance CssShow KnownDescriptor where
     ScrollMarginInlineT             -> "scroll-margin-inline"
     ScrollMarginLeftT               -> "scroll-margin-left"
     ScrollMarginRightT              -> "scroll-margin-right"
-    ScrollMarginTopT                -> "scroll-margin-top"
     ScrollMarginT                   -> "scroll-margin"
+    ScrollMarginTopT                -> "scroll-margin-top"
     ScrollMarkerGroupT              -> "scroll-marker-group"
     ScrollPaddingBlockEndT          -> "scroll-padding-block-end"
     ScrollPaddingBlockStartT        -> "scroll-padding-block-start"
@@ -1011,8 +1066,8 @@ instance CssShow KnownDescriptor where
     ScrollPaddingInlineT            -> "scroll-padding-inline"
     ScrollPaddingLeftT              -> "scroll-padding-left"
     ScrollPaddingRightT             -> "scroll-padding-right"
-    ScrollPaddingTopT               -> "scroll-padding-top"
     ScrollPaddingT                  -> "scroll-padding"
+    ScrollPaddingTopT               -> "scroll-padding-top"
     ScrollSnapAlignT                -> "scroll-snap-align"
     ScrollSnapStopT                 -> "scroll-snap-stop"
     ScrollSnapTypeT                 -> "scroll-snap-type"
@@ -1020,13 +1075,11 @@ instance CssShow KnownDescriptor where
     ScrollTimelineAxisT             -> "scroll-timeline-axis"
     ScrollTimelineNameT             -> "scroll-timeline-name"
     ScrollTimelineT                 -> "scroll-timeline"
-    ScrollbarColorT                 -> "scrollbar-color"
-    ScrollbarGutterT                -> "scrollbar-gutter"
-    ScrollbarWidthT                 -> "scrollbar-width"
     ShapeImageThresholdT            -> "shape-image-threshold"
     ShapeMarginT                    -> "shape-margin"
     ShapeOutsideT                   -> "shape-outside"
     ShapeRenderingT                 -> "shape-rendering"
+    ShapeT                        -> "shape"
     SpeakAsT                        -> "speak-as"
     SrcT                            -> "src"
     StopColorT                      -> "stop-color"
@@ -1037,18 +1090,18 @@ instance CssShow KnownDescriptor where
     StrokeLinejoinT                 -> "stroke-linejoin"
     StrokeMiterlimitT               -> "stroke-miterlimit"
     StrokeOpacityT                  -> "stroke-opacity"
-    StrokeWidthT                    -> "stroke-width"
     StrokeT                         -> "stroke"
+    StrokeWidthT                    -> "stroke-width"
     SyntaxT                         -> "syntax"
-    TabSizeT                        -> "tab-size"
     TableLayoutT                    -> "table-layout"
+    TabSizeT                        -> "tab-size"
     TextAlignLastT                  -> "text-align-last"
     TextAlignT                      -> "text-align"
     TextAnchorT                     -> "text-anchor"
     TextAutospaceT                  -> "text-autospace"
     TextBoxEdgeT                    -> "text-box-edge"
-    TextBoxTrimT                    -> "text-box-trim"
     TextBoxT                        -> "text-box"
+    TextBoxTrimT                    -> "text-box-trim"
     TextCombineUprightT             -> "text-combine-upright"
     TextDecorationColorT            -> "text-decoration-color"
     TextDecorationInsetT            -> "text-decoration-inset"
@@ -1056,8 +1109,8 @@ instance CssShow KnownDescriptor where
     TextDecorationSkipInkT          -> "text-decoration-skip-ink"
     TextDecorationSkipT             -> "text-decoration-skip"
     TextDecorationStyleT            -> "text-decoration-style"
-    TextDecorationThicknessT        -> "text-decoration-thickness"
     TextDecorationT                 -> "text-decoration"
+    TextDecorationThicknessT        -> "text-decoration-thickness"
     TextEmphasisColorT              -> "text-emphasis-color"
     TextEmphasisPositionT           -> "text-emphasis-position"
     TextEmphasisStyleT              -> "text-emphasis-style"
@@ -1087,15 +1140,18 @@ instance CssShow KnownDescriptor where
     TransitionDelayT                -> "transition-delay"
     TransitionDurationT             -> "transition-duration"
     TransitionPropertyT             -> "transition-property"
-    TransitionTimingFunctionT       -> "transition-timing-function"
     TransitionT                     -> "transition"
+    TransitionTimingFunctionT       -> "transition-timing-function"
     TranslateT                      -> "translate"
     UnicodeBidiT                    -> "unicode-bidi"
     UnicodeRangeT                   -> "unicode-range"
+    UpdateT                       -> "update"
     UserModifyT                     -> "user-modify"
     UserSelectT                     -> "user-select"
     VectorEffectT                   -> "vector-effect"
     VerticalAlignT                  -> "vertical-align"
+    VerticalViewportSegmentsT     -> "vertical-viewport-segments"
+    VideoDynamicRangeT            -> "video-dynamic-range"
     ViewTimelineAxisT               -> "view-timeline-axis"
     ViewTimelineInsetT              -> "view-timeline-inset"
     ViewTimelineNameT               -> "view-timeline-name"
@@ -1116,6 +1172,7 @@ instance CssShow KnownDescriptor where
     YT                              -> "y"
     ZIndexT                         -> "z-index"
     ZoomT                           -> "zoom"
+
 
 toPropertyName :: Descriptor -> PropertyName
 toPropertyName = \case
