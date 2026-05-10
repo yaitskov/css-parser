@@ -95,7 +95,7 @@ data Function r
   , args :: [FunArg]
   , returns :: Maybe CssType
   , localConsts :: [ ConstEntry ]
-  , result :: PropVals
+  , result :: NonEmpty PropVals
   , atRules :: [r]
   } deriving (Eq, Ord, Show, Generic)
 

@@ -14,14 +14,23 @@ data BrowserPrefix
   | Microsoft
   deriving (Eq, Ord, Show, Bounded, Enum, Generic)
 
+bpLength :: BrowserPrefix -> Int
+bpLength = \case
+   Moz -> 5
+   Na -> 0
+   Opera -> 3
+   WebKit -> 8
+   Apple -> 7
+   Microsoft -> 4
+
 instance CssShow BrowserPrefix where
   toCssText = \case
-    Moz -> "@-moz-"
-    Na -> "@"
-    Opera -> "@-o-"
-    Apple -> "@-apple-"
-    WebKit -> "@-webkit-"
-    Microsoft -> "@-ms-"
+    Moz -> "-moz-"
+    Na -> ""
+    Opera -> "-o-"
+    Apple -> "-apple-"
+    WebKit -> "-webkit-"
+    Microsoft -> "-ms-"
 
 newtype Ident = Ident Text deriving newtype (Eq, Ord, Show, Semigroup, Monoid, IsString)
 

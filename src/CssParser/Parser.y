@@ -10,6 +10,7 @@ import CssParser.At.Keyframe
 import CssParser.At.MediaQuery
 import CssParser.At.Page
 import CssParser.At.Supports hiding (FeatureQuery)
+import CssParser.Descriptor (Descriptor (ResultT), toPropertyName)
 import CssParser.Norm
 import CssParser.Rule.Pseudo qualified as P
 import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition, Heading, Host)
@@ -20,17 +21,17 @@ import CssParser.File
 import CssParser.FixRule
 import CssParser.Ident hiding (Ident, Namespace, Var)
 import CssParser.Ident qualified as R
-import CssParser.Lexer qualified as L
-import CssParser.Lexer
-  ( AlexPosn(AlexPn), TokenLoc(TokenLoc)
-  , Token
-    ( TIncludes, TEqual, TDashMatch, TPrefixMatch, TSuffixMatch, TSubstringMatch, Ident
+import CssParser.Lexer (AlexPosn(AlexPn), TokenLoc(TokenLoc))
+import CssParser.Lexer.Token qualified as L
+import CssParser.Lexer.Token
+  ( Token
+    ( TIncludes, TEqual, TDashMatch, TPrefixMatch, TSuffixMatch, TSubstringMatch, IdentT
     , Comma, Plus, SharpT, Minus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
     , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
-    , NotT, OrT, AndT, OnlyT, ResultT, ReturnsT
-    , TOpen, TClose
+    , NotT, OrT, AndT, OnlyT, ReturnsT
+    , TOpen, TClose, DescriptorT, ClassT
     , Greater, Less, LessEqual, GreaterEqual
     , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
@@ -86,7 +87,7 @@ import Prelude
     '@'         { TokenLoc (AtT $$) _ _ }
     important   { TokenLoc ImportantT _ _ }
     supports    { TokenLoc SupportsT _ _ }
-    result      { TokenLoc ResultT _ _ }
+
     returns     { TokenLoc ReturnsT _ _ }
     viewTransition
                 { TokenLoc ViewTransitionT _ _ }
@@ -131,9 +132,11 @@ import Prelude
     '|='        { TokenLoc TDashMatch _ _ }
     '~='        { TokenLoc TIncludes _ _ }
     unRangeVal  { TokenLoc (UnicodeRangeVal $$) _ _ }
-    ident       { TokenLoc (Ident $$) _ _ }
+    class       { TokenLoc (ClassT $$) _ _ }
+    ident       { TokenLoc (IdentT $$) _ _ }
     string      { TokenLoc (String $$) _ _ }
     hash        { TokenLoc (THash $$) _ _ }
+    descriptor  { TokenLoc (DescriptorT $$) _ _ }
     pseude      { TokenLoc (PseudoElementT $$) _ _ }
     highlight   { TokenLoc THighlight _ _ }
     part        { TokenLoc TPart _ _ }
@@ -228,10 +231,6 @@ import Prelude
     ')'         { TokenLoc TClose _ _ }
     '/'         { TokenLoc DivT _ _ }
 
--- %left 'not'
--- %left 'or' 'and'
--- %left '+' '-'
--- %left '*' '/'
 %%
 
 CssFile :: { CssFile }
@@ -306,8 +305,8 @@ AtRule :: { AtRule }
     | Ident Os CommaSeparatedList Os ERB          { UnknownGramma $1 (Just (CommaSeparatedList $3)) $5 }
     | Ident Os ERB                                { UnknownGramma $1 Nothing $3 }
 Function :: { CssFunction }
-    : Var Op FunArgs Os ')' Os RetType Os Ocb List(LocalConst) FunResult CssFileBody '}'
-                                                  { F.Function $1 $3 $7 $10 $11 $12 }
+    : Var Op FunArgs Os ')' Os RetType Os Ocb FunEntries CssFileBody '}'
+                                                  { F.Function $1 $3 $7 (snd $10) (fst $10) $11 }
 FunArgs :: { [ F.FunArg ] }
     :                                             { [] }
     | FunArg                                      { [ $1 ] }
@@ -317,10 +316,12 @@ FunArg :: { F.FunArg }
     | Var Os TypeFun                              { F.FunArg $1 (Just $3) Nothing }
     | Var Os TypeFun Os ':' Os PropVal            { F.FunArg $1 (Just $3) (Just $7) }
     | Var Os ':' Os PropVal                       { F.FunArg $1 Nothing (Just $5) }
-LocalConst :: { F.ConstEntry }
-    : Var ':' PropValsList ';'                    { F.ConstEntry $1 (PropValsList $3) }
-FunResult :: { PropVals }
-    : result ':' PropVals ';'                     { $3 }
+FunEntries :: { (NonEmpty PropVals, [ F.ConstEntry ]) }
+    : LocalConst                                  {% findResult $1 }
+LocalConst :: { [Either F.ConstEntry (NonEmpty PropVals)] }
+    :                                             {% pure [] }
+    | descriptor Os PropValsList                  {% fmap (:[]) (varOrResult $1 $3) }
+    | descriptor Os PropValsList ';' LocalConst   {% fmap (:$5) (varOrResult $1 $3) }
 RetType :: { Maybe F.CssType }
     :                                             { Nothing }
     | returns Os TypeFun                          { Just $3 }
@@ -379,6 +380,8 @@ IdContainerQuery :: { These R.Ident ContainerQuery }
                                                         $7)
                                                   }
     | CQ                                          { That $1 }
+DescAsPropName :: { PropertyName }
+    : descriptor                                  { toPropertyName $1 }
 CQ :: { ContainerQuery }
     : Ident Os Op CQ ')'                          { CqFeature (AsIs (CqApp $1 $4)) }
     | Ident Os Op CQ ')' Os BOP CQ                { CqBin
@@ -386,6 +389,7 @@ CQ :: { ContainerQuery }
                                                       (AsIs (CqApp $1 $4))
                                                       $8
                                                   }
+    | DescAsPropName Os PropVals                  { CqFeature (AsIs (CqOpFeature (PlainMf $1 $3))) }
     | PropN ':' PropVals                          { CqFeature (AsIs (CqOpFeature (PlainMf $1 $3))) }
     | 'not' Op MediaFeature ')' Os BOP CQ         { CqBin $6 (Not (CqOpFeature $3)) $7 }
     | 'not' Op MediaFeature ')'                   { CqFeature (Not (CqOpFeature $3)) }
@@ -400,8 +404,19 @@ FontFeatureValBlocks :: { [ Either PropEntry FontFeatureValuesSubBlock ] }
     :                                             { [] }
     | FontFeatureValBlock FontFeatureValBlocks    { Right $1 : $2 }
     | PropEntry FontFeatureValBlocks              { Left $1 : $2 }
-FontFeatureValBlock
-    : '@' IdKwd Os Ocb PropEntries '}'            { FontFeatureValuesSubBlock $1 $2 $5 }
+FontFeatureValBlock :: { FontFeatureValuesSubBlock }
+    : '@' IdKwd Os Ocb FontFeatureEntries '}'     { FontFeatureValuesSubBlock $1 $2 $5 }
+FontFeatureEntries :: { [ FontFeatureEntry ] }
+    :                                             { [] }
+    | FontFeatureEntry                            { [$1] }
+    | FontFeatureEntry ';'                        { [$1] }
+    | FontFeatureEntry ';' FontFeatureEntries     { $1 : $3 }
+FontFeatureEntry :: { FontFeatureEntry }
+    : IdKwd ':' Os NonEmpty(' ', Unsigned)        { FontFeatureEntry $1 (SslNe $4) }
+    | Desc Os NonEmpty(' ', Unsigned)             {% identOnly
+                                                       (toPropertyName $1)
+                                                       (`FontFeatureEntry` (SslNe $3))
+                                                  }
 StrEitherIds :: { Either LiteralString IdentList }
     : Str                                         { Left (LiteralString $1) }
     | NonEmpty(' ', IdKwd)                        { Right (IdentList $1) }
@@ -420,12 +435,14 @@ KeyframeAdr
     | percent                                     { KeyframePercentAdr (mkRawNum $1) }
 PropEntries :: { [PropEntry] }
     : List(PropEntry)                             { $1 }
+Desc :: { Descriptor }
+    : descriptor                                  { $1 }
 PropN :: { PropertyName }
     : IdKwd                                       { PropertyName $1 }
     | Var                                         { VarProp $1 }
 PropEntry :: { PropEntry }
-    : PropN ':' PropVals ';'                      { PropEntry $1 $3 }
-    | PropN ':' PropVals                          { PropEntry $1 $3 }
+    : descriptor Os PropVals ';'                  { PropEntry $1 $3 }
+    | descriptor Os PropVals                      { PropEntry $1 $3 }
 PageSelectorList
     : PageSelector                                { [ $1 ] }
     | PageSelector Os PageSelectorList            { $1 : $3 }
@@ -469,9 +486,8 @@ MediaCondition :: { MediaBoolExpr }
     | Op MediaFeature ')' Os BOP MediaCondition   { MediaBin $5 (AsIs $2) $6 }
     | Op MediaFeature ')'                         { MediaFeature (AsIs $2) }
 MediaFeature :: { MediaFeature }
-    : PropN ':' PropVals                          { PlainMf $1 $3 }
-    | PropN pseudc                                { PlainMf $1 (pclassToPropVals Nothing $2) }
-    | PropN pseudc Os PropVals                    { PlainMf $1 (prependPropVal (pclassToPropVal $2) $4) }
+    : DescAsPropName Os PropVals                  { PlainMf $1 $3 }
+    | PropN ':' Os PropVals                       { PlainMf $1 $4 }
     | PropN MfRel PropVal                         { OpenRangeFeature $1 $2 $3 }
     | PropN MfRel PropN MfRel PropVal             { MfClosedRange (propRef $1) $2 $3 $4 $5 }
     | PropN Op PropVals ')' MfRel PropN           { OpenRangeFeatureFlipped
@@ -598,133 +614,20 @@ ContinueRule :: { CssRule }
     : SelectorList '{' Os CssRuleBody '}'         { CssRule $1 $4 }
 CssRuleBody :: { [ CssRuleBodyItem ] }
     :                                             { [] }
-    | PropN ':' PropValsList ';' OsCssRuleBody    { mkLeaf $1 $3 : $5 }
-    | PropN ':' PropValsList                      { [ mkLeaf $1 $3 ] }
-    | PropN ':' Os ';' OsCssRuleBody              { $5 }
-    | IdKwd 'not(' SL  ContinueRule OsCssRuleBody { upsertHeadTagSelector (setTag $1 . addClass (NotClass $3)) $4 $5 }
-    | IdKwd 'not(' SL ERB OsCssRuleBody           { newRule (setTag $1 . addClass (NotClass $3)) $4 $5 }
-    | IdKwd '{' OsCssRuleBody '}' OsCssRuleBody   { CssNestedRule (tagNameRule $1 $3) : $5 }
-    | IdKwd '>' Os ContinueRule OsCssRuleBody     {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 Child $4) }
-    | IdKwd ' ' ContinueRule OsCssRuleBody        {% fmap ((: $4) . CssNestedRule) (prependIdentToRule $1 Descendant $3) }
-    | IdKwd '|' ContinueRule OsCssRuleBody        { CssNestedRule (updateTopTagSelector (setTsNs $1) $3) : $4 }
-    | IdKwd '+' Os ContinueRule OsCssRuleBody     {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 NextSibling $4) }
-    | IdKwd '~' Os ContinueRule OsCssRuleBody     {% fmap ((: $5) . CssNestedRule) (prependIdentToRule $1 GeneralSibling $4) }
-    | IdKwd '[' Attr ERB OsCssRuleBody            { CssNestedRule (tagAndAttrRule $1 $3 $4) : $5 }
-    | IdKwd '[' Attr ContinueRule OsCssRuleBody   { upsertHeadTagSelector (setTag $1 . addAttr $3) $4 $5 }
-    | IdKwd ',' ContinueRule OsCssRuleBody        { CssNestedRule (prependSelectorToRule $1 $3) : $4 }
-    | IdKwd '.' ContinueRule OsCssRuleBody        { CssNestedRule (tagNameIsClass $1 $3) : $4 }
-    | IdKwd Hash ContinueRule OsCssRuleBody       { upsertHeadTagSelector (setTag $1 . setHash $2) $3 $4 }
-    | IdKwd Hash ERB OsCssRuleBody                { newRule (setHash $2 . setTag $1) $3 $4 }
-    | PropN pseudc ContinueRule OsCssRuleBody     {% identOnly $1 (\tn -> upsertHeadTagSelector
-                                                      (setTag tn . addClass (AtomicPseudoClass $2)) $3 $4) }
-    | PropN pseudc ERB OsCssRuleBody              {% identOnly $1
-                                                    (\tn -> newRule (addClass (AtomicPseudoClass $2) . setTag tn) $3 $4) }
-    | PropN pseudc PropValsList                   { [rewritePclassAsValue $1 $2 $3] }
-    | PropN pseudc PropValsList ';' OsCssRuleBody { rewritePclassAsValue $1 $2 $3 : $5 }
-    | PropN pseudc ',' PropValsList               { [rewritePclassAsValueComma $1 $2 $4] }
-    | PropN pseudc ',' PropValsList ';' OsCssRuleBody
-                                                  { rewritePclassAsValueComma $1 $2 $4 : $6 }
-    | PropN pseudc ',' PropValsList SelectorList ERB OsCssRuleBody
-                                                  {% fmap ((: $7) . CssNestedRule . (`CssRule` $6))
-                                                       (prepValsListToSelectorList $1 $2 $4 $5) }
-    | PropN pseudc ',' PropValsList ERB OsCssRuleBody
-                                                  {% fmap ((: $6) . CssNestedRule . (`CssRule` $5))
-                                                       (propValsListToSelectorList $1 $2 $4) }
-    | PropN pseudc Important                      { [rewritePseudoClassAsDescValue $1 $3 $2] }
-    | PropN pseudc Important ';' OsCssRuleBody    { rewritePseudoClassAsDescValue $1 $3 $2 : $5 }
-    | PropN pseudc Important ',' PropValsList     { [rewritePseudoClassAsPropValsImp $1 $2 $3 $5] }
-    | PropN pseudc Important ',' PropValsList ';' OsCssRuleBody
-                                                  { rewritePseudoClassAsPropValsImp $1 $2 $3 $5 : $7 }
-    | PropN pseudc ' ' PropValsList               { [rewritePseudoClassAsPropVals $1 $2 $4] }
-    | PropN pseudc ' ' PropValsList ';' OsCssRuleBody
-                                                  { rewritePseudoClassAsPropVals $1 $2 $4 : $6 }
-    | IdKwd 'where(' SL ContinueRule OsCssRuleBody
-                                                  { upsertHeadTagSelector (setTag $1 . addClass (Where $3)) $4 $5 }
-    | IdKwd 'where(' SL ERB OsCssRuleBody         { newRule (setTag $1 . addClass (Where $3)) $4 $5 }
-    | IdKwd 'is('  SL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Is $3)) $4 $5 }
-    | IdKwd 'is('  SL ERB          OsCssRuleBody  { newRule (setTag $1 . addClass (Is $3)) $4 $5 }
-    | IdKwd 'has(' SL ContinueRule OsCssRuleBody  { upsertHeadTagSelector (setTag $1 . addClass (Has $3)) $4 $5 }
-    | IdKwd 'has(' SL ERB          OsCssRuleBody  { newRule (setTag $1 . addClass (Has $3)) $4 $5 }
-
-    | IdKwd 'lang(' Str ')' ContinueRule CssRuleBody
-                                                  { upsertHeadTagSelector (setTag $1 . addClass (Lang (Language $3))) $5 $6 }
-    | IdKwd 'lang(' Str ')' ERB OsCssRuleBody     { newRule (setTag $1 . addClass (Lang (Language $3))) $5 $6 }
-    | IdKwd pseudf Os Nth ContinueRule CssRuleBody
-                                                  { upsertHeadTagSelector (setTag $1 . addClass (call $2 $4)) $5 $6 }
-    | IdKwd pseudf Os Nth ERB OsCssRuleBody       { newRule (setTag $1 . addClass (call $2 $4)) $5 $6 }
-
-    | IdKwd activeViewTransitionType Op CslOfIdents Os ')' ContinueRule CssRuleBody
-                                                  { upsertHeadTagSelector
-                                                      (setTag $1 . addClass (ActiveViewTransitionType (Embraced $4)))
-                                                      $7 $8}
-    | IdKwd activeViewTransitionType Op CslOfIdents Os ')' ERB CssRuleBody
-                                                  { newRule
-                                                      ( setTag $1
-                                                      . addClass (ActiveViewTransitionType (Embraced $4)))
-                                                      $7 $8
-                                                  }
-    | IdKwd 'dir(' Os IdKwd Os ')' ContinueRule CssRuleBody
-                                                  { upsertHeadTagSelector
-                                                      (setTag $1 . addClass (Dir (Embraced $4)))
-                                                      $7 $8
-                                                  }
-    | IdKwd 'dir(' Os IdKwd Os ')' ERB OsCssRuleBody
-                                                  { newRule
-                                                      ( setTag $1
-                                                      . addClass (Dir (Embraced $4)))
-                                                      $7 $8
-                                                  }
-    | IdKwd heading Op CslOfInts Os ')' ContinueRule CssRuleBody
-                                                  { upsertHeadTagSelector
-                                                      (setTag $1 . addClass (Heading (Embraced $4)))
-                                                      $7 $8
-                                                  }
-    | IdKwd heading Op CslOfInts Os ')' ERB CssRuleBody
-                                                  { newRule
-                                                      ( setTag $1
-                                                      . addClass (Heading (Embraced $4)))
-                                                      $7 $8
-                                                  }
-    | IdKwd heading ContinueRule OsCssRuleBody    { upsertHeadTagSelector
-                                                      (setTag $1 . addClass (AtomicPseudoClass P.Heading)) $3 $4 }
-    | IdKwd heading ERB OsCssRuleBody             { newRule (addClass (AtomicPseudoClass P.Heading) . setTag $1) $3 $4 }
-    | IdKwd host ESL ContinueRule OsCssRuleBody   { upsertHeadTagSelector
-                                                      (setTag $1 . addClass (Host (Embraced $3)))
-                                                      $4 $5
-                                                  }
-    | IdKwd host ESL ERB OsCssRuleBody            { newRule
-                                                      ( setTag $1
-                                                      . addClass (Host (Embraced $3)))
-                                                      $4 $5
-                                                  }
-    | IdKwd host ContinueRule OsCssRuleBody       { upsertHeadTagSelector
-                                                      (setTag $1 . addClass (AtomicPseudoClass P.Host)) $3 $4 }
-    | IdKwd host ERB OsCssRuleBody                { newRule (addClass (AtomicPseudoClass P.Host) . setTag $1) $3 $4 }
-
-    | IdKwd 'state(' Os IdKwd Os ')' ContinueRule CssRuleBody
-                                                  { upsertHeadTagSelector
-                                                      (setTag $1 . addClass (State (Embraced $4)))
-                                                      $7 $8
-                                                  }
-    | IdKwd 'state(' Os IdKwd Os ')' ERB CssRuleBody
-                                                  { newRule
-                                                      ( setTag $1
-                                                      . addClass (State (Embraced $4)))
-                                                      $7 $8
-                                                  }
-    | IdKwd PsTgSel ERB OsCssRuleBody             { newPseude (setTag $1) $2 $3 $4 }
-    | IdKwd PsTgSel ',' ContinueRule OsCssRuleBody
-                                                  { CssNestedRule (pushPeSelector (setTag $1) $2 $4) : $5 }
+    | Desc Os PropValsList ';' OsCssRuleBody      { mkLeaf $1 $3 : $5 }
+    | Desc Os PropValsList                        { [ mkLeaf $1 $3 ] }
+    | Desc Os ';' OsCssRuleBody                   { $4 }
     | CssRule OsCssRuleBody                       { CssNestedRule $1 : $2 }
 PropValsList :: { NonEmpty PropVals }
     : NonEmpty(',', PropVals)                     { $1 }
 PropVals :: { PropVals }
     : CssPropertyVals Important                   { PropVals $1 $2 }
 Important :: { Maybe Important }
-    : ' ' important                               { Just Important }
+    : important                                   { Just Important }
     |                                             { Nothing }
 CssPropertyVals :: { NonEmpty PropVal }
     : PropVal                                     { $1 :| [] }
+    | PropVal ' '                                 { $1 :| [] }
     | PropVal ' ' CssPropertyVals                 { $1 <| $3 }
 SelectorList :: { NonEmpty Selector }
     : NonEmpty(',', Selector)                     { $1 }
@@ -765,7 +668,7 @@ Hash :: { TagSubSelector }
 TagClasses :: { [ TagSubSelector ] }
     : List(TagClass)                              { $1 }
 TagClass :: { TagSubSelector }
-    : '.' IdKwd                                   { AtomicClass $2 }
+    : Class                                       { AtomicClass $1 }
     | pseudc                                      { AtomicPseudoClass $1 }
     | 'not(' SL                                   { NotClass $2 }
     | 'lang(' Str ')'                             { Lang (Language $2) }
@@ -841,7 +744,6 @@ IdKwd :: { R.Ident }
     | MediaKeywordAsIdent                         { $1 }
     | 'to'                                        { R.Ident "to" }
     | from                                        { R.Ident "from" }
-    | result                                      { R.Ident "result" }
     | returns                                     { R.Ident "returns" }
     | AtId                                        { $1 }
 AtId :: { R.Ident }
@@ -874,6 +776,8 @@ MediaKeywordAsIdent
     | 'only'                                      { R.Ident "only" }
 Ident :: { R.Ident }
     : ident                                       { R.Ident (pack $1) }
+Class :: { R.Ident }
+    : class                                       { R.Ident (pack $1) }
 IdTxt :: { Text }
     : ident                                       { pack $1 }
 Str :: { Text }

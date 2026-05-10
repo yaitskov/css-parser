@@ -21,7 +21,7 @@ instance CssShow CssRule where
     CssRule sels body ->
       intercalate ", " (toList $ fmap toCssText sels) <> "{" <> toCssText body <> "}"
     AtRule pb ar ->
-      toCssText pb <> toCssText ar
+      "@" <> toCssText pb <> toCssText ar
 
 instance CssShow AtRule where
   toCssText = \case
@@ -84,8 +84,8 @@ instance ShowSpaceBetween CssRuleBodyItem CssRuleBodyItem where
 instance CssShow CssRuleBodyItem where
   toCssText = \case
     CssNestedRule cr -> toCssText cr
-    CssLeafRule pn pv -> toCssText pn <> ": " <> toCssText pv <> "; "
-    CssEnumLeaf pn pv -> toCssText pn <> ": " <> toCssText pv <> "; "
+    CssLeafRule pn pv -> toCssText pn <> toCssText pv <> ";"
+    CssEnumLeaf pn pv -> toCssText pn <> toCssText pv <> ";"
 
 instance CssShow TagRelation where
   toCssText = \case

@@ -44,6 +44,7 @@ library
     , CssParser.At.MediaQuery
     , CssParser.At.Page
     , CssParser.At.Supports
+    , CssParser.Descriptor
     , CssParser.File
     , CssParser.FixRule
     , CssParser.Fun
@@ -62,6 +63,7 @@ library
     , CssParser.Utils
   other-modules:
     , CssParser.Lexer
+    , CssParser.Lexer.Token
     , CssParser.Parser
   build-depends:
     , array >=0.5.2

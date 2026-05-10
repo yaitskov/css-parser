@@ -11,3 +11,4 @@ import CssParser.Test.Arbitrary.At ()
 deriving via (GenericArbitrary IdentList) instance Arbitrary IdentList
 deriving via (GenericArbitrary FontFeatureValuesSubBlock) instance Arbitrary FontFeatureValuesSubBlock
 deriving via (GenericArbitrary FontFeatureValues) instance Arbitrary FontFeatureValues
+deriving via (GenericArbitrary FontFeatureEntry) instance Arbitrary FontFeatureEntry

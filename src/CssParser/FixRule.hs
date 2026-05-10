@@ -1,14 +1,15 @@
 -- | Functions for Rule types helping with Happy gramma disambiguation
 module CssParser.FixRule where
 
+import Control.Monad ( foldM )
+import CssParser.Descriptor (Descriptor (CustomDescriptor, ResultT))
+import CssParser.At.Function ( ConstEntry(..) )
 import CssParser.Ident
-    ( Ident (..), Namespace(NoBar),
-      PropertyName (..),
-      TagName(TagName, NoTag) )
-import CssParser.Ident qualified as I
 import CssParser.Prelude
-import CssParser.Parser.Monad
+import CssParser.Parser.Monad ( P(Failed) )
 import CssParser.Rule
+    ( CssRuleBodyItem(CssEnumLeaf, CssLeafRule),
+      TagSelector(TagSelector) )
 import CssParser.Show ( CssShow(toCssText) )
 import CssParser.Rule.Value
 import CssParser.Rule.Show ()
@@ -16,11 +17,8 @@ import Data.Text qualified as T
 import Data.Text.Lazy qualified as L
 import CssParser.Rule.Pseudo (AtomicPseudoClass)
 
-tagSelectorOnly :: Ident -> TagSelector
-tagSelectorOnly tn = TagSelector NoBar (TagName tn) []
-
-setTag :: Ident -> TagSelector -> TagSelector
-setTag tn ts = ts { tagName = TagName tn }
+nullTagSelector :: TagSelector
+nullTagSelector = TagSelector NoBar NoTag []
 
 identOnly :: PropertyName -> (Ident -> a) -> P a
 identOnly pn f = identOnlyP pn (pure . f)
@@ -29,212 +27,35 @@ identOnlyP :: PropertyName -> (Ident -> P a) -> P a
 identOnlyP (PropertyName i) f = f i
 identOnlyP (VarProp i) _ = Failed $ "Var " <> show i <> " is not expected"
 
-setHash :: TagSubSelector -> TagSelector -> TagSelector
-setHash = addClass
+varOrResult :: Descriptor -> NonEmpty PropVals -> P (Either ConstEntry (NonEmpty PropVals))
+varOrResult d pvs =
+  case d of
+    ResultT -> pure $ Right pvs
+    CustomDescriptor i -> pure . Left $ ConstEntry (Var i) (PropValsList pvs)
+    o -> Failed $ "Expected var or result but got " <> unpack (toCssText o)
 
-selectorByTag :: Ident -> Selector
-selectorByTag tn = Selector Nothing (tagSelectorOnly tn) []
-
-tagNameRule :: Ident -> [CssRuleBodyItem] -> CssRule
-tagNameRule tn = CssRule (pure $ selectorByTag tn)
-
-tagAndAttrRule :: Ident -> TagSubSelector -> [CssRuleBodyItem] -> CssRule
-tagAndAttrRule tn atr body =
-  prependAttr atr (CssRule (pure $ selectorByTag tn) body)
-
-prependIdent :: MonadFail m => Ident -> TagRelation -> Selector -> m Selector
-prependIdent tn tr = \case
-  ndsnd@(Selector mtr fts ots) ->
-    case mtr of
-      Nothing ->
-        pure $ Selector Nothing (tagSelectorOnly tn) ((tr, fts) : ots)
-      Just Descendant ->
-        pure $ Selector Nothing (tagSelectorOnly tn) ((tr, fts) : ots)
-      Just ftr
-        | tr == Descendant ->
-          pure $ Selector Nothing (tagSelectorOnly tn) ((ftr, fts) : ots)
-        | otherwise ->
-          fail $ "Head tag relation is already set: " <> show tn <> ", " <> show tr <> ", " <> show ndsnd
-  ndsnd@(PeSelector mtr fts ots pe) ->
-    case mtr of
-      Nothing ->
-        pure $ PeSelector Nothing (tagSelectorOnly tn) ((tr, fts) : ots) pe
-      Just Descendant ->
-        pure $ PeSelector Nothing (tagSelectorOnly tn) ((tr, fts) : ots) pe
-      Just ftr
-        | tr == Descendant ->
-          pure $ PeSelector Nothing (tagSelectorOnly tn) ((ftr, fts) : ots) pe
-        | otherwise ->
-          fail $ "Head tag relation is already set: " <> show tn <> ", " <> show tr <> ", " <> show ndsnd
-  PeSelectorOnly pe ->
-    pure $ PeSelector (Just tr) (tagSelectorOnly tn) [] pe
-
-nullTagSelector :: TagSelector
-nullTagSelector = TagSelector NoBar NoTag []
-
-updateFirstTagSelector :: (TagSelector -> TagSelector) -> Selector -> Selector
-updateFirstTagSelector f = \case
-  Selector ftr fts ots -> Selector ftr (f fts) ots
-  PeSelector ftr fts ots pe -> PeSelector ftr (f fts) ots pe
-  PeSelectorOnly pe -> PeSelector Nothing (f nullTagSelector) [] pe
-
--- a b c {
---       ^
--- p #x
---
--- p :first {
---   ^
--- p.c :first x ::pe
---  ^
--- p ::pe
---   ^
--- a b + c
--- a b > c
--- a b ~ c
---     ^
--- a b / b
---         ^
--- p, --x:left {
--- {x
---  TagSelector [(TagRelation, TagSelector)]
-propValToTagSel :: PropVal -> P TagSelector
-propValToTagSel = \case
-  HexColor (HC hc) -> pure $ setHash (Hash (Ident hc)) nullTagSelector
-  IdentRef i -> pure $ tagSelectorOnly i
-  o -> Failed $ "Ident or HexColor is expected but: " <> show o
-
-propValsToSelector :: PropVals -> P Selector
-propValsToSelector = \case
-  PropVals pvs Nothing -> do
-    mapM propValToTagSel pvs >>= \case
-      (fts :| tss) ->
-        pure . Selector Nothing fts $ fmap (Descendant,) tss
-  badPvs -> Failed $ "!important is unexpected: " <> show badPvs
-
-propValsListToSelectorList :: PropertyName -> AtomicPseudoClass -> NonEmpty PropVals -> P SelectorList
-propValsListToSelectorList pn pc pvs =
-  identOnlyP pn $ \pn' -> (firstSelector pn' pc <|) <$> mapM propValsToSelector pvs
-
-firstSelector :: Ident -> AtomicPseudoClass -> Selector
-firstSelector pn pc =
-  Selector Nothing (addClass (AtomicPseudoClass pc) (tagSelectorOnly pn)) []
-
-fuseSelectors :: Selector -> Selector -> P Selector
-fuseSelectors s1 s2 =
-  case s1 of
-    Selector ftr1 fts1 tss1 -> pure $
-      case s2 of
-        Selector ftr2 fts2 tss2 ->
-          Selector ftr1 fts1 $ tss1 <> ((fromMaybe Descendant ftr2, fts2) : tss2)
-        PeSelector ftr2 fts2 tss2 pe ->
-          PeSelector ftr1 fts1 (tss1 <> ((fromMaybe Descendant ftr2, fts2) : tss2)) pe
-        PeSelectorOnly pe ->
-          PeSelector ftr1 fts1 tss1 pe
-    _bad ->
-      Failed $ "Expected selector without pseudo element: " <>
-        unpack (toCssText s1) <> " <-> " <>  unpack (toCssText s2)
-
-fuseSelectorLists :: SelectorList -> SelectorList -> P SelectorList
-fuseSelectorLists sl1 (fe2 :| sl2) =
-  case unsnocNe sl1 of
-    (sl1', le1) ->
-      prependList sl1' . (:| sl2) <$> fuseSelectors le1 fe2
-
-prepValsListToSelectorList :: PropertyName -> AtomicPseudoClass -> NonEmpty PropVals -> SelectorList -> P SelectorList
-prepValsListToSelectorList pn pc pvs sl =
-  identOnlyP pn $ \pn' -> (firstSelector pn' pc <|) <$> ((`fuseSelectorLists` sl) =<< mapM propValsToSelector pvs)
-
-upsertHeadTagSelector :: (TagSelector -> TagSelector) -> CssRule -> [CssRuleBodyItem] -> [CssRuleBodyItem]
-upsertHeadTagSelector f cr bodyItems =
-  CssNestedRule (mergePrecedingTagSelector f cr) : bodyItems
-
-mergePrecedingTagSelector :: (TagSelector -> TagSelector) -> CssRule -> CssRule
-mergePrecedingTagSelector f =
-  mapCssRule $ \ (fs :| os) body -> CssRule (go fs :| os) body
+findResult :: [ Either ConstEntry (NonEmpty PropVals) ] -> P (NonEmpty PropVals, [ConstEntry])
+findResult l =
+  foldM go (Nothing, []) l >>= \case
+    (Nothing, _) -> Failed "Function body do not have result: descriptor"
+    (Just r, ces) -> pure (r, reverse ces)
   where
-    go :: Selector -> Selector
-    go = \case
-      Selector Nothing fts ots ->
-        Selector Nothing (f fts) ots
-      Selector (Just fTgRel) fts ots ->
-        Selector Nothing (f nullTagSelector) ((fTgRel, fts) : ots)
-      PeSelector Nothing fts ots pe ->
-        PeSelector Nothing (f fts) ots pe
-      PeSelector (Just fTgRel) fts ots pe ->
-        PeSelector Nothing (f nullTagSelector) ((fTgRel, fts) : ots) pe
-      PeSelectorOnly pe ->
-        PeSelector Nothing (f nullTagSelector) [] pe
+    go b a =
+      case (b, a) of
+       ((Just r, _), Right secondR) ->
+         Failed $ "Multiple result descriptors with values: " <>
+           unpack (toCssText r) <> " and " <> unpack (toCssText secondR)
+       ((Nothing, ces), Right r) ->
+         pure (Just r, ces)
+       ((r, ces), Left ce) ->
+         pure (r, ce : ces)
 
-addClass :: TagSubSelector -> TagSelector -> TagSelector
-addClass c ts  = ts { tagSubSelectors = c : ts.tagSubSelectors }
 
-newRule :: (TagSelector -> TagSelector) -> [CssRuleBodyItem] -> [CssRuleBodyItem] -> [CssRuleBodyItem]
-newRule f body = (CssNestedRule (CssRule (Selector Nothing (f nullTagSelector) [] :| []) body) :)
-
-mkPeSelector :: (TagSelector -> TagSelector) -> PseudeTagSelector -> Selector
-mkPeSelector f = PeSelector Nothing (f nullTagSelector) []
-
-newPseude :: (TagSelector -> TagSelector) -> PseudeTagSelector -> [CssRuleBodyItem] -> [CssRuleBodyItem] -> [CssRuleBodyItem]
-newPseude f pts body = (CssNestedRule (CssRule (mkPeSelector f pts :| []) body) :)
-
-pushPeSelector :: (TagSelector -> TagSelector) -> PseudeTagSelector -> CssRule -> CssRule
-pushPeSelector f pts =  mapCssRule go
- where
-   go :: NonEmpty Selector -> [CssRuleBodyItem] -> CssRule
-   go sl = CssRule (mkPeSelector f pts <| sl)
-
-mapCssRuleM :: Monad m => (NonEmpty Selector -> [CssRuleBodyItem] -> m CssRule) -> CssRule -> m CssRule
-mapCssRuleM f  = \case
-  CssRule selList bis -> f selList bis
-  ar@AtRule {} -> pure ar
-
-mapCssRule :: (NonEmpty Selector -> [CssRuleBodyItem] -> CssRule) -> CssRule -> CssRule
-mapCssRule f cr = runIdentity $ mapCssRuleM go cr
-  where
-    go :: NonEmpty Selector -> [CssRuleBodyItem] -> Identity CssRule
-    go a b = pure $ f a b
-
-updateTopTagSelector :: (TagSelector -> TagSelector) -> CssRule -> CssRule
-updateTopTagSelector tsF =
-  mapCssRule $ \ (fs :| os) body -> CssRule (updateFirstTagSelector tsF fs :| os) body
-
-setTsNs :: Ident -> TagSelector -> TagSelector
-setTsNs ns ts = ts { tagNs = I.Namespace ns }
-
-prependSelectorToRule :: Ident -> CssRule -> CssRule
-prependSelectorToRule iden =
-  mapCssRule $ \ ss body -> CssRule (selectorByTag iden <| ss) body
-
-tagNameIsClass :: Ident -> CssRule -> CssRule
-tagNameIsClass tn = updateTopTagSelector go
-  where
-    go ts = case ts.tagName of
-      TagName c ->
-        ts { tagName = TagName tn
-           , tagSubSelectors = AtomicClass c : ts.tagSubSelectors
-           }
-      _ -> ts
-
-prependIdentAttrSelector :: MonadFail m => Ident -> TagSubSelector -> TagRelation -> CssRule -> m CssRule
-prependIdentAttrSelector tn atr tr cr = prependAttr atr <$> prependIdentToRule tn tr cr
-
-prependIdentToRule :: MonadFail m => Ident -> TagRelation -> CssRule -> m CssRule
-prependIdentToRule tn tr = mapCssRuleM go
-  where
-    go (fts :| ots) body = do
-       fts' <- prependIdent tn tr fts
-       pure $ CssRule (fts' :| ots) body
-
-addAttr :: TagSubSelector -> TagSelector -> TagSelector
-addAttr a ts = ts { tagSubSelectors = a : ts.tagSubSelectors }
-
-prependAttr :: TagSubSelector -> CssRule -> CssRule
-prependAttr a = updateTopTagSelector (addAttr a)
-
-setTopTagName :: Ident -> CssRule -> CssRule
-setTopTagName tn = updateTopTagSelector go
-  where
-    go ts = ts { tagName = TagName tn }
+specificDescOnlyP :: Descriptor -> Descriptor -> P ()
+specificDescOnlyP e g
+  | e == g = pure ()
+  | otherwise =
+    Failed $ "Expected " <> unpack (toCssText e) <> " but got " <> unpack (toCssText g)
 
 pclassToIdent :: AtomicPseudoClass -> Ident
 pclassToIdent = Ident . T.drop 1 . L.toStrict . toCssText
@@ -248,42 +69,10 @@ pclassToPropVal pc = IdentRef (pclassToIdent pc)
 pclassToPropVals :: Maybe Important-> AtomicPseudoClass -> PropVals
 pclassToPropVals mi pc = PropVals (pclassToPropVal pc :| []) mi
 
-rewritePclassAsValue :: PropertyName -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
-rewritePclassAsValue pn pc = \case
-  (PropVals (pv :| pvs) mi) :| [] ->
-    CssLeafRule pn (PropVals (g pvs pv) mi)
-  (PropVals (pv :| pvs) mi) :| pvne ->
-    CssEnumLeaf pn (PropValsList $ PropVals (g pvs pv) mi :| pvne)
-  where
-    g pvs = \case
-      IdentRef i -> IdentRef (pclassToIdent pc <> i) :| pvs
-      o -> IdentRef (pclassToIdent pc) :| (o : pvs)
-
-rewritePclassAsValueComma :: PropertyName -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
-rewritePclassAsValueComma pn pc pvne =
-    CssEnumLeaf pn (PropValsList $ pclassToPropVals Nothing pc <| pvne)
-
-rewritePseudoClassAsDescValue :: PropertyName -> Maybe Important -> AtomicPseudoClass -> CssRuleBodyItem
-rewritePseudoClassAsDescValue pn mi pc = CssLeafRule pn (pclassToPropVals mi pc)
-
-rewritePseudoClassAsPropValsImp ::
-  PropertyName -> AtomicPseudoClass -> Maybe Important -> NonEmpty PropVals -> CssRuleBodyItem
-rewritePseudoClassAsPropValsImp pn pc mi pvl =
-  CssEnumLeaf pn (PropValsList $ pclassToPropVals mi pc <| pvl)
-
-rewritePseudoClassAsPropVals :: PropertyName -> AtomicPseudoClass -> NonEmpty PropVals -> CssRuleBodyItem
-rewritePseudoClassAsPropVals pn pc (pvs :| pvl) =
-  case pvs of
-    PropVals pv mi ->
-      CssEnumLeaf pn (PropValsList $ PropVals (IdentRef (pclassToIdent pc) <| pv) mi :| pvl)
-
-mkLeaf :: PropertyName -> NonEmpty PropVals -> CssRuleBodyItem
+mkLeaf :: Descriptor -> NonEmpty PropVals -> CssRuleBodyItem
 mkLeaf pn = \case
   (x :| []) -> CssLeafRule pn x
   o -> CssEnumLeaf pn (PropValsList o)
-
-fmap2 :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
-fmap2 f = fmap (fmap f)
 
 chopOffLeftmostSign :: CalcExpr -> Maybe (CalcOp, CalcExpr)
 chopOffLeftmostSign = \case

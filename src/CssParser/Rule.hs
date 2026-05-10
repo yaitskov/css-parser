@@ -9,6 +9,7 @@ import CssParser.At.Keyframe ( KeyframeSet, PropEntry )
 import CssParser.At.MediaQuery ( MediaQueryList )
 import CssParser.At.Page ( PageMargin, PageSelectorList )
 import CssParser.At.Supports qualified as S
+import CssParser.Descriptor (Descriptor)
 import CssParser.Ident
 import CssParser.MonoPair ( MonoPair )
 import CssParser.Prelude
@@ -17,6 +18,7 @@ import CssParser.Rule.Pseudo
 import CssParser.Rule.Value
     ( PropValsList, PropVals, Source, Unsigned, CommaSeparatedList )
 import CssParser.Show ( CslNe, Embraced, SslNe )
+
 
 type SelectorList = NonEmpty Selector
 type FeatureQuery = S.FeatureQuery SelectorList
@@ -118,8 +120,8 @@ data TagSubSelector
   deriving (Eq, Ord, Show, Generic)
 
 data CssRuleBodyItem
-  = CssLeafRule PropertyName PropVals
-  | CssEnumLeaf PropertyName PropValsList
+  = CssLeafRule Descriptor PropVals
+  | CssEnumLeaf Descriptor PropValsList
   | CssNestedRule CssRule
   deriving (Show, Ord, Eq, Generic)
 

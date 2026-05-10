@@ -54,7 +54,7 @@ tests = testGroup "CssParser"
     ]
   ]
   where
-    throttle x = withMaxSize 60 (withMaxSuccess 44 x)
+    throttle x = withMaxSize 60 (withMaxSuccess 64 x)
     cpt m x = testCase m (True @=? checkParse (x <> " {}"))
 
 encodeDecode :: Char -> String -> Bool
@@ -128,8 +128,8 @@ fontPaletteValues =
 
 container :: [String]
 container =
-  [ "@container not scroll-state(snapped: none) { }"
-  , "@container foo (snapped: none) { }"
+  [ "@container not scroll-state(x: none) { }"
+  , "@container foo (x: none) { }"
   , "@container foo  { }"
   , "@container foo (width > 100px) { }"
   , "@container style(--theme: one) or style(--theme: two) {}"
@@ -142,10 +142,10 @@ misc =
   , "a{a:muted, |*{}}"
   , "a{a:muted, a #f{}}"
   , "a{a:muted, a b{}}"
-  , "a{a:muted, a + b{}}"
-  , "a{a:muted, a > b{}}"
-  , "a{a:muted, a b;}"
-  , "a{a:muted, a b}"
+  , "a{a:muted, a + #y::first-line{}}"
+  , "a{a:muted, a > .x::first-line{}}"
+  , "a{src:muted, a b;}"
+  , "a{src:muted, a b}"
   , "strong{color:currentColor}"
   , "@charset \"utf-8\"; /* */ /* */ @namespace \"x\"; "
   , "@namespace \"x\"; /* */ /* */ @namespace \"y\";"
@@ -198,9 +198,9 @@ properties =
   , "cursor:not-allowed;"
   , "--bs-btn-font-family: ;"
   , "--x: hsla(var(--bulma-white-h), 1);"
-  , "p: 1px; /* */ q: 100vh;"
-  , "/* */ q: 100vh;"
-  , "q: 100vh; /* */ "
+  , "y: 1px; /* */ x: 100vh;"
+  , "/* */ x: 100vh;"
+  , "x: 100vh; /* */ "
   , "margin: 10e2px;"
   , "margin: -0.0px;"
   , "margin: -3.4e-2;"
@@ -228,16 +228,16 @@ properties =
   , "font-style: oblique 20deg 50deg;"
   , "transform: rotate(45deg);"
   , "transform: rotate(4grad);"
-  , "transform: rotate(4trun);"
+  , "transform: rotate(4turn);"
   , "transform: rotate(4rad);"
   , "border: 1px solid green;"
-  , "s: url(\"https://example.org/SWOP2006_Coated5v2.icc\");"
-  , "s: url(./file.jpg);"
-  , "s: url(/file.jpg);"
-  , "s: url(http://site.com:443/file.jpg);"
-  , "s: url(http://site.com:443/file.jpg?yyy=oooo#aoeuao);"
-  , "s: format(\"opentype\");"
-  , "s: format(\"opentype\") tech(color);"
+  , "x: url(\"https://example.org/SWOP2006_Coated5v2.icc\");"
+  , "x: url(./file.jpg);"
+  , "x: url(/file.jpg);"
+  , "x: url(http://site.com:443/file.jpg);"
+  , "x: url(http://site.com:443/file.jpg?yyy=oooo#aoeuao);"
+  , "x: format(\"opentype\");"
+  , "x: format(\"opentype\") tech(color);"
   , "container: x / y;"
   ]
 
