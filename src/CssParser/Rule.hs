@@ -113,11 +113,14 @@ data TagSubSelector
   | Heading (Embraced (CslNe Unsigned))
   | Host (Embraced SelectorList)
   | State (Embraced Ident)
-
   | HasAttr AttrName
-  | Attr AttrName AttrOp AttrVal
+  | Attr AttrName AttrOp (Maybe AtrPat)
   | Hash Ident
+  deriving (Eq, Ord, Show, Generic)
 
+data CaseSensetivity
+  = CaseSensetive
+  | CaseInsensetive
   deriving (Eq, Ord, Show, Generic)
 
 data CssRuleBodyItem
@@ -126,7 +129,10 @@ data CssRuleBodyItem
   | CssNestedRule CssRule
   deriving (Show, Ord, Eq, Generic)
 
-type AttrVal = Text
+data AtrPat
+  = StrAtrPat Text (Maybe CaseSensetivity)
+  | IdtAtrPat Ident (Maybe CaseSensetivity)
+  deriving (Show, Eq, Ord, Generic)
 
 data AttrOp =
       Exact -- ^ exactly the value of the value, denoted with @=@

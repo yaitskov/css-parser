@@ -5,13 +5,26 @@ import Control.Monad ( foldM )
 import CssParser.Descriptor (Descriptor (CustomDescriptor, KnownDescriptor), KnownDescriptor (ResultT))
 import CssParser.At.Function ( ConstEntry(..) )
 import CssParser.Ident
+    ( Ident(..),
+      Namespace(NoBar),
+      PropertyName(..),
+      TagName(NoTag),
+      Var(Var) )
 import CssParser.Prelude
 import CssParser.Parser.Monad ( P(Failed) )
 import CssParser.Rule
     ( CssRuleBodyItem(CssEnumLeaf, CssLeafRule),
-      TagSelector(TagSelector) )
+      TagSelector(TagSelector),
+      CaseSensetivity(..) )
 import CssParser.Show ( CssShow(toCssText) )
 import CssParser.Rule.Value
+    ( CalcExpr(BinOpCe, ValCe),
+      CalcOp(PlusCe, MinusCe),
+      Important,
+      PropVal(IdentRef),
+      PropVals(..),
+      PropValsList(PropValsList),
+      RawNum(RawNum) )
 import CssParser.Rule.Show ()
 import Data.Text qualified as T
 import Data.Text.Lazy qualified as L
@@ -32,7 +45,7 @@ varOrResult d pvs =
   case d of
     KnownDescriptor ResultT -> pure $ Right pvs
     CustomDescriptor i -> pure . Left $ ConstEntry (Var i) (PropValsList pvs)
-    o -> Failed $ "Expected var or result but got " <> unpack (toCssText o)
+    o -> Failed $ "Expected var or result but got " <> toCssStr o
 
 findResult :: [ Either ConstEntry (NonEmpty PropVals) ] -> P (NonEmpty PropVals, [ConstEntry])
 findResult l =
@@ -44,7 +57,7 @@ findResult l =
       case (b, a) of
        ((Just r, _), Right secondR) ->
          Failed $ "Multiple result descriptors with values: " <>
-           unpack (toCssText r) <> " and " <> unpack (toCssText secondR)
+           toCssStr r <> " and " <> toCssStr secondR
        ((Nothing, ces), Right r) ->
          pure (Just r, ces)
        ((r, ces), Left ce) ->
@@ -55,7 +68,7 @@ specificDescOnlyP :: Descriptor -> Descriptor -> P ()
 specificDescOnlyP e g
   | e == g = pure ()
   | otherwise =
-    Failed $ "Expected " <> unpack (toCssText e) <> " but got " <> unpack (toCssText g)
+    Failed $ "Expected " <> toCssStr e <> " but got " <> toCssStr g
 
 pclassToIdent :: AtomicPseudoClass -> Ident
 pclassToIdent = Ident . T.drop 1 . L.toStrict . toCssText
@@ -91,6 +104,17 @@ recoverCalcBinOp :: CalcExpr -> CalcExpr -> P CalcExpr
 recoverCalcBinOp fo so =
   case chopOffLeftmostSign so of
     Nothing ->
-      fail $ "Expected operator between " <> unpack (toCssText fo) <> " and " <> unpack (toCssText so)
+      fail $ "Expected operator between " <> toCssStr fo <> " and " <> toCssStr so
     Just (lop, so') ->
       pure $ BinOpCe fo lop so'
+
+atrCaseSensetivity :: Ident -> P CaseSensetivity
+atrCaseSensetivity = \case
+ Ident "i" -> pure CaseInsensetive
+ Ident "I" -> pure CaseInsensetive
+ Ident "s" -> pure CaseSensetive
+ Ident "S" -> pure CaseSensetive
+ o -> Failed $ "Expected i or s for case sensetivity but got: " <> toCssStr o
+
+toCssStr :: CssShow a => a -> String
+toCssStr = unpack . toCssText

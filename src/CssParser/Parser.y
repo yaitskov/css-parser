@@ -31,7 +31,7 @@ import CssParser.Lexer.Token
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
     , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
     , NotT, OrT, AndT, OnlyT, ReturnsT, GlobalT
-    , TOpen, TClose, DescriptorT, ClassT
+    , TOpen, TClose, DescriptorT, ClassT, AttrPatT
     , Greater, Less, LessEqual, GreaterEqual
     , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
@@ -82,6 +82,7 @@ import Prelude
     '{'         { TokenLoc COpen _ _ }
     '}'         { TokenLoc CClose _ _ }
     '='         { TokenLoc TEqual _ _ }
+    attrPat     { TokenLoc (AttrPatT $$) _ _ }
     mediaType   { TokenLoc (MediaTypeT $$) _ _ }
     charset     { TokenLoc CharsetT _ _ }
     '@'         { TokenLoc (AtT $$) _ _ }
@@ -693,7 +694,7 @@ TagClass :: { TagSubSelector }
     | 'is(' SL                                    { Is $2 }
     | 'has(' SL                                   { Has $2 }
     | pseudf Os Nth                               { call $1 $3 }
-    | '[' Attr                                    { $2 }
+    | '[' Attr ']'                                { $2 }
     | Hash                                        { $1 }
 CslOfIdents :: { CslNe R.Ident }
     : NonEmpty(',', IdKwd)                        { CslNe $1 }
@@ -709,7 +710,6 @@ TagRelation :: { TagRelation }
     | ' ' '>' Os                                  { Child }
     | ' ' '~' Os                                  { GeneralSibling }
     | ' ' Os                                      { Descendant }
-
     | '+' Os                                      { NextSibling }
     | '>' Os                                      { Child }
     | '~' Os                                      { GeneralSibling }
@@ -728,19 +728,22 @@ Op  :: { () }
     : '(' Os                                      { () }
 Os  :                                             { () }
     | ' '                                         { () }
+AtrPat :: { Maybe AtrPat }
+    : Str AtrPatCase                              { Just (StrAtrPat $1 $2) }
+    | attrPat AtrPatCase                          { Just (IdtAtrPat (R.Ident $1) $2) }
+    |                                             { Nothing }
+AtrPatCase :: { Maybe CaseSensetivity }
+    :                                             { Nothing }
+    | Os attrPat                                  {% fmap Just (atrCaseSensetivity (R.Ident $2)) }
 Attr
-    : IdKwd ']'                                   { HasAttr (AttrName NoBar $1) }
-    | IdKwd '|' IdKwd ']'                         { HasAttr (AttrName (R.Namespace $1) $3) }
-    | IdKwd '|' IdKwd AttrOp IdTxt ']'            { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
-    | IdKwd '|' IdKwd AttrOp Str ']'              { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
-    | IdKwd AttrOp IdTxt ']'                      { Attr (AttrName NoBar $1) $2 $3 }
-    | IdKwd AttrOp Str ']'                        { Attr (AttrName NoBar $1) $2 $3 }
-    | '|' IdKwd ']'                               { HasAttr (AttrName NoNs $2) }
-    | '|' IdKwd AttrOp IdTxt ']'                  { Attr (AttrName NoNs $2) $3 $4 }
-    | '|' IdKwd AttrOp Str ']'                    { Attr (AttrName NoNs $2) $3 $4 }
-    | '*' '|' IdKwd ']'                           { HasAttr (AttrName AsteriskNs $3) }
-    | '*' '|' IdKwd AttrOp IdTxt ']'              { Attr (AttrName AsteriskNs $3) $4 $5 }
-    | '*' '|' IdKwd AttrOp Str ']'                { Attr (AttrName AsteriskNs $3) $4 $5 }
+    : IdKwd                                       { HasAttr (AttrName NoBar $1) }
+    | IdKwd '|' IdKwd                             { HasAttr (AttrName (R.Namespace $1) $3) }
+    | IdKwd '|' IdKwd AttrOp AtrPat               { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
+    | IdKwd AttrOp AtrPat                         { Attr (AttrName NoBar $1) $2 $3 }
+    | '|' IdKwd                                   { HasAttr (AttrName NoNs $2) }
+    | '|' IdKwd AttrOp AtrPat                     { Attr (AttrName NoNs $2) $3 $4 }
+    | '*' '|' IdKwd                               { HasAttr (AttrName AsteriskNs $3) }
+    | '*' '|' IdKwd AttrOp AtrPat                 { Attr (AttrName AsteriskNs $3) $4 $5 }
 AttrOp ::  { AttrOp }
     : '='                                         { Exact }
     | '~='                                        { Include }

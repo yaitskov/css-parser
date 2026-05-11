@@ -127,15 +127,22 @@ instance CssShow TagSubSelector where
     Attr name op val ->
       "[" <> toCssText name <>
       toCssText op <>
-      encodeStringLiteral val <>
+      toCssText val <>
       "]"
     Hash h -> cons '#' $ toCssText h
 
 instance CssShow AttrName where
   toCssText (AttrName n (Ident e)) = toCssText n <> encodeIdentifier e
 
--- instance CssShow Hash where
---   toCssText = cons '#' . encodeIdentifier . unHash
+instance CssShow AtrPat where
+  toCssText = \case
+    StrAtrPat s cs -> encodeStringLiteral s <> toCssText cs
+    IdtAtrPat i cs -> toCssText i <> toCssText cs
+
+instance CssShow CaseSensetivity where
+  toCssText = \case
+    CaseSensetive -> " s"
+    CaseInsensetive -> " i"
 
 instance CssShow Selector where
   toCssText = \case

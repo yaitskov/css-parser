@@ -83,7 +83,7 @@ $pm       = [\-\+]
 
 @browserPrefix = [\-](@m@o@z|@w@e@b@k@i@t|@m@s|@o|@a@p@p@l@e)[\-]
 @ident   = @browserPrefix? @nmstart @nmchar*
-
+@attrName = @nmstart @nmchar*
 
 @anum    = [\-\+]? ( @dec+ ([\.]@dec+)? (@e [\-\+]? @dec+)? | [\.]@dec+ )
 
@@ -176,11 +176,6 @@ tokens :-
  <0> {
   \\ "0"                                               ;
   @wo "=" @wo                                          { constoken TEqual }
-  @wo "~=" @wo                                         { constoken TIncludes }
-  @wo "|=" @wo                                         { constoken TDashMatch }
-  @wo "^=" @wo                                         { constoken TPrefixMatch }
-  @wo "$=" @wo                                         { constoken TSuffixMatch }
-  @wo "*=" @wo                                         { constoken TSubstringMatch }
   @wo ","  @wo                                         { constoken Comma }
   (@wo ";" @wo)+                                       { constoken Semicolon }
 
@@ -306,8 +301,7 @@ tokens :-
   @wo "<" @wo                                          { constoken Less }
   @wo "<=" @wo                                         { constoken LessEqual }
   @wo $tl @wo                                          { constoken Tilde }
-  "[" @wo                                              { constoken BOpen }
-  @wo "]"                                              { constoken BClose }
+  "[" @wo                                              { constAndBegin BOpen attr_st }
   @wo "{" @wo                                          { constoken COpen }
   @wo "}" @wo                                          { constoken CClose }
   @psb @a@f@t@e@r                                      { constoken (PseudoElementT After) }
@@ -452,11 +446,33 @@ tokens :-
  }
  <comment> {
   [.\n]                                                ;
-  @cmc                                                 { begin state_initial }
+  @cmc                                                 { begin start }
+ }
+ <attr_st> {
+  @attrName                                            { tokenize (IdentT . pack . readIdentifier) }
+  @wo "]"                                              { constAndBegin BClose start }
+  "*"                                                  { constoken Asterisk }
+  "|"                                                  { constoken Pipe }
+  @wo "=" @wo                                          { constAndBegin TEqual attr_pat_st }
+  @wo "~=" @wo                                         { constAndBegin TIncludes attr_pat_st }
+  @wo "|=" @wo                                         { constAndBegin TDashMatch attr_pat_st }
+  @wo "^=" @wo                                         { constAndBegin TPrefixMatch attr_pat_st }
+  @wo "$=" @wo                                         { constAndBegin TSuffixMatch attr_pat_st }
+  @wo "*=" @wo                                         { constAndBegin TSubstringMatch attr_pat_st }
+  @wo @cmo                                             { begin comment }
+  "<!--"                                               { begin htmlComment }
+ }
+ <attr_pat_st> {
+  @string                                              { tokenize (String . readCssString) }
+  @name                                                { tokenize (AttrPatT . pack . readIdentifier) }
+  $w @wo                                               { constoken Space }
+  @wo @cmo                                             { begin comment }
+  "<!--"                                               { begin htmlComment }
+  @wo "]"                                              { constAndBegin BClose start }
  }
  <htmlComment> {
   [.\n]                                                ;
-  "-->"                                                { begin state_initial }
+  "-->"                                                { begin start }
  }
  <nth_state> {
   $w @wo                                               { constoken Space }
@@ -466,12 +482,12 @@ tokens :-
   "+"                                                  { constoken (TPM TpmIdF) }
   "-"                                                  { constoken (TPM TpmNegF) }
   @int                                                 { tokenize (TInt . read) }
-  ")"                                                  { constAndBegin TClose state_initial }
+  ")"                                                  { constAndBegin TClose start }
  }
  <lang_state> {
   @lang                                                { tokenize String }
   $w @wo                                               { skip }
-  ")"                                                  { constAndBegin TClose state_initial }
+  ")"                                                  { constAndBegin TClose start }
  }
 
 {
@@ -533,8 +549,8 @@ constoken = tokenize . const
 constAndBegin :: Token -> Int -> AlexInput -> Int -> Alex TokenLoc
 constAndBegin = andBegin . constoken
 
-state_initial :: Int
-state_initial = 0
+start :: Int
+start = 0
 
 alexInitUserState :: AlexUserState
 alexInitUserState = ()

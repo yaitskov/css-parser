@@ -23,6 +23,7 @@ data Token
   | TSuffixMatch
   | TSubstringMatch
   | IdentT Text
+  | AttrPatT Text
   | String String
   | UnicodeRangeVal String
   | FontFeatureValuesT
