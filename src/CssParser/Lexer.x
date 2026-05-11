@@ -48,33 +48,6 @@ $pm       = [\-\+]
 @string2 = \"([^\n\r\f\\\"] | \\@nl | @nonaesc )*\"   -- strings with double quotes
 @string  = @string1 | @string2
 
--- @a       = a
--- @b       = b
--- @c       = c
--- @d       = d
--- @e       = e
--- @f       = f
--- @g       = g
--- @h       = h
--- @i       = i
--- @j       = j
--- @k       = k
--- @l       = l
--- @m       = m
--- @n       = n
--- @o       = o
--- @p       = p
--- @q       = q
--- @r       = r
--- @s       = s
--- @t       = t
--- @u       = u|U
--- @v       = v
--- @w       = w
--- @x       = x
--- @y       = y
--- @z       = z
-
 @a       = a|A
 @b       = b|B
 @c       = c|C
@@ -212,8 +185,6 @@ tokens :-
   (@wo ";" @wo)+                                       { constoken Semicolon }
 
   "!" @wo @i@m@p@o@r@t@a@n@t                           { constoken ImportantT }
-  @supports                                            { constoken SupportsT }
-
   "@"                                                  { constoken (AtT I.Na) }
   "@" @moz                                             { constoken (AtT I.Moz) }
   "@" @ms                                              { constoken (AtT I.Microsoft) }
@@ -221,60 +192,14 @@ tokens :-
   "@" @opera                                           { constoken (AtT I.Opera) }
   "@" @webkit                                          { constoken (AtT I.WebKit) }
 
-  @f@u@n@c@t@i@o@n                                     { constoken FunctionT }
-  @font "-" @face                                      { constoken FontFaceT }
-
-  @top "-" @left "-" @corner                           { constoken (PageMarginT TopLeftCorner) }
-  @bottom "-" @right "-" @corner                       { constoken (PageMarginT BottomRightCorner) }
-  @top "-" @right "-" @corner                          { constoken (PageMarginT TopRightCorner) }
-  @bottom "-" @left "-" @corner                        { constoken (PageMarginT BottomLeftCorner) }
-
-  @top "-" @left                                       { constoken (PageMarginT TopLeft) }
-  @top "-" @center                                     { constoken (PageMarginT TopCenter) }
-  @top "-" @right                                      { constoken (PageMarginT TopRight) }
-  @bottom "-" @left                                    { constoken (PageMarginT BottomLeft) }
-  @bottom "-" @center                                  { constoken (PageMarginT BottomCenter) }
-  @bottom "-" @right                                   { constoken (PageMarginT BottomRight) }
-
-  @left "-" @top                                       { constoken (PageMarginT LeftTop) }
-  @left "-" @middle                                    { constoken (PageMarginT LeftMiddle) }
-  @left "-" @bottom                                    { constoken (PageMarginT LeftBottom) }
-  @right "-" @top                                      { constoken (PageMarginT RightTop) }
-  @right "-" @middle                                   { constoken (PageMarginT RightMiddle) }
-  @right "-" @bottom                                   { constoken (PageMarginT RightBottom) }
-
-  @scope                                               { constoken ScopeT }
-  @view "-" @transition                                { constoken ViewTransitionT }
-  @starting "-" @style                                 { constoken StartingStyleT }
-
-  @font "-" @palette "-" @values                       { constoken FontPaletteValuesT }
-  @font "-" @feature "-" @values                       { constoken FontFeatureValuesT }
-  @color "-" @profile                                  { constoken ColorProfileT }
   @property $w @wo                                     { constoken PropertyT }
   @counter "-" @style $w @wo                           { constoken CounterStyleT }
   @charset $w @wo                                      { constoken CharsetT }
   @namespace $w @wo                                    { constoken NamespaceT }
-  @media                                               { constoken MediaT }
+
   @import $w @wo                                       { constoken ImportT }
   @keyframes $w @wo                                    { constoken KeyframesT }
-  @layer                                               { constoken LayerT }
-
-  @r@e@t@u@r@n@s                                       { constoken ReturnsT }
-
-  @from                                                { constoken FromT }
-  @to                                                  { constoken ToT }
   @only @wo                                            { constoken OnlyT }
-  @print                                               { constoken (MediaTypeT Print     ) }
-  @screen                                              { constoken (MediaTypeT Screen    ) }
-  @t@t@y                                               { constoken (MediaTypeT Tty       ) }
-  @t@v                                                 { constoken (MediaTypeT Tv        ) }
-  @p@r@o@j@e@c@t@i@o@n                                 { constoken (MediaTypeT Projection) }
-  @h@a@n@d@h@e@l@d                                     { constoken (MediaTypeT Handheld  ) }
-  @b@r@a@i@l@l@e                                       { constoken (MediaTypeT Braille   ) }
-  @e@m@b@o@s@s@e@d                                     { constoken (MediaTypeT Embossed  ) }
-  @a@u@r@a@l                                           { constoken (MediaTypeT Aural     ) }
-  @s@p@e@e@c@h                                         { constoken (MediaTypeT Speech    ) }
-
   @not @wo                                             { constoken NotT }
   @or @wo                                              { constoken OrT }
   @and @wo                                             { constoken AndT }
