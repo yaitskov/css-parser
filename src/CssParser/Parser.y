@@ -492,6 +492,7 @@ PropVal :: { PropVal }
     | PropN Op PropValsList ')'                   { mkAppFun $1 $3 }
     | PropN Op ')'                                { AppConst $1 }
     | Str                                         { StrVal $1 }
+    | '.'                                         { DotVal }
     | Url                                         { UrlVal $1 }
     | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
                                                   { AttrFun $3 $5 $6 }

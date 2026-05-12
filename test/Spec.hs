@@ -193,6 +193,7 @@ properties :: [String]
 properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
+  , "--uk: .;"
   , "grid-gap: 2;"
   , "fill:attr(data-x);"
   , "fill:attr(data-count type(<number>), 0);"

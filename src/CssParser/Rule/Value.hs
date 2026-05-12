@@ -134,6 +134,7 @@ data PropVal
   | VarRef Var
   | UrlVal Url
   | StrVal Text
+  | DotVal
   | AppFun PropertyName PropVals
   | AppFunEnum PropertyName PropValsList
   | AppConst PropertyName
@@ -157,6 +158,7 @@ instance CssShow PropVal where
     IdentRef i -> toCssText i
     UrlVal u -> toCssText u
     StrVal s -> encodeStringLiteral s
+    DotVal -> "."
     HexColor c -> toCssText c
     CalcFun ce -> "calc(" <> toCssText ce <> ")"
     AttrFun an at dv ->
