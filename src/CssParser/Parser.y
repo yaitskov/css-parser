@@ -236,7 +236,8 @@ AtRule :: { AtRule }
     | pageMargin ERB                              { PageMarginBlock $1 $2 }
     | counterStyle IdKwd ERB                      { CounterStyle $2 $3 }
     | property Var ERB                            { Property $2 $3 }
-    | keyframes IdKwd Ocb List(Keyframe) '}'      { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
+    | keyframes IdKwd Ocb SepList(Os, Keyframe) '}'
+                                                  { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
     | colorProfile Os PropN Os ERB                { ColorProfile $3 $5 }
     | fontFace Os ERB                             { FontFaceBlock $3 }
     | fontFeatureValues ' ' StrEitherIds Os Ocb FontFeatureValBlocks '}'
@@ -704,6 +705,9 @@ Embraced(o, p, c)
     : o p c                                       { $2 }
 Clp : ')'                                         { $1 }
 P(p): Embraced(Op, p, Clp)                        { $1 }
+SepList(sep, elt)
+    :                                             { [] }
+    | elt sep List(elt)                           { $1 : $3 }
 List(elt)
     :                                             { [] }
     | elt List(elt)                               { $1 : $2 }
