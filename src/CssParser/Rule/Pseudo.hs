@@ -8,7 +8,8 @@ newtype Language = Language Text deriving newtype (Eq, Ord, Show, IsString)
 data Nth = Nth { linear :: Int, constant :: Int } deriving (Eq, Ord, Show, Generic)
 
 data PseudoElement
-  = After
+  = UnknownPe Ident
+  | After
   | Backdrop
   | Before
   | Checkmark
@@ -29,7 +30,6 @@ data PseudoElement
   | SpellingError
   | TargetText
   | ViewTransition
-  | UnknownPe Ident
   deriving (Eq, Ord, Show, Generic)
 
 instance GEnum PseudoElement
@@ -39,7 +39,8 @@ newtype BrowserSpecificIdent = BrowserSpecificIdent Ident
   deriving (Generic)
 
 data AtomicPseudoClass
-  = Active
+  = UnknownPc BrowserSpecificIdent
+  | Active
   | ActiveViewTransition
   | AnyList
   | Autofill
@@ -105,18 +106,15 @@ data AtomicPseudoClass
   | Visited
   | VolumeLocked
   | XrOverlay
-  | UnknownPc BrowserSpecificIdent
   deriving (Eq, Ord, Show, Generic)
 
 instance GEnum AtomicPseudoClass
 
 pseudoElementMap :: HashMap Text PseudoElement
-pseudoElementMap =
-  mkDecodingMap' $ filter (\case UnknownPe _ -> False; _ -> True) genum
+pseudoElementMap = mkDecodingMap' $ drop 1 genum
 
 pseudoClassMap :: HashMap Text AtomicPseudoClass
-pseudoClassMap =
-  mkDecodingMap' $ filter (\case UnknownPc _ -> False; _ -> True) genum
+pseudoClassMap = mkDecodingMap' $ drop 1 genum
 
 pattern Even :: Nth
 pattern Even = Nth 2 0
@@ -145,6 +143,7 @@ instance CssShow AtomicPseudoClass where
     where
       go :: AtomicPseudoClass -> LText
       go = \case
+        UnknownPc i -> toCssText i
         Active -> "active"
         ActiveViewTransition -> "active-view-transition"
         AnyList -> "any-list"
@@ -211,12 +210,13 @@ instance CssShow AtomicPseudoClass where
         Visited -> "visited"
         VolumeLocked -> "volume-locked"
         XrOverlay -> "xr-overlay"
-        UnknownPc i -> toCssText i
+
 
 instance CssShow PseudoElement where
   toCssText = ("::" <>) . go
     where
       go = \case
+        UnknownPe i -> toCssText i
         After -> "after"
         Backdrop -> "backdrop"
         Before -> "before"
@@ -238,4 +238,3 @@ instance CssShow PseudoElement where
         SpellingError -> "spelling-error"
         TargetText -> "target-text"
         ViewTransition -> "view-transition"
-        UnknownPe i -> toCssText i
