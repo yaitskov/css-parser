@@ -295,7 +295,7 @@ keyframe =
   [ "@keyframes spinAround { from, to {transform:rotate(0deg);} to {transform: rotate(359deg);}}"
   , "@-webkit-keyframes spinAround { 0% {} 100% {}}"
   , "@keyframes x{from{transform:rotate(0deg)}to{transform:rotate(359deg)}}"
-  , "@keyframes x{from{transform:rotate(0deg)} /* * */ to{transform:rotate(1deg)}}"
+  , "@keyframes x{ from {transform:rotate(0deg)} /* * */ 2.2% {} /* * */ to {transform:rotate(1deg)} }"
   ]
 
 atImport :: [String]

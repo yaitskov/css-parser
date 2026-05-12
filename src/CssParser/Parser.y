@@ -381,8 +381,8 @@ CommaSeparatedList :: { NonEmpty PropVals }
 UnicodeRange :: { UnicodeRange }
     : unRangeVal                                  { UnicodeRange (pack $1) }
 Keyframe :: { Keyframe }
-    : NonEmpty(',', KeyframeAdr) Os Ocb PropEntries '}'
-                                                  { Keyframe (CslNe $1) $4 }
+    : Os NonEmpty(',', KeyframeAdr) Os Ocb PropEntries '}'
+                                                  { Keyframe (CslNe $2) $5 }
 TypedNum :: { TypedNum }
     : typedNum                                    {% parseTypedNum $1 }
 KeyframeAdr
