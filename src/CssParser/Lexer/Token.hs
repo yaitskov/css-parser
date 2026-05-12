@@ -16,114 +16,113 @@ import Data.Text (pack)
 import Data.HashMap.Strict qualified as HM
 
 data Token
-  = TIncludes
-  | TEqual
-  | TDashMatch
-  | TPrefixMatch
-  | TSuffixMatch
-  | TSubstringMatch
-  | IdentT Text
+  = AlphaT
+  | Ampersand
+  | AndT
+  | Asterisk
+  | AtomicPseudoClassT AtomicPseudoClass
+  | AtT BrowserPrefix
+  | AttrFunT
   | AttrPatT Text
-  | String String
-  | UnicodeRangeVal String
+  | BClose
+  | BOpen
+  | CalcFunT
+  | CClose
+  | CharsetT
+  | ClassT String
+  | Colon
+  | ColorProfileT
+  | Comma
+  | ContainerT
+  | COpen
+  | CounterStyleT
+  | DescriptorT Descriptor
+  | DivT
+  | Dot
+  | FontFaceT
   | FontFeatureValuesT
   | FontPaletteValuesT
-  | Var String
-  | THash String
-  | TypedNum NumberStr
-  | RatioT Ratio
-  | Comma
-  | Ampersand
-  | Colon
-  | Semicolon
-  | Pipe
-  | Plus
-  | PercentT
-  | SharpT
-  | Minus
+  | FromT
+  | FunctionT
+  | GlobalT
   | Greater
   | GreaterEqual
-  | Less
-  | LessEqual
-  | Tilde
-  | Dot
-  | GlobalT
-  | ClassT String
-  | PageT
-  | PageMarginT PageMargin
-  | ReturnsT
-  | SelectorFunT
-  | CalcFunT
-  | AttrFunT
-  | TypeFunT
-  | SyntaxTypeT AtomicCssType
-  | FunctionT
+  | IdentT Text
   | ImportantT
-  | SupportsT
-  | ScopeT
-  | ViewTransitionT
-  | StartingStyleT
-  | PositionTryT
-  | ContainerT
-  | FromT
-  | ToT
-  | AtT BrowserPrefix
-  | FontFaceT
-  | NamespaceT
-  | ColorProfileT
-  | PropertyT
-  | CounterStyleT
-  | CharsetT
   | ImportT
   | KeyframesT
   | LayerT
+  | Less
+  | LessEqual
   | MediaT
-  | DivT
-  | OnlyT
-  | NotT
-  | AndT
-  | OrT
-  | UrlT
   | MediaTypeT MediaType
-  | UnquotedUrlT String
-  | Asterisk
-  | Space
-  | BOpen
-  | BClose
-  | COpen
-  | CClose
-  | AtomicPseudoClassT AtomicPseudoClass
-  | PseudoFunction NthF
+  | Minus
+  | NamespaceT
+  | NotT
+  | OnlyT
+  | OrT
+  | PageMarginT PageMargin
+  | PageT
+  | PercentT
+  | Pipe
+  | Plus
+  | PositionTryT
+  | PropertyT
   | PseudoElementT PseudoElement
-  | TN
-  | TNth Nth
-  | TPM TpmF
-  | TInt Int
-  | TOpen
-  | TClose
-  | TNot
-  | TWhere
-  | TIs
-  | THas
-  | TLang
+  | PseudoFunction NthF
+  | RatioT Ratio
+  | RawStringT
+  | ReturnsT
+  | ScopeT
+  | SelectorFunT
+  | Semicolon
+  | SharpT
+  | Space
+  | StartingStyleT
+  | String String
+  | SupportsT
+  | SyntaxTypeT AtomicCssType
   | TActiveViewTransitionType
-
+  | TClose
+  | TDashMatch
   | TDir
+  | TEqual
+  | THas
+  | THash String
   | THeading
-  | THost
-  | TState
-
   | THighlight
+  | THost
+  | Tilde
+  | TIncludes
+  | TInt Int
+  | TIs
+  | TLang
+  | TN
+  | TNot
+  | TNth Nth
+  | TOpen
+  | ToT
   | TPart
   | TPicker
+  | TPM TpmF
+  | TPrefixMatch
   | TScrollButton
   | TSlotted
+  | TState
+  | TSubstringMatch
+  | TSuffixMatch
   | TViewTransitionGroup
   | TViewTransitionImagePair
   | TViewTransitionNew
   | TViewTransitionOld
-  | RawStringT
-  | DescriptorT Descriptor
+  | TWhere
+  | TypedNum NumberStr
+  | TypeFunT
+  | UnicodeRangeVal String
+  | UnquotedUrlT String
+  | UrlT
+  | Var String
+  | ViewTransitionT
   deriving (Show, Eq)
 
 pseudoClassMap :: HashMap Text Token
@@ -190,6 +189,7 @@ descriptorKeywords =
   , ("position-try"                                   , PositionTryT)
   , ("page"                                           , PageT)
   , ("all"                                            , MediaTypeT AllMt)
+  , ("alpha"                                          , AlphaT)
   , ("function"                                       , FunctionT)
   , ("font-face"                                      , FontFaceT)
   , ("top-left-corner"                                , PageMarginT TopLeftCorner)

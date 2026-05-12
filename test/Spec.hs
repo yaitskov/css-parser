@@ -194,6 +194,7 @@ properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
   , "--uk: .;"
+  , "filter:alpha(opacity=0)"
   , "grid-gap: 2;"
   , "fill:attr(data-x);"
   , "fill:attr(data-count type(<number>), 0);"

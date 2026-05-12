@@ -135,6 +135,7 @@ data PropVal
   | UrlVal Url
   | StrVal Text
   | DotVal
+  | AlphaF Unsigned
   | AppFun PropertyName PropVals
   | AppFunEnum PropertyName PropValsList
   | AppConst PropertyName
@@ -159,6 +160,7 @@ instance CssShow PropVal where
     UrlVal u -> toCssText u
     StrVal s -> encodeStringLiteral s
     DotVal -> "."
+    AlphaF o -> "alpha(opacity=" <> toCssText o <> ")"
     HexColor c -> toCssText c
     CalcFun ce -> "calc(" <> toCssText ce <> ")"
     AttrFun an at dv ->

@@ -34,7 +34,7 @@ import CssParser.Lexer.Token
     , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
     , NotT, OrT, AndT, OnlyT, ReturnsT, GlobalT, RawStringT
     , TOpen, TClose, DescriptorT, ClassT, AttrPatT, PercentT
-    , Greater, Less, LessEqual, GreaterEqual, AttrFunT
+    , Greater, Less, LessEqual, GreaterEqual, AttrFunT, AlphaT
     , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, UnicodeRangeVal
@@ -89,6 +89,7 @@ import Prelude
     attrPat     { TokenLoc (AttrPatT $$) _ _ }
     mediaType   { TokenLoc (MediaTypeT $$) _ _ }
     charset     { TokenLoc CharsetT _ _ }
+    alpha       { TokenLoc AlphaT _ _ }
     '@'         { TokenLoc (AtT $$) _ _ }
     important   { TokenLoc ImportantT _ _ }
     supports    { TokenLoc SupportsT _ _ }
@@ -499,6 +500,7 @@ PropVal :: { PropVal }
                                                   { AttrFun $3 $5 $6 }
     | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (validationToP $3 (reorder $3)) }
     | hash                                        { HexColor (HC (pack $1)) }
+    | alpha Op Ident Os '=' Os Unsigned Os ')'    { AlphaF $7 }
 AttrType :: { AttrType }
     : TypeFun                                     { CssTypeAt $1 }
     | UnitType                                    { UnitAt $1 }
@@ -679,6 +681,7 @@ AtId :: { R.Ident }
     | mediaType                                   { R.Ident (toStrict (toCssText $1)) }
     | namespace                                   { R.Ident "namespace" }
     | page                                        { R.Ident "page" }
+    | alpha                                       { R.Ident "alpha" }
     | pageMargin                                  { R.Ident "page-margin" }
     | positionTry                                 { R.Ident "position-try" }
     | property                                    { R.Ident "property" }
