@@ -1,8 +1,8 @@
 module CssParser.Rule.Type where
 
 import CssParser.Prelude
-    ( Bounded, Enum, Eq, Ord, Show, Generic, Semigroup((<>)) )
-import CssParser.Show ( CssShow(..) )
+import CssParser.Show
+import Data.Text (pack)
 
 data AtomicCssType
   = Angle
@@ -39,6 +39,15 @@ instance CssShow AtomicCssType where
     TranformFunction -> "<tranform-function>"
     TranformList -> "<tranform-list>"
     UrlType -> "<url>"
+
+typeMap :: HashMap Text AtomicCssType
+typeMap = mkDecodingMap
+
+readSyntaxType :: String -> Either String AtomicCssType
+readSyntaxType s =
+  case smartLookup (pack s) typeMap of
+    Just x -> pure x
+    Nothing -> Left $ "Unknown sytnax type: " <> s
 
 newtype CssLeafType = AtomicCssType AtomicCssType
   deriving newtype (Eq, Ord, Show, CssShow) deriving (Generic)

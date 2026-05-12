@@ -26,7 +26,6 @@ $nonascii = [^\0-\xff]
 $w        = [\ \t\r\n\f]
 $tl       = [\~]
 $pm       = [\-\+]
-
 @nl       = \r|\n|\r\n|\f
 @unicode  = \\[0-9a-fA-F]{1,6}(\r\n|[ \n\r\t\f])?
 @escape   = @unicode | \\[^\n\r\f0-9a-fA-F]
@@ -87,17 +86,9 @@ $pm       = [\-\+]
 
 @hyphen  = [\-]|\\0{0,4}2d
 @var     = [\-][\-]
-@starting = @s@t@a@r@t@i@n@g
 @selector = @s@e@l@e@c@t@o@r
-@supports = @s@u@p@p@o@r@t@s
-@scope   = @s@c@o@p@e
 @view    = @v@i@e@w
-@active  = @a@c@t@i@v@e
-@transition = @t@r@a@n@s@i@t@i@o@n
-@position = @p@o@s@i@t@i@o@n
 @try     = @t@r@y
-@container = @c@o@n@t@a@i@n@e@r
-@firsth  = @f@i@r@s@t@hyphen
 @nthh    = @n@t@h@hyphen
 @onlyh   = @o@n@l@y@hyphen
 @child   = @c@h@i@l@d
@@ -116,59 +107,23 @@ $pm       = [\-\+]
 @style   = @s@t@y@l@e
 @counter = @c@o@u@n@t@e@r
 @namespace = @n@a@m@e@s@p@a@c@e
-@layer   = @l@a@y@e@r
-@media   = @m@e@d@i@a
 @property = @p@r@o@p@e@r@t@y
-@page    = @p@a@g@e
-@top     = @t@o@p
-@bottom  = @b@o@t@t@o@m
-@right   = @r@i@g@h@t
-@left    = @l@e@f@t
-@center  = @c@e@n@t@e@r
-@corner  = @c@o@r@n@e@r
-@middle  = @m@i@d@d@l@e
-
-@first   = @f@i@r@s@t
-@blank   = @b@l@a@n@k
-@color   = @c@o@l@o@r
-@profile = @p@r@o@f@i@l@e
-
 @to      = @t@o
 @from    = @f@r@o@m
 @is      = @i@s
 @has     = @h@a@s
 @all     = @a@l@l
-@screen  = @s@c@r@e@e@n
-@print   = @p@r@i@n@t
 @not     = @n@o@t
 @where   = @w@h@e@r@e
 @and     = @a@n@d
 @or      = @o@r
 @only    = @o@n@l@y
-
 @url     = @u@r@l
-
 @cmo     = \/\*
 @cmc     = \*\/
 @psc     = [:]
 @pse     = [:][:]
-@psb     = [:][:]?
 @lang    = [A-Za-z\-]+
-
-@deg     = @d@e@g
-@rad     = @r@a@d
-@grad    = @g@r@a@d
-@turn    = @t@u@r@n
-
-@mm      = @m@m
-@px      = @p@x
-@cm      = @c@m
-@em      = @e@m
-@vh      = @v@h
-@vw      = @v@w
-@dpi     = @d@p@i
-@rem     = @r@em
-@percent = \%
 
 tokens :-
  <0> {
@@ -222,21 +177,7 @@ tokens :-
   "+"                                                  { constoken Plus }
   "-"                                                  { constoken Minus }
 
-  @wo "<" @a@n@g@l@e ">"                                   { constoken (SyntaxTypeT F.Angle) }
-  @wo "<" @c@o@l@o@r ">"                                   { constoken (SyntaxTypeT F.Color) }
-  @wo "<" @c@u@s@t@o@m "-" @i@d@e@n@t ">"                  { constoken (SyntaxTypeT F.CustomIdent) }
-  @wo "<" @i@m@a@g@e ">"                                   { constoken (SyntaxTypeT F.Image) }
-  @wo "<" @i@n@t@e@g@e@r ">"                               { constoken (SyntaxTypeT F.Integer) }
-  @wo "<" @l@e@n@g@t@h ">"                                 { constoken (SyntaxTypeT F.Length) }
-  @wo "<" @l@e@n@g@t@h "-" @p@e@r@c@e@n@t@a@g@e ">"        { constoken (SyntaxTypeT F.LengthPercentage) }
-  @wo "<" @n@u@m@b@e@r ">"                                 { constoken (SyntaxTypeT F.Number) }
-  @wo "<" @p@e@r@c@e@n@t@a@g@e ">"                         { constoken (SyntaxTypeT F.Percentage) }
-  @wo "<" @r@e@s@o@l@u@t@i@o@n ">"                         { constoken (SyntaxTypeT F.Resolution) }
-  @wo "<" @s@t@r@i@n@g ">"                                 { constoken (SyntaxTypeT F.String) }
-  @wo "<" @t@i@m@e ">"                                     { constoken (SyntaxTypeT F.Time) }
-  @wo "<" @t@r@a@n@f@o@r@m "-" @f@u@n@c@t@i@o@n ">"        { constoken (SyntaxTypeT F.TranformFunction) }
-  @wo "<" @t@r@a@n@f@o@r@m "-" @l@i@s@t ">"                { constoken (SyntaxTypeT F.TranformList) }
-  @wo "<" @u@r@l ">"                                       { constoken (SyntaxTypeT F.UrlType) }
+  @wo "<" [a-zA-Z\-]+ ">"                              { tokenizeE SyntaxTypeT (F.readSyntaxType . dropWhile isSpace) }
 
   @wo ">" @wo                                          { constoken Greater }
   @wo ">=" @wo                                         { constoken GreaterEqual }
@@ -247,8 +188,6 @@ tokens :-
   @wo "{" @wo                                          { constoken COpen }
   @wo "}" @wo                                          { constoken CClose }
 
-  @psb @a@f@t@e@r                                      { constoken (PseudoElementT After) }
-  @psb @b@e@f@o@r@e                                    { constoken (PseudoElementT Before) }
   @pse  @h@i@g@h@l@i@g@h@t                             { constoken THighlight }
   @pse  @p@a@r@t                                       { constoken TPart }
   @pse  @p@i@c@k@e@r                                   { constoken TPicker }
@@ -262,6 +201,9 @@ tokens :-
   @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @o@l@d   { constoken TViewTransitionOld }
 
   @pse [a-zA-Z0-9_\-]+                                 { tokenize (tokenizePseudoElement) }
+
+  @psc @a@f@t@e@r                                      { constoken (PseudoElementT After) }
+  @psc @b@e@f@o@r@e                                    { constoken (PseudoElementT Before) }
 
   @psc @l@a@n@g "("                                    { constAndBegin TLang lang_state }
   @psc @nthh@child "("                                 { constAndBegin (PseudoFunction NthFChild) nth_state }
