@@ -57,6 +57,8 @@ library
     , CssParser.Rule
     , CssParser.Rule.Pseudo
     , CssParser.Rule.Show
+    , CssParser.Rule.Type
+    , CssParser.Rule.TypedNum
     , CssParser.Rule.Value
     , CssParser.Show
     , CssParser.TextMarshal

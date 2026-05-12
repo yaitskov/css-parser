@@ -8,13 +8,12 @@ module CssParser.Test.Arbitrary
   )where
 
 import Data.List qualified as L
-import Data.HashSet
+import Data.HashSet ( fromList, member, HashSet )
 import Data.Text (pack, tails, inits)
 import Data.Text qualified as T
-import Data.Text.Lazy (toStrict)
-import CssParser.At.MediaQuery
+import CssParser.At.MediaQuery ( MediaType )
 import CssParser.Prelude as X
-import CssParser.Show
+import CssParser.Show ( CssShow(toCssText), CslNe(..), Embraced(..), SslNe(..) )
 import Test.QuickCheck as X
 import Test.QuickCheck.Gen as X
 import Test.QuickCheck.Instances as X ()

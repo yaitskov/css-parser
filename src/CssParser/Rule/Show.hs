@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Rule.Show where
 
-import CssParser.Ident ( AttrName(AttrName), Ident(Ident) )
+import CssParser.Ident ( Ident(Ident) )
 import CssParser.MonoPair ( MonoPair )
 import CssParser.Prelude
 import CssParser.Rule
@@ -131,18 +131,10 @@ instance CssShow TagSubSelector where
       "]"
     Hash h -> cons '#' $ toCssText h
 
-instance CssShow AttrName where
-  toCssText (AttrName n (Ident e)) = toCssText n <> encodeIdentifier e
-
 instance CssShow AtrPat where
   toCssText = \case
     StrAtrPat s cs -> encodeStringLiteral s <> toCssText cs
     IdtAtrPat i cs -> toCssText i <> toCssText cs
-
-instance CssShow CaseSensetivity where
-  toCssText = \case
-    CaseSensetive -> " s"
-    CaseInsensetive -> " i"
 
 instance CssShow Selector where
   toCssText = \case

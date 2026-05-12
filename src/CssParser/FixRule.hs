@@ -5,26 +5,20 @@ import Control.Monad ( foldM )
 import CssParser.Descriptor (Descriptor (CustomDescriptor, KnownDescriptor), KnownDescriptor (ResultT))
 import CssParser.At.Function ( ConstEntry(..) )
 import CssParser.Ident
-    ( Ident(..),
-      Namespace(NoBar),
-      PropertyName(..),
-      TagName(NoTag),
-      Var(Var) )
 import CssParser.Prelude
 import CssParser.Parser.Monad ( P(Failed) )
 import CssParser.Rule
-    ( CssRuleBodyItem(CssEnumLeaf, CssLeafRule),
-      TagSelector(TagSelector),
-      CaseSensetivity(..) )
-import CssParser.Show ( CssShow(toCssText) )
+    ( CssRuleBodyItem(CssEnumLeaf, CssLeafRule), TagSelector(TagSelector) )
+import CssParser.Show ( CssShow(toCssText), toCssStr )
+import CssParser.Rule.TypedNum
+    ( TypedNum(TypedNum), RawNum(RawNum) )
 import CssParser.Rule.Value
     ( CalcExpr(BinOpCe, ValCe),
       CalcOp(PlusCe, MinusCe),
       Important,
       PropVal(IdentRef),
       PropVals(..),
-      PropValsList(PropValsList),
-      RawNum(RawNum) )
+      PropValsList(PropValsList) )
 import CssParser.Rule.Show ()
 import Data.Text qualified as T
 import Data.Text.Lazy qualified as L
@@ -93,10 +87,10 @@ chopOffLeftmostSign = \case
     case chopOffLeftmostSign a of
       Nothing -> Nothing
       Just (lop, a') -> Just (lop, BinOpCe a' op b)
-  ValCe (RawNum rn) pt ->
+  ValCe (TypedNum (RawNum rn) pt) ->
     case T.uncons rn of
-      Just ('-', absRn) -> pure (MinusCe, ValCe (RawNum absRn) pt)
-      Just ('+', absRn) -> pure (PlusCe, ValCe (RawNum absRn) pt)
+      Just ('-', absRn) -> pure (MinusCe, ValCe (TypedNum (RawNum absRn) pt))
+      Just ('+', absRn) -> pure (PlusCe, ValCe (TypedNum (RawNum absRn) pt))
       _ -> Nothing
   _ -> Nothing
 
@@ -115,6 +109,3 @@ atrCaseSensetivity = \case
  Ident "s" -> pure CaseSensetive
  Ident "S" -> pure CaseSensetive
  o -> Failed $ "Expected i or s for case sensetivity but got: " <> toCssStr o
-
-toCssStr :: CssShow a => a -> String
-toCssStr = unpack . toCssText

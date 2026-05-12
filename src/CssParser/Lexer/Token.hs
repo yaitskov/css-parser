@@ -1,6 +1,5 @@
 module CssParser.Lexer.Token where
 
-import CssParser.At.Function (AtomicCssType)
 import CssParser.At.MediaQuery (MediaType(..))
 import CssParser.At.Page ( PageMargin(..) )
 import CssParser.Descriptor (Descriptor (BrowserSpecificDescriptor, CustomDescriptor))
@@ -8,12 +7,12 @@ import CssParser.Fun ( TpmF, NthF )
 import CssParser.Ident ( BrowserPrefix, Ident(Ident), bpLength )
 import CssParser.Prelude
 import CssParser.Rule.Pseudo ( AtomicPseudoClass, Nth, PseudoElement )
+import CssParser.Rule.Type ( AtomicCssType )
+import CssParser.Rule.TypedNum ( NumberStr )
 import CssParser.Rule.Value (Ratio)
 import CssParser.Utils ( readIdentifier )
 import Data.Text (pack)
 import Data.HashMap.Strict qualified as HM
-
-type NumberStr = String
 
 data Token
   = TIncludes
@@ -30,67 +29,7 @@ data Token
   | FontPaletteValuesT
   | Var String
   | THash String
-  | UnitLessNum String
-
-  | Deg NumberStr
-  | Rad NumberStr
-  | Grad NumberStr
-  | Fr NumberStr
-  | Hz NumberStr
-  | KHz NumberStr
-  | Turn NumberStr
-
-  | Px NumberStr
-  | Mm NumberStr
-  | Ms NumberStr
-  | Cm NumberStr
-  | Em NumberStr
-  | Vh NumberStr
-  | Vw NumberStr
-  | Rem NumberStr
-  | Dpi NumberStr
-  | Rcap NumberStr
-  | Cap NumberStr
-  | Ch NumberStr
-  | Rch NumberStr
-  | Ex NumberStr
-  | Rex NumberStr
-  | Lh NumberStr
-  | Rlh NumberStr
-  | Ic NumberStr
-  | Ric NumberStr
-  | Pc NumberStr
-  | In NumberStr
-  | Pt NumberStr
-  | Q NumberStr
-  | Second NumberStr
-  | Svh NumberStr
-  | Dvh NumberStr
-  | Lvh NumberStr
-  | Vb NumberStr
-  | Lvb NumberStr
-  | Dvb NumberStr
-  | Svb NumberStr
-  | Vi NumberStr
-  | Lvi NumberStr
-  | Dvi NumberStr
-  | Svi NumberStr
-  | Vmax NumberStr
-  | Lvmax NumberStr
-  | Dvmax NumberStr
-  | Svmax NumberStr
-  | Vmin NumberStr
-  | Lvmin NumberStr
-  | Dvmin NumberStr
-  | Svmin NumberStr
-  | Cqw NumberStr
-  | Cqh NumberStr
-  | Cqi NumberStr
-  | Cqb NumberStr
-  | Cqmax NumberStr
-  | Cqmin NumberStr
-  | Percents NumberStr
-
+  | TypedNum NumberStr
   | RatioT Ratio
   | Comma
   | Ampersand
@@ -98,6 +37,7 @@ data Token
   | Semicolon
   | Pipe
   | Plus
+  | PercentT
   | SharpT
   | Minus
   | Greater
@@ -108,12 +48,12 @@ data Token
   | Dot
   | GlobalT
   | ClassT String
-
   | PageT
   | PageMarginT PageMargin
   | ReturnsT
   | SelectorFunT
   | CalcFunT
+  | AttrFunT
   | TypeFunT
   | SyntaxTypeT AtomicCssType
   | FunctionT
@@ -181,7 +121,7 @@ data Token
   | TViewTransitionImagePair
   | TViewTransitionNew
   | TViewTransitionOld
-
+  | RawStringT
   | DescriptorT Descriptor
   deriving (Show, Eq)
 
@@ -221,7 +161,6 @@ descriptorKeywords =
   , ("scope"                                          , ScopeT)
   , ("view-transition"                                , ViewTransitionT)
   , ("starting-style"                                 , StartingStyleT)
-
   , ("font-palette-values"                            , FontPaletteValuesT)
   , ("font-feature-values"                            , FontFeatureValuesT)
   , ("color-profile"                                  , ColorProfileT)

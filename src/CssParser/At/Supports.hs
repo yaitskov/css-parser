@@ -4,7 +4,9 @@ import CssParser.At.MediaQuery ( MediaFeature, AndOr, toPlainMf )
 import CssParser.Ident ( Ident )
 import CssParser.Norm ( Norm(..) )
 import CssParser.Prelude
-import CssParser.Rule.Value
+import CssParser.Rule.Value ( PropVal(IntVal), PropVals(..) )
+import CssParser.Rule.TypedNum
+    ( TypedNum(TypedNum), RawNum(RawNum), PropValType(K) )
 import CssParser.Show ( CssShow(..) )
 
 data FqFun s
@@ -46,7 +48,9 @@ instance CssShow s => CssShow (FeatureQuery s) where
 
 instance Norm (FeatureQuery s) where
   normalize = \case
-    FqMediaFeature mf -> FqMediaFeature $ toPlainMf (PropVals (pure (IntVal (RawNum "1") Mm)) Nothing) mf
+    FqMediaFeature mf ->
+      let one = IntVal (TypedNum (RawNum "1") K) in
+        FqMediaFeature $ toPlainMf (PropVals (pure one) Nothing) mf
     FqParen mf@FqMediaFeature {} -> mf
     FqParen fn@FqApp {} -> fn
     FqParen p@FqParen {} -> normalize p

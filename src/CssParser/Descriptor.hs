@@ -2,19 +2,17 @@ module CssParser.Descriptor where
 
 import CssParser.Ident ( BrowserPrefix, Ident (..), PropertyName(..), Var (..) )
 import CssParser.Prelude
-    ( zip,
-      ($),
+    ( ($),
       Bounded(..),
-      Enum(enumFromTo),
+      Enum,
       Eq,
       Ord,
       Show,
       Generic,
       Semigroup((<>)),
       (.),
-      (<$>),
       Text )
-import CssParser.Show ( CssShow(..) )
+import CssParser.Show ( CssShow(..), mkDecodingMap)
 import Data.HashMap.Strict qualified as HM
 import Data.Text.Lazy (dropEnd, toStrict)
 
@@ -600,9 +598,7 @@ instance CssShow Descriptor where
     KnownDescriptor kd              -> toCssText kd <> ":"
 
 knownDescriptorMap :: HM.HashMap Text KnownDescriptor
-knownDescriptorMap = HM.fromList (zip (toStrict . toCssText <$> kds) kds)
-  where
-    kds = enumFromTo minBound maxBound
+knownDescriptorMap = mkDecodingMap
 
 instance CssShow KnownDescriptor where
   toCssText = \case

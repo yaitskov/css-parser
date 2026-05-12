@@ -1,9 +1,6 @@
 {
 module CssParser.Lexer where
 
-import Control.Monad ((<=<))
-import CssParser.At.Function (AtomicCssType)
-import CssParser.At.Function qualified as F
 import CssParser.At.MediaQuery (MediaType(..))
 import CssParser.At.Page
 import CssParser.Descriptor
@@ -14,12 +11,13 @@ import CssParser.Prelude hiding (Space)
 import CssParser.Rule hiding (Heading, Host)
 import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition)
 import CssParser.Rule.Pseudo qualified as P
+import CssParser.Rule.Type qualified as F
+import CssParser.Rule.TypedNum (PropValType(..))
 import CssParser.Rule.Value (Ratio(..), readRatio)
+import CssParser.Show (smartLookup)
 import CssParser.TextMarshal
 import CssParser.Utils(readCssString, readIdentifier)
-import Data.HashMap.Strict qualified as HM
 import Data.Text (pack)
-import Text.Read (readEither)
 }
 
 %wrapper "monadUserState"
@@ -201,6 +199,7 @@ tokens :-
   @selector "("                                        { constoken SelectorFunT }
   @c@a@l@c "("                                         { constoken CalcFunT }
   @t@y@p@e "("                                         { constoken TypeFunT }
+  @a@t@t@r "("                                         { constAndBegin AttrFunT attr_fun_st }
   @url "("                                             { constoken UrlT }
   @url "(" [^\"\'\)]* ")"                              { tokenize (UnquotedUrlT . readUnquotedUrl) }
   "."                                                  { constoken Dot }
@@ -217,64 +216,7 @@ tokens :-
   "#"                                                  { constoken SharpT }
   "#" @name                                            { tokenize (THash . readIdentifier . drop 1) }
 
-  @anum                                                { tokenize UnitLessNum }
-  @anum @c@a@p                                         { tokenize (Cap      . dropEnd 3) }
-  @anum @c@h                                           { tokenize (Ch       . dropEnd 2) }
-  @anum @c@m                                           { tokenize (Cm       . dropEnd 2) }
-  @anum @c@q@b                                         { tokenize (Cqb      . dropEnd 3) }
-  @anum @c@q@h                                         { tokenize (Cqh      . dropEnd 3) }
-  @anum @c@q@i                                         { tokenize (Cqi      . dropEnd 3) }
-  @anum @c@q@m@a@x                                     { tokenize (Cqmax    . dropEnd 5) }
-  @anum @c@q@m@i@n                                     { tokenize (Cqmin    . dropEnd 5) }
-  @anum @c@q@w                                         { tokenize (Cqw      . dropEnd 3) }
-  @anum @d@e@g                                         { tokenize (Deg      . dropEnd 3) }
-  @anum @d@p@i                                         { tokenize (Dpi      . dropEnd 3) }
-  @anum @d@v@b                                         { tokenize (Dvb      . dropEnd 3) }
-  @anum @d@v@h                                         { tokenize (Dvh      . dropEnd 3) }
-  @anum @d@v@i                                         { tokenize (Dvi      . dropEnd 3) }
-  @anum @d@v@m@a@x                                     { tokenize (Dvmax    . dropEnd 5) }
-  @anum @d@v@m@i@n                                     { tokenize (Dvmin    . dropEnd 5) }
-  @anum @e@m                                           { tokenize (Em       . dropEnd 2) }
-  @anum @e@x                                           { tokenize (Ex       . dropEnd 2) }
-  @anum @f@r                                           { tokenize (Fr       . dropEnd 2) }
-  @anum @g@r@a@d                                       { tokenize (Grad     . dropEnd 4) }
-  @anum @h@z                                           { tokenize (Hz       . dropEnd 2) }
-  @anum @i@c                                           { tokenize (Ic       . dropEnd 2) }
-  @anum @i@n                                           { tokenize (In       . dropEnd 2) }
-  @anum @k@h@z                                         { tokenize (KHz      . dropEnd 3) }
-  @anum @l@h                                           { tokenize (Lh       . dropEnd 2) }
-  @anum @l@v@b                                         { tokenize (Lvb      . dropEnd 3) }
-  @anum @l@v@h                                         { tokenize (Lvh      . dropEnd 3) }
-  @anum @l@v@i                                         { tokenize (Lvi      . dropEnd 3) }
-  @anum @l@v@m@a@x                                     { tokenize (Lvmax    . dropEnd 5) }
-  @anum @l@v@m@i@n                                     { tokenize (Lvmin    . dropEnd 5) }
-  @anum @m@m                                           { tokenize (Mm       . dropEnd 2) }
-  @anum @m@s                                           { tokenize (Ms       . dropEnd 2) }
-  @anum @p@c                                           { tokenize (Pc       . dropEnd 2) }
-  @anum @p@t                                           { tokenize (Pt       . dropEnd 2) }
-  @anum @percent                                       { tokenize (Percents . dropEnd 1) }
-  @anum @p@x                                           { tokenize (Px       . dropEnd 2) }
-  @anum @q                                             { tokenize (Q        . dropEnd 1) }
-  @anum @r@a@d                                         { tokenize (Rad      . dropEnd 3) }
-  @anum @r@c@a@p                                       { tokenize (Rcap     . dropEnd 4) }
-  @anum @r@c@h                                         { tokenize (Rch      . dropEnd 3) }
-  @anum @r@e@m                                         { tokenize (Rem      . dropEnd 3) }
-  @anum @r@e@x                                         { tokenize (Rex      . dropEnd 3) }
-  @anum @r@i@c                                         { tokenize (Ric      . dropEnd 3) }
-  @anum @r@l@h                                         { tokenize (Rlh      . dropEnd 3) }
-  @anum @s                                             { tokenize (Second   . dropEnd 1) }
-  @anum @s@v@b                                         { tokenize (Svb      . dropEnd 3) }
-  @anum @s@v@h                                         { tokenize (Svh      . dropEnd 3) }
-  @anum @s@v@i                                         { tokenize (Svi      . dropEnd 3) }
-  @anum @s@v@m@a@x                                     { tokenize (Svmax    . dropEnd 5) }
-  @anum @s@v@m@i@n                                     { tokenize (Svmin    . dropEnd 5) }
-  @anum @t@u@r@n                                       { tokenize (Turn     . dropEnd 4) }
-  @anum @v@b                                           { tokenize (Vb       . dropEnd 2) }
-  @anum @v@h                                           { tokenize (Vh       . dropEnd 2) }
-  @anum @v@i                                           { tokenize (Vi       . dropEnd 2) }
-  @anum @v@m@a@x                                       { tokenize (Vmax     . dropEnd 4) }
-  @anum @v@m@i@n                                       { tokenize (Vmin     . dropEnd 4) }
-  @anum @v@w                                           { tokenize (Vw       . dropEnd 2) }
+  @anum ([a-zA-Z]+ | "%")?                             { tokenize TypedNum }
 
   @uint "/" @uint                                      { tokenize2 ((pure . RatioT) <=< readRatio) }
   "+"                                                  { constoken Plus }
@@ -448,6 +390,17 @@ tokens :-
   [.\n]                                                ;
   @cmc                                                 { begin start }
  }
+ <attr_fun_st> {
+  @r@a@w "-" @s@t@r@i@n@g                              { constoken RawStringT }
+  @attrName                                            { tokenize (IdentT . pack . readIdentifier) }
+  "%"                                                  { constoken PercentT }
+  @wo ")"                                              { constAndBegin TClose start }
+  "*"                                                  { constoken Asterisk }
+  "|"                                                  { constoken Pipe }
+  $w @wo                                               { constoken Space }
+  @t@y@p@e "("                                         { constAndBegin TypeFunT start }
+  @wo ","  @wo                                         { constAndBegin Comma start }
+ }
  <attr_st> {
   @attrName                                            { tokenize (IdentT . pack . readIdentifier) }
   @wo "]"                                              { constAndBegin BClose start }
@@ -520,14 +473,14 @@ tokenizeDescriptor (pos, _pc, _bs, cis) len =
   case splitAt len cis of
     (i, ':':cis') ->
       let it = pack i in
-        case HM.lookup it knownDescriptorMap of
+        case smartLookup it knownDescriptorMap of
           Just d -> do
             alexSetInput (pos `moveRightBy` (len + 1), ':', [], cis')
             pure (TokenLoc (DescriptorT $ KnownDescriptor d) i (Just pos))
           Nothing -> pure (TokenLoc (IdentT . pack $ readIdentifier i) i (Just pos))
     (i, _) ->
       let it = pack i in
-        case HM.lookup it descriptorKeywords of
+        case smartLookup it descriptorKeywords of
           Just d ->
             pure (TokenLoc d i (Just pos))
           Nothing ->

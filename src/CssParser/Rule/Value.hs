@@ -3,20 +3,28 @@ module CssParser.Rule.Value
   , reorder
   ) where
 
-import CssParser.Ident
+import CssParser.Ident ( Ident, Var, PropertyName(..), AttrName )
 import CssParser.Prelude
+import CssParser.Rule.Type ( CssType )
+import CssParser.Rule.TypedNum
+    ( TypedNum, RawNum(..), PropValType, mkRawNum )
 import CssParser.Show
-import Data.Text qualified as C8
+    ( CssShow(..), ShowSpaceBetween(..), encodeStringLiteral, mayCss )
 import Expression.Reorder
+    ( Fixity(Fixity),
+      Assoc(AssocLeft),
+      Node(NodeLeaf, NodeInfix),
+      SyntaxTree(..),
+      reorder )
 
-newtype Unsigned = Unsigned Integer
-  deriving newtype (Eq, Show, Ord, Num, Enum, Real, Read, Integral, CssShow)
+newtype Unsigned = Unsigned RawNum
+  deriving newtype (Eq, Show, Ord, CssShow)
   deriving (Generic)
 
 data Ratio = Ratio Unsigned Unsigned deriving (Eq, Show, Ord, Generic)
 
 instance CssShow Ratio where
-  toCssText (Ratio a b) = numToText a <> "/" <> numToText b
+  toCssText (Ratio a b) = toCssText a <> "/" <> toCssText b
 
 readRatio :: String -> Either String Ratio
 readRatio s =
@@ -26,7 +34,7 @@ readRatio s =
     (_, []) -> Left $ "No divisor in Ratio [" <> s <> "]"
     (_, "/") -> Left $ "No divisor in Ratio [" <> s <> "]"
     (divisibleStr, '/':divisorStr) ->
-      Ratio <$> readEither divisibleStr <*> readEither divisorStr
+      Right $ Ratio (Unsigned (mkRawNum  divisibleStr)) (Unsigned (mkRawNum divisorStr))
     (_, _) -> Left $ "No slash in ratio [" <> s <> "]"
 
 data Url
@@ -46,127 +54,6 @@ instance CssShow Source where
     UrlSource u -> toCssText u
     StrSource t -> encodeStringLiteral t
 
-data PropValType
-  = Cap
-  | Ch
-  | Cm
-  | Cqb
-  | Cqh
-  | Cqi
-  | Cqmax
-  | Cqmin
-  | Cqw
-  | Deg
-  | Dpi
-  | Dvb
-  | Dvh
-  | Dvi
-  | Dvmax
-  | Dvmin
-  | Em
-  | Ex
-  | Fr
-  | Grad
-  | Hz
-  | Ic
-  | In
-  | KHz
-  | Lh
-  | Lvb
-  | Lvh
-  | Lvi
-  | Lvmax
-  | Lvmin
-  | Mm
-  | Ms
-  | Pc
-  | Pt
-  | Percent
-  | Px
-  | Q
-  | Rad
-  | Rcap
-  | Rch
-  | Rem
-  | Rex
-  | Ric
-  | Rlh
-  | Second
-  | Svb
-  | Svh
-  | Svi
-  | Svmax
-  | Svmin
-  | Turn
-  | Vb
-  | Vh
-  | Vi
-  | Vmax
-  | Vmin
-  | Vw
-  | K
-  deriving (Eq, Ord, Show, Enum, Bounded, Generic)
-
-instance CssShow PropValType where
-  toCssText = \case
-    Cap -> "cap"
-    Ch -> "ch"
-    Cm -> "cm"
-    Cqb -> "cqb"
-    Cqh -> "cqh"
-    Cqi -> "cqi"
-    Cqmax -> "cqmax"
-    Cqmin -> "cqmin"
-    Cqw -> "cqw"
-    Deg -> "deg"
-    Dpi -> "dpi"
-    Dvb -> "dvb"
-    Dvh -> "dvh"
-    Dvi -> "dvi"
-    Dvmax -> "dvmax"
-    Dvmin -> "dvmin"
-    Em -> "em"
-    Ex -> "ex"
-    Fr -> "fr"
-    Grad -> "grad"
-    Hz -> "Hz"
-    KHz -> "kHz"
-    Ic -> "ic"
-    In -> "in"
-    Lh -> "lh"
-    Lvb -> "lvb"
-    Lvh -> "lvh"
-    Lvi -> "lvi"
-    Lvmax -> "lvmax"
-    Lvmin -> "lvmin"
-    Mm -> "mm"
-    Ms -> "ms"
-    Pc -> "pc"
-    Pt -> "pt"
-    Percent -> "%"
-    Px -> "px"
-    Q -> "q"
-    Rad -> "rad"
-    Rcap -> "rcap"
-    Rch -> "rch"
-    Rem -> "rem"
-    Rex -> "rex"
-    Ric -> "ric"
-    Rlh -> "rlh"
-    Second -> "s"
-    Svb -> "svb"
-    Svh -> "svh"
-    Svi -> "svi"
-    Svmax -> "svmax"
-    Svmin -> "svmin"
-    Turn -> "turn"
-    Vb -> "vb"
-    Vh -> "vh"
-    Vi -> "vi"
-    Vmax -> "vmax"
-    Vmin -> "vmin"
-    Vw -> "vw"
-    K -> ""
 
 newtype HexColor = HC Text deriving (Eq, Ord, Show, Generic)
 
@@ -178,13 +65,6 @@ propRef = \case
   PropertyName i -> IdentRef i
   VarProp v -> VarRef v
 
-newtype RawNum = RawNum Text deriving newtype (Eq, Ord, Show, IsString) deriving (Generic)
-
-mkRawNum :: String -> RawNum
-mkRawNum = RawNum . C8.pack
-
-instance CssShow RawNum where
-  toCssText (RawNum x) = fromStrict x
 
 data CalcOp = PlusCe | MinusCe | DivCe | ProdCe deriving (Eq, Ord, Show, Enum, Bounded, Generic)
 
@@ -198,7 +78,7 @@ instance CssShow CalcOp where
 data CalcExpr
   = ParCe CalcExpr
   | BinOpCe CalcExpr CalcOp CalcExpr
-  | ValCe RawNum PropValType
+  | ValCe TypedNum
   | VarCe PropertyName
   | AppCe PropertyName PropValsList
   | CalcCe CalcExpr
@@ -229,13 +109,25 @@ instance CssShow CalcExpr where
   toCssText = \case
     ParCe e -> "(" <> toCssText e <> ")"
     BinOpCe a op b -> toCssText a <> toCssText op <> toCssText b
-    ValCe n t -> toCssText n <> toCssText t
+    ValCe v -> toCssText v
     VarCe v -> toCssText v
     AppCe f a -> toCssText f <> "(" <> toCssText a <> ")"
     CalcCe a -> "calc(" <> toCssText a <> ")"
 
+data AttrType
+  = CssTypeAt CssType
+  | UnitAt PropValType
+  | RawString
+  deriving (Show, Eq, Ord, Generic)
+
+instance CssShow AttrType where
+  toCssText = \case
+    RawString -> " raw-string"
+    CssTypeAt x -> " type(" <> toCssText x <> ")"
+    UnitAt x -> " " <> toCssText x
+
 data PropVal
-  = IntVal RawNum PropValType
+  = IntVal TypedNum
   | RatioVal Ratio
   | IdentRef Ident
   | UnicodeRangeVal UnicodeRange
@@ -246,6 +138,7 @@ data PropVal
   | AppFunEnum PropertyName PropValsList
   | AppConst PropertyName
   | CalcFun CalcExpr
+  | AttrFun AttrName (Maybe AttrType) (Maybe PropVal)
   | Div PropVal PropVal
   | HexColor HexColor
   deriving (Eq, Ord, Show, Generic)
@@ -257,7 +150,7 @@ instance CssShow LiteralString where
 
 instance CssShow PropVal where
   toCssText = \case
-    IntVal i pvt -> toCssText i <> toCssText pvt
+    IntVal i -> toCssText i
     RatioVal rv -> toCssText rv
     UnicodeRangeVal ur -> toCssText ur
     VarRef v -> toCssText v
@@ -266,6 +159,8 @@ instance CssShow PropVal where
     StrVal s -> encodeStringLiteral s
     HexColor c -> toCssText c
     CalcFun ce -> "calc(" <> toCssText ce <> ")"
+    AttrFun an at dv ->
+      "attr(" <> toCssText an <> toCssText at <> mayCss (", " <>) dv <> ")"
     Div a b -> toCssText a <> " / " <> toCssText b
     AppFun fn args -> toCssText fn <> "(" <> toCssText args <> ")"
     AppFunEnum fn args -> toCssText fn <> "(" <> toCssText args <> ")"

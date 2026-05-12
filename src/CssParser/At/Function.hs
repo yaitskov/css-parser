@@ -1,73 +1,12 @@
 {-# LANGUAGE UndecidableInstances #-}
 module CssParser.At.Function where
 
-import CssParser.Ident ( Ident, Var )
+import CssParser.Ident ( Var )
+import CssParser.Rule.Type
 import CssParser.Rule.Value ( PropVal, PropVals, PropValsList )
 import CssParser.Prelude
 import CssParser.Show
     ( CssShow(..), Embraced(Embraced), ShowSpaceBetween(..), Csl(Csl) )
-
-data AtomicCssType
-  = Angle
-  | Color
-  | CustomIdent
-  | Image
-  | Integer
-  | Length
-  | LengthPercentage
-  | Number
-  | Percentage
-  | Resolution
-  | String
-  | Time
-  | TranformFunction
-  | TranformList
-  | UrlType
-  deriving (Eq, Ord, Show, Enum, Bounded, Generic)
-
-instance CssShow AtomicCssType where
-  toCssText = \case
-    Angle -> "<angle>"
-    Color -> "<color>"
-    CustomIdent -> "<custom-ident>"
-    Image -> "<image>"
-    Integer -> "<integer>"
-    Length -> "<length>"
-    LengthPercentage -> "<length-percentage>"
-    Number -> "<number>"
-    Percentage -> "<percentage>"
-    Resolution -> "<resolution>"
-    String -> "<string>"
-    Time -> "<time>"
-    TranformFunction -> "<tranform-function>"
-    TranformList -> "<tranform-list>"
-    UrlType -> "<url>"
-
-data CssLeafType
-  = AtomicCssType AtomicCssType
-  | IdentCssType Ident
-  deriving (Eq, Ord, Show, Generic)
-
-instance CssShow CssLeafType where
-  toCssText = \case
-    AtomicCssType x -> toCssText x
-    IdentCssType x -> toCssText x
-
-data CssType
-  = Once CssLeafType
-  | AnyCssType
-  | CommaSeparated CssLeafType
-  | SpaceSeparated CssLeafType
-  | OrLeaf CssLeafType CssType
-  deriving (Eq, Ord, Show, Generic)
-
-instance CssShow CssType where
-  toCssText = \case
-    Once a -> toCssText a
-    AnyCssType -> "*"
-    OrLeaf x t -> toCssText x <> " | " <> toCssText t
-    CommaSeparated a -> toCssText a <> "#"
-    SpaceSeparated a -> toCssText a <> "+"
 
 data FunArg = FunArg
   { argName :: Var

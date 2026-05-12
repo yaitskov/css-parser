@@ -10,10 +10,16 @@ module CssParser.Show
   , CslNe (..)
   , SslNe (..)
   , Csl (..)
+  , mayCss
+  , mkDecodingMap
+  , smartLookup
+  , toCssStr
   ) where
 
 import CssParser.Prelude
 import CssParser.TextMarshal as X
+import Data.HashMap.Strict qualified as HM
+import Data.Text qualified as T
 
 class ShowSpaceBetween (a :: Type) (b :: Type) where
   cssSpace :: forall aa -> forall bb -> (aa ~ a, bb ~ b) => LText
@@ -74,3 +80,21 @@ instance CssShow a => CssShow (Encurled a) where
 
 instance CssShow Integer where
   toCssText = numToText
+
+mayCss :: CssShow a => (LText -> LText) -> Maybe a -> LText
+mayCss f = maybe "" (f . toCssText)
+
+mkDecodingMap :: forall a. (Enum a, Bounded a, CssShow a) => HM.HashMap Text a
+mkDecodingMap = HM.fromList (zip origKeys kds <> zip lowKeys kds)
+  where
+    origKeys = toStrict . toCssText <$> kds
+    lowKeys = T.toLower <$> origKeys
+    kds = enumFromTo minBound maxBound
+
+smartLookup :: Text -> HM.HashMap Text a -> Maybe a
+smartLookup k m =
+  case HM.lookup k m of
+    Nothing -> HM.lookup (T.toLower k) m
+    o -> o
+toCssStr :: CssShow a => a -> String
+toCssStr = unpack . toCssText

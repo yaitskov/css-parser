@@ -54,6 +54,19 @@ data AttrName
   , attrName :: Ident
   } deriving (Eq, Ord, Show, Generic)
 
+instance CssShow AttrName where
+  toCssText (AttrName n (Ident e)) = toCssText n <> encodeIdentifier e
+
+data CaseSensetivity
+  = CaseSensetive
+  | CaseInsensetive
+  deriving (Eq, Ord, Show, Generic)
+
+instance CssShow CaseSensetivity where
+  toCssText = \case
+    CaseSensetive -> " s"
+    CaseInsensetive -> " i"
+
 newtype Var = Var Ident deriving newtype (Show, Eq, Ord, IsString) deriving (Generic)
 
 instance CssShow Var where

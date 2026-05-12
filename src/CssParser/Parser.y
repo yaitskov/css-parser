@@ -14,7 +14,9 @@ import CssParser.Descriptor (Descriptor, toPropertyName)
 import CssParser.Norm
 import CssParser.Rule.Pseudo qualified as P
 import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition, Heading, Host)
-import CssParser.Rule.Value hiding (Mm, Cm, Dpi, Em, Deg, Grad, Rad, Turn, Rem, UnicodeRangeVal)
+import CssParser.Rule.Type qualified as T
+import CssParser.Rule.TypedNum
+import CssParser.Rule.Value hiding (UnicodeRangeVal)
 import CssParser.Rule.Value qualified as Vl
 import CssParser.Fun
 import CssParser.File
@@ -30,9 +32,9 @@ import CssParser.Lexer.Token
     , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
     , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
-    , NotT, OrT, AndT, OnlyT, ReturnsT, GlobalT
-    , TOpen, TClose, DescriptorT, ClassT, AttrPatT
-    , Greater, Less, LessEqual, GreaterEqual
+    , NotT, OrT, AndT, OnlyT, ReturnsT, GlobalT, RawStringT
+    , TOpen, TClose, DescriptorT, ClassT, AttrPatT, PercentT
+    , Greater, Less, LessEqual, GreaterEqual, AttrFunT
     , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
     , KeyframesT, ColorProfileT, FontFaceT, UnicodeRangeVal
@@ -46,7 +48,8 @@ import CssParser.Lexer.Token
 import CssParser.MonoPair
 import CssParser.Parser.Monad
 import CssParser.Prelude
-  ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe, rightToMaybe, These(..)
+  ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe
+  , rightToMaybe, These(..), fromMaybe
   )
 import CssParser.Rule
 import CssParser.Show
@@ -69,6 +72,7 @@ import Prelude
     '<'         { TokenLoc Less _ _ }
     '<='        { TokenLoc LessEqual _ _ }
     '+'         { TokenLoc Plus _ _ }
+    '%'         { TokenLoc PercentT _ _ }
     '#'         { TokenLoc SharpT _ _ }
     '-'         { TokenLoc Minus _ _ }
     '|'         { TokenLoc Pipe _ _ }
@@ -124,6 +128,8 @@ import Prelude
     'uqUrl'     { TokenLoc (UnquotedUrlT $$) _ _ }
     'selector(' { TokenLoc SelectorFunT _ _ }
     'calc('     { TokenLoc CalcFunT _ _ }
+    'attr('     { TokenLoc AttrFunT _ _ }
+    rawString   { TokenLoc RawStringT _ _ }
     'type('     { TokenLoc TypeFunT _ _ }
     function    { TokenLoc FunctionT _ _ }
     syntaxType  { TokenLoc (SyntaxTypeT $$) _ _ }
@@ -160,64 +166,7 @@ import Prelude
     'n'         { TokenLoc TN _ _ }
     int         { TokenLoc (TInt $$) _ _ }
     'ratio'     { TokenLoc (RatioT $$) _ _ }
-    cap         { TokenLoc (L.Cap $$) _ _ }
-    ch          { TokenLoc (L.Ch $$) _ _ }
-    cm          { TokenLoc (L.Cm $$) _ _ }
-    cqb         { TokenLoc (L.Cqb $$) _ _ }
-    cqh         { TokenLoc (L.Cqh $$) _ _ }
-    cqi         { TokenLoc (L.Cqi $$) _ _ }
-    cqmax       { TokenLoc (L.Cqmax $$) _ _ }
-    cqmin       { TokenLoc (L.Cqmin $$) _ _ }
-    cqw         { TokenLoc (L.Cqw $$) _ _ }
-    deg         { TokenLoc (L.Deg $$) _ _ }
-    dpi         { TokenLoc (L.Dpi $$) _ _ }
-    dvb         { TokenLoc (L.Dvb $$) _ _ }
-    dvh         { TokenLoc (L.Dvh $$) _ _ }
-    dvi         { TokenLoc (L.Dvi $$) _ _ }
-    dvmax       { TokenLoc (L.Dvmax $$) _ _ }
-    dvmin       { TokenLoc (L.Dvmin $$) _ _ }
-    em          { TokenLoc (L.Em $$) _ _ }
-    ex          { TokenLoc (L.Ex $$) _ _ }
-    fr          { TokenLoc (L.Fr $$) _ _ }
-    grad        { TokenLoc (L.Grad $$) _ _ }
-    hz          { TokenLoc (L.Hz $$) _ _ }
-    khz          { TokenLoc (L.KHz $$) _ _ }
-    ic          { TokenLoc (L.Ic $$) _ _ }
-    in          { TokenLoc (L.In $$) _ _ }
-    lh          { TokenLoc (L.Lh $$) _ _ }
-    lvb         { TokenLoc (L.Lvb $$) _ _ }
-    lvh         { TokenLoc (L.Lvh $$) _ _ }
-    lvi         { TokenLoc (L.Lvi $$) _ _ }
-    lvmax       { TokenLoc (L.Lvmax $$) _ _ }
-    lvmin       { TokenLoc (L.Lvmin $$) _ _ }
-    mm          { TokenLoc (L.Mm $$) _ _ }
-    ms          { TokenLoc (L.Ms $$) _ _ }
-    pc          { TokenLoc (L.Pc $$) _ _ }
-    pt          { TokenLoc (L.Pt $$) _ _ }
-    percent     { TokenLoc (L.Percents $$) _ _ }
-    px          { TokenLoc (L.Px $$) _ _ }
-    q           { TokenLoc (L.Q $$) _ _ }
-    rad         { TokenLoc (L.Rad $$) _ _ }
-    rcap        { TokenLoc (L.Rcap $$) _ _ }
-    rch         { TokenLoc (L.Rch $$) _ _ }
-    rem         { TokenLoc (L.Rem $$) _ _ }
-    rex         { TokenLoc (L.Rex $$) _ _ }
-    ric         { TokenLoc (L.Ric $$) _ _ }
-    rlh         { TokenLoc (L.Rlh $$) _ _ }
-    second      { TokenLoc (L.Second $$) _ _ }
-    svb         { TokenLoc (L.Svb $$) _ _ }
-    svh         { TokenLoc (L.Svh $$) _ _ }
-    svi         { TokenLoc (L.Svi $$) _ _ }
-    svmax       { TokenLoc (L.Svmax $$) _ _ }
-    svmin       { TokenLoc (L.Svmin $$) _ _ }
-    turn        { TokenLoc (L.Turn $$) _ _ }
-    vb          { TokenLoc (L.Vb $$) _ _ }
-    vh          { TokenLoc (L.Vh $$) _ _ }
-    vi          { TokenLoc (L.Vi $$) _ _ }
-    vmax        { TokenLoc (L.Vmax $$) _ _ }
-    vmin        { TokenLoc (L.Vmin $$) _ _ }
-    vw          { TokenLoc (L.Vw $$) _ _ }
-    unitLessNum { TokenLoc (L.UnitLessNum $$) _ _ }
+    typedNum    { TokenLoc (L.TypedNum $$) _ _ }
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
     'not('      { TokenLoc TNot _ _ }
@@ -326,22 +275,21 @@ LocalConst :: { [Either F.ConstEntry (NonEmpty PropVals)] }
     :                                             {% pure [] }
     | descriptor Os PropValsList                  {% fmap (:[]) (varOrResult $1 $3) }
     | descriptor Os PropValsList ';' LocalConst   {% fmap (:$5) (varOrResult $1 $3) }
-RetType :: { Maybe F.CssType }
+RetType :: { Maybe T.CssType }
     :                                             { Nothing }
     | returns Os TypeFun                          { Just $3 }
-TypeFun :: { F.CssType }
+TypeFun :: { T.CssType }
     : 'type(' Os CssType Os ')'                   { $3 }
-    | CssLeaf                                     { F.Once $1 }
-    | '*'                                         { F.AnyCssType }
-CssType :: { F.CssType }
-    : '*'                                         { F.AnyCssType }
-    | CssLeaf                                     { F.Once $1 }
-    | CssLeaf '#'                                 { F.CommaSeparated $1 }
-    | CssLeaf '+'                                 { F.SpaceSeparated $1 }
-    | CssLeaf Os '|' Os CssType                   { F.OrLeaf $1 $5 }
-CssLeaf :: { F.CssLeafType }
-    : syntaxType                                  { F.AtomicCssType $1 }
-    | IdKwd                                       { F.IdentCssType $1 }
+    | CssLeaf                                     { T.Once $1 }
+    | '*'                                         { T.AnyCssType }
+CssType :: { T.CssType }
+    : '*'                                         { T.AnyCssType }
+    | CssLeaf                                     { T.Once $1 }
+    | CssLeaf '#'                                 { T.CommaSeparated $1 }
+    | CssLeaf '+'                                 { T.SpaceSeparated $1 }
+    | CssLeaf Os '|' Os CssType                   { T.OrLeaf $1 $5 }
+CssLeaf :: { T.CssLeafType }
+    : syntaxType                                  { T.AtomicCssType $1 }
 FeatureQuery :: { FeatureQuery }
     : Op MediaFeature ')'                         { FqMediaFeature $2 }
     | Op FeatureQuery ')'                         { FqParen $2 }
@@ -433,10 +381,12 @@ UnicodeRange :: { UnicodeRange }
 Keyframe :: { Keyframe }
     : NonEmpty(',', KeyframeAdr) Os Ocb PropEntries '}'
                                                   { Keyframe (CslNe $1) $4 }
+TypedNum :: { TypedNum }
+    : typedNum                                    {% parseTypedNum $1 }
 KeyframeAdr
     : from                                        { KeyframeStart }
     | 'to'                                        { KeyframeEnd }
-    | percent                                     { KeyframePercentAdr (mkRawNum $1) }
+    | TypedNum                                    {% fmap KeyframePercentAdr (tryGet Percent $1) }
 PropEntries :: { [PropEntry] }
     : List(PropEntry)                             { $1 }
 Desc :: { Descriptor }
@@ -530,70 +480,11 @@ MfRel :: { MfRelation }
     | '<='                                        { MfLe }
     | '>='                                        { MfGe }
     | '='                                         { MfEq }
-Scalar :: { (String, PropValType) }
-    : cap                                         { ($1, Vl.Cap) }
-    | ch                                          { ($1, Vl.Ch) }
-    | cm                                          { ($1, Vl.Cm) }
-    | cqb                                         { ($1, Vl.Cqb) }
-    | cqh                                         { ($1, Vl.Cqh) }
-    | cqi                                         { ($1, Vl.Cqi) }
-    | cqmax                                       { ($1, Vl.Cqmax) }
-    | cqmin                                       { ($1, Vl.Cqmin) }
-    | cqw                                         { ($1, Vl.Cqw) }
-    | deg                                         { ($1, Vl.Deg) }
-    | dpi                                         { ($1, Vl.Dpi) }
-    | dvb                                         { ($1, Vl.Dvb) }
-    | dvh                                         { ($1, Vl.Dvh) }
-    | dvi                                         { ($1, Vl.Dvi) }
-    | dvmax                                       { ($1, Vl.Dvmax) }
-    | dvmin                                       { ($1, Vl.Dvmin) }
-    | em                                          { ($1, Vl.Em) }
-    | ex                                          { ($1, Vl.Ex) }
-    | fr                                          { ($1, Vl.Fr) }
-    | grad                                        { ($1, Vl.Grad) }
-    | hz                                          { ($1, Vl.Hz) }
-    | ic                                          { ($1, Vl.Ic) }
-    | in                                          { ($1, Vl.In) }
-    | khz                                         { ($1, Vl.KHz) }
-    | lh                                          { ($1, Vl.Lh) }
-    | lvb                                         { ($1, Vl.Lvb) }
-    | lvh                                         { ($1, Vl.Lvh) }
-    | lvi                                         { ($1, Vl.Lvi) }
-    | lvmax                                       { ($1, Vl.Lvmax) }
-    | lvmin                                       { ($1, Vl.Lvmin) }
-    | mm                                          { ($1, Vl.Mm) }
-    | ms                                          { ($1, Vl.Ms) }
-    | pc                                          { ($1, Vl.Pc) }
-    | pt                                          { ($1, Vl.Pt) }
-    | percent                                     { ($1, Vl.Percent) }
-    | px                                          { ($1, Vl.Px) }
-    | q                                           { ($1, Vl.Q) }
-    | rad                                         { ($1, Vl.Rad) }
-    | rcap                                        { ($1, Vl.Rcap) }
-    | rch                                         { ($1, Vl.Rch) }
-    | rem                                         { ($1, Vl.Rem) }
-    | rex                                         { ($1, Vl.Rex) }
-    | ric                                         { ($1, Vl.Ric) }
-    | rlh                                         { ($1, Vl.Rlh) }
-    | second                                      { ($1, Vl.Second) }
-    | svb                                         { ($1, Vl.Svb) }
-    | svh                                         { ($1, Vl.Svh) }
-    | svi                                         { ($1, Vl.Svi) }
-    | svmax                                       { ($1, Vl.Svmax) }
-    | svmin                                       { ($1, Vl.Svmin) }
-    | turn                                        { ($1, Vl.Turn) }
-    | vb                                          { ($1, Vl.Vb) }
-    | vh                                          { ($1, Vl.Vh) }
-    | vi                                          { ($1, Vl.Vi) }
-    | vmax                                        { ($1, Vl.Vmax) }
-    | vmin                                        { ($1, Vl.Vmin) }
-    | vw                                          { ($1, Vl.Vw) }
-    | unitLessNum                                 { ($1, Vl.K) }
 Url :: { Url }
     : 'url(' Str ')'                              { Url $2 }
     | 'uqUrl'                                     { UnquotedUrl (pack $1) }
 PropVal :: { PropVal }
-    : Scalar                                      { IntVal (mkRawNum (fst $1)) (snd $1) }
+    : TypedNum                                    { IntVal $1 }
     | 'ratio'                                     { RatioVal $1 }
     | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
     | PropN                                       { propRef $1 }
@@ -602,8 +493,20 @@ PropVal :: { PropVal }
     | PropN Op ')'                                { AppConst $1 }
     | Str                                         { StrVal $1 }
     | Url                                         { UrlVal $1 }
+    | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
+                                                  { AttrFun $3 $5 $6 }
     | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (validationToP $3 (reorder $3)) }
     | hash                                        { HexColor (HC (pack $1)) }
+AttrType :: { AttrType }
+    : TypeFun                                     { CssTypeAt $1 }
+    | UnitType                                    { UnitAt $1 }
+    | rawString                                   { RawString }
+UnitType :: { PropValType }
+    : ident                                       {% parseAsUnitType $1 }
+    | '%'                                         { Percent }
+AttrDefVal :: { Maybe PropVal }
+    :                                             { Nothing }
+    | ',' Os PropVal                              { Just $3 }
 CalcOp :: { CalcOp }
     : '+'                                         { PlusCe  }
     | '-'                                         { MinusCe }
@@ -615,10 +518,10 @@ CalcExpr :: { CalcExpr }
     | CalcExpr CalcExpr                           {% recoverCalcBinOp $1 $2 }
     | PropN Op PropValsList Os ')'                { AppCe $1 (PropValsList $3) }
     | PropN                                       { VarCe $1 }
-    | Os Scalar Os                                { ValCe (mkRawNum (fst $2)) (snd $2) }
+    | Os TypedNum Os                              { ValCe $2 }
     | 'calc(' Os CalcExpr Os ')'                  { CalcCe $3 }
 Unsigned :: { Unsigned }
-    : unitLessNum                                 {% fmap Unsigned (fromEitherM failP (readEither $1)) }
+    : TypedNum                                    {% fmap Unsigned (tryGet K $1) }
 ContinueRule :: { CssRule }
     : SelectorList '{' Os CssRuleBody '}'         { CssRule $1 $4 }
 CssRuleBody :: { [ CssRuleBodyItem ] }
@@ -735,15 +638,14 @@ AtrPat :: { Maybe AtrPat }
 AtrPatCase :: { Maybe CaseSensetivity }
     :                                             { Nothing }
     | Os attrPat                                  {% fmap Just (atrCaseSensetivity (R.Ident $2)) }
-Attr
-    : IdKwd                                       { HasAttr (AttrName NoBar $1) }
-    | IdKwd '|' IdKwd                             { HasAttr (AttrName (R.Namespace $1) $3) }
-    | IdKwd '|' IdKwd AttrOp AtrPat               { Attr (AttrName (R.Namespace $1) $3) $4 $5 }
-    | IdKwd AttrOp AtrPat                         { Attr (AttrName NoBar $1) $2 $3 }
-    | '|' IdKwd                                   { HasAttr (AttrName NoNs $2) }
-    | '|' IdKwd AttrOp AtrPat                     { Attr (AttrName NoNs $2) $3 $4 }
-    | '*' '|' IdKwd                               { HasAttr (AttrName AsteriskNs $3) }
-    | '*' '|' IdKwd AttrOp AtrPat                 { Attr (AttrName AsteriskNs $3) $4 $5 }
+AttrName :: { AttrName }
+    : IdKwd                                       { AttrName NoBar $1 }
+    | IdKwd '|' IdKwd                             { AttrName (R.Namespace $1) $3 }
+    | '|' IdKwd                                   { AttrName NoNs $2 }
+    | '*' '|' IdKwd                               { AttrName AsteriskNs $3 }
+Attr :: { TagSubSelector }
+    : AttrName AttrOp AtrPat                      { Attr $1 $2 $3 }
+    | AttrName                                    { HasAttr $1 }
 AttrOp ::  { AttrOp }
     : '='                                         { Exact }
     | '~='                                        { Include }

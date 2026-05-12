@@ -2,7 +2,8 @@ module CssParser.At.Keyframe where
 
 import CssParser.Descriptor (Descriptor)
 import CssParser.Ident ( Ident(..) )
-import CssParser.Rule.Value
+import CssParser.Rule.Value ( PropVals )
+import CssParser.Rule.TypedNum
 import CssParser.Prelude
 import CssParser.Show ( CssShow(..), ShowSpaceBetween(..), CslNe )
 
@@ -14,7 +15,7 @@ data KeyframeAdr
 
 instance CssShow KeyframeAdr where
   toCssText = \case
-    KeyframePercentAdr p -> toCssText $ IntVal p Percent
+    KeyframePercentAdr p -> toCssText $ TypedNum p Percent
     KeyframeStart -> "from"
     KeyframeEnd -> "to"
 

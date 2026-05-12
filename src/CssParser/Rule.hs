@@ -118,11 +118,6 @@ data TagSubSelector
   | Hash Ident
   deriving (Eq, Ord, Show, Generic)
 
-data CaseSensetivity
-  = CaseSensetive
-  | CaseInsensetive
-  deriving (Eq, Ord, Show, Generic)
-
 data CssRuleBodyItem
   = CssLeafRule Descriptor PropVals
   | CssEnumLeaf Descriptor PropValsList

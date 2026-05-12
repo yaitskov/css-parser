@@ -4,11 +4,17 @@ module CssParser.Test.Arbitrary.Value where
 
 import CssParser.Ident ( Ident(..) )
 import CssParser.Norm ( Norm(..) )
-import CssParser.Parser.Monad
+import CssParser.Parser.Monad ( P(Ok, Failed), validationToP )
 import CssParser.Rule.Value
+import CssParser.Rule.Type ( CssType, CssLeafType, AtomicCssType )
+import CssParser.Rule.TypedNum ( TypedNum, RawNum(..), PropValType (Mm, K), mkRawNum )
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
 import Data.Text qualified as T
+
+deriving via (GenericArbitrary CssType) instance Arbitrary CssType
+deriving via (GenericArbitrary CssLeafType) instance Arbitrary CssLeafType
+deriving via (GenericArbitrary AtomicCssType) instance Arbitrary AtomicCssType
 
 data Anum
   = IntAnum Int
@@ -42,12 +48,10 @@ instance Arbitrary HexColor where
     | T.length x == 6 = [HC $ T.take 3 x]
     | otherwise = []
 
-instance Norm Unsigned where
-  normalize = abs
 
 instance Arbitrary Unsigned where
-  arbitrary = normalize <$> genericArbitrary
-  shrink = normalize <$> genericShrink
+  arbitrary = Unsigned . RawNum . pack <$> listOf1 (elements [ '0' .. '9' ])
+  shrink = genericShrink
 instance Arbitrary Url where
   arbitrary = oneof
     [ pure $ Url "https://ooo.com/aoeu/style.css"
@@ -65,6 +69,7 @@ deriving via (GenericArbitrary PropValType) instance Arbitrary PropValType
 
 deriving via (GenericArbitrary CalcOp) instance Arbitrary CalcOp
 deriving via (GenericArbitrary CalcExpr) instance Arbitrary CalcExpr
+deriving via (GenericArbitrary TypedNum) instance Arbitrary TypedNum
 
 rightMost :: PropVal -> PropVal
 rightMost = \case
@@ -89,6 +94,15 @@ instance Arbitrary PropVal where
   shrink = normalize <$> genericShrink
 
 deriving via (GenericArbitrary CommaSeparatedList) instance Arbitrary CommaSeparatedList
+
+instance Norm AttrType where
+  normalize = \case
+    UnitAt K -> UnitAt Mm
+    o -> o
+
+instance Arbitrary AttrType where
+  arbitrary = normalize <$> genericArbitrary
+  shrink x = normalize <$> genericShrink x
 
 unPatternLetter :: Gen Char
 unPatternLetter = elements ( '?' : ['0' .. '9' ] <> ['a' .. 'f' ])
