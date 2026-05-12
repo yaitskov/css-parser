@@ -110,9 +110,6 @@ data AtomicPseudoClass
 
 instance GEnum AtomicPseudoClass
 
-pseudoElementMap :: HashMap Text PseudoElement
-pseudoElementMap = mkDecodingMap' $ drop 1 genum
-
 pseudoClassMap :: HashMap Text AtomicPseudoClass
 pseudoClassMap = mkDecodingMap' $ drop 1 genum
 

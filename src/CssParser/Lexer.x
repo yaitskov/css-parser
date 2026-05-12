@@ -178,27 +178,14 @@ tokens :-
   "-"                                                  { constoken Minus }
 
   @wo "<" [a-zA-Z\-]+ ">"                              { tokenizeE SyntaxTypeT (F.readSyntaxType . dropWhile isSpace) }
-
+  @wo "<" @wo                                          { constoken Less }
   @wo ">" @wo                                          { constoken Greater }
   @wo ">=" @wo                                         { constoken GreaterEqual }
-  @wo "<" @wo                                          { constoken Less }
   @wo "<=" @wo                                         { constoken LessEqual }
   @wo $tl @wo                                          { constoken Tilde }
   "[" @wo                                              { constAndBegin BOpen attr_st }
   @wo "{" @wo                                          { constoken COpen }
   @wo "}" @wo                                          { constoken CClose }
-
-  @pse  @h@i@g@h@l@i@g@h@t                             { constoken THighlight }
-  @pse  @p@a@r@t                                       { constoken TPart }
-  @pse  @p@i@c@k@e@r                                   { constoken TPicker }
-  @pse  @s@c@r@o@l@l "-" @b@u@t@t@o@n                  { constoken TScrollButton }
-  @pse  @s@l@o@t@t@e@d                                 { constoken TSlotted }
-  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @g@r@o@u@p
-                                                       { constoken TViewTransitionGroup }
-  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @i@m@a@g@e "-" @p@a@i@r
-                                                       { constoken TViewTransitionImagePair }
-  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @n@e@w   { constoken TViewTransitionNew }
-  @pse  @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @o@l@d   { constoken TViewTransitionOld }
 
   @pse [a-zA-Z0-9_\-]+                                 { tokenize (tokenizePseudoElement) }
 

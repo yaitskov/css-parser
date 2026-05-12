@@ -11,12 +11,11 @@ import CssParser.Rule.Pseudo
       BrowserSpecificIdent(BrowserSpecificIdent),
       PseudoElement(UnknownPe),
       Nth,
-      pseudoElementMap,
       pseudoClassMap )
 import CssParser.Rule.Type ( AtomicCssType )
 import CssParser.Rule.TypedNum ( NumberStr )
 import CssParser.Rule.Value (Ratio)
-import CssParser.Show ( smartLookup )
+import CssParser.Show ( mkDecodingMap', smartLookup )
 import CssParser.Utils ( readIdentifier )
 import Data.Text (pack)
 import Data.HashMap.Strict qualified as HM
@@ -132,6 +131,7 @@ data Token
   | DescriptorT Descriptor
   deriving (Show, Eq)
 
+
 tokenizePseudoClass :: String -> Token
 tokenizePseudoClass s =
   case smartLookup (pack s) pseudoClassMap of
@@ -140,11 +140,27 @@ tokenizePseudoClass s =
     Nothing ->
       AtomicPseudoClassT . UnknownPc . BrowserSpecificIdent . Ident . pack $ drop 1 s
 
+pseudoElementMap :: HashMap Text Token
+pseudoElementMap = auto <> hand
+  where
+    auto = fmap PseudoElementT . mkDecodingMap' $ drop 1 genum
+    hand =
+      HM.fromList
+      [ ("::highlight", THighlight)
+      , ("::part", TPart)
+      , ("::picker", TPicker)
+      , ("::scroll-button", TScrollButton)
+      , ("::slotted", TSlotted)
+      , ("::view-transition-group", TViewTransitionGroup)
+      , ("::view-transition-image-pair", TViewTransitionImagePair)
+      , ("::view-transition-new", TViewTransitionNew)
+      , ("::view-transition-old", TViewTransitionOld)
+      ]
+
 tokenizePseudoElement :: String -> Token
 tokenizePseudoElement s =
   case smartLookup (pack s) pseudoElementMap of
-    Just pe ->
-      PseudoElementT pe
+    Just pe -> pe
     Nothing ->
       PseudoElementT . UnknownPe . Ident . pack $ drop 2 s
 
