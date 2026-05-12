@@ -163,7 +163,6 @@ instance CssShow TagSelector where
     , toCssText ts.tagName
     ]
     <> (toCssText <$> ts.tagSubSelectors)
-    -- <> fmap toCssText (maybeToList ts.tagId)
 
 instance CssShow CompositePe where
   toCssText = \case

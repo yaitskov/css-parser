@@ -6,10 +6,17 @@ import CssParser.Descriptor (Descriptor (BrowserSpecificDescriptor, CustomDescri
 import CssParser.Fun ( TpmF, NthF )
 import CssParser.Ident ( BrowserPrefix, Ident(Ident), bpLength )
 import CssParser.Prelude
-import CssParser.Rule.Pseudo ( AtomicPseudoClass, Nth, PseudoElement )
+import CssParser.Rule.Pseudo
+    ( AtomicPseudoClass(UnknownPc),
+      BrowserSpecificIdent(BrowserSpecificIdent),
+      PseudoElement(UnknownPe),
+      Nth,
+      pseudoElementMap,
+      pseudoClassMap )
 import CssParser.Rule.Type ( AtomicCssType )
 import CssParser.Rule.TypedNum ( NumberStr )
 import CssParser.Rule.Value (Ratio)
+import CssParser.Show ( smartLookup )
 import CssParser.Utils ( readIdentifier )
 import Data.Text (pack)
 import Data.HashMap.Strict qualified as HM
@@ -125,6 +132,22 @@ data Token
   | DescriptorT Descriptor
   deriving (Show, Eq)
 
+tokenizePseudoClass :: String -> Token
+tokenizePseudoClass s =
+  case smartLookup (pack s) pseudoClassMap of
+    Just pc ->
+      AtomicPseudoClassT pc
+    Nothing ->
+      AtomicPseudoClassT . UnknownPc . BrowserSpecificIdent . Ident . pack $ drop 1 s
+
+tokenizePseudoElement :: String -> Token
+tokenizePseudoElement s =
+  case smartLookup (pack s) pseudoElementMap of
+    Just pe ->
+      PseudoElementT pe
+    Nothing ->
+      PseudoElementT . UnknownPe . Ident . pack $ drop 2 s
+
 readCustomDescriptor :: String -> Token
 readCustomDescriptor =
   DescriptorT . CustomDescriptor . Ident . pack . readIdentifier . dropEnd 1 . drop 2
@@ -133,7 +156,7 @@ readBpDescriptor :: BrowserPrefix -> String -> Token
 readBpDescriptor bp =
   DescriptorT . BrowserSpecificDescriptor bp . Ident . pack . readIdentifier . dropEnd 1 . drop (bpLength bp)
 
-descriptorKeywords :: HM.HashMap Text Token
+descriptorKeywords :: HashMap Text Token
 descriptorKeywords =
   HM.fromList
   [ ("container"                                      , ContainerT)

@@ -1,9 +1,8 @@
 module CssParser.Rule.Pseudo where
 
-import CssParser.Ident
+import CssParser.Ident ( Ident(..) )
 import CssParser.Prelude hiding (Left, Right)
-import CssParser.Show ( numToText, CssShow(..), ShowSpaceBetween(..) )
-
+import CssParser.Show
 newtype Language = Language Text deriving newtype (Eq, Ord, Show, IsString)
 
 data Nth = Nth { linear :: Int, constant :: Int } deriving (Eq, Ord, Show, Generic)
@@ -33,8 +32,11 @@ data PseudoElement
   | UnknownPe Ident
   deriving (Eq, Ord, Show, Generic)
 
+instance GEnum PseudoElement
+
 newtype BrowserSpecificIdent = BrowserSpecificIdent Ident
-  deriving newtype (Eq, Ord, Show, CssShow, IsString) deriving (Generic)
+  deriving newtype (Eq, Ord, Show, CssShow, IsString, GEnum)
+  deriving (Generic)
 
 data AtomicPseudoClass
   = Active
@@ -105,6 +107,16 @@ data AtomicPseudoClass
   | XrOverlay
   | UnknownPc BrowserSpecificIdent
   deriving (Eq, Ord, Show, Generic)
+
+instance GEnum AtomicPseudoClass
+
+pseudoElementMap :: HashMap Text PseudoElement
+pseudoElementMap =
+  mkDecodingMap' $ filter (\case UnknownPe _ -> False; _ -> True) genum
+
+pseudoClassMap :: HashMap Text AtomicPseudoClass
+pseudoClassMap =
+  mkDecodingMap' $ filter (\case UnknownPc _ -> False; _ -> True) genum
 
 pattern Even :: Nth
 pattern Even = Nth 2 0

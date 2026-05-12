@@ -12,6 +12,7 @@ module CssParser.Show
   , Csl (..)
   , mayCss
   , mkDecodingMap
+  , mkDecodingMap'
   , smartLookup
   , toCssStr
   ) where
@@ -85,11 +86,13 @@ mayCss :: CssShow a => (LText -> LText) -> Maybe a -> LText
 mayCss f = maybe "" (f . toCssText)
 
 mkDecodingMap :: forall a. (Enum a, Bounded a, CssShow a) => HM.HashMap Text a
-mkDecodingMap = HM.fromList (zip origKeys kds <> zip lowKeys kds)
+mkDecodingMap = mkDecodingMap' $ enumFromTo minBound maxBound
+
+mkDecodingMap' :: (CssShow a) => [a] -> HM.HashMap Text a
+mkDecodingMap' kds = HM.fromList (zip origKeys kds <> zip lowKeys kds)
   where
     origKeys = toStrict . toCssText <$> kds
     lowKeys = T.toLower <$> origKeys
-    kds = enumFromTo minBound maxBound
 
 smartLookup :: Text -> HM.HashMap Text a -> Maybe a
 smartLookup k m =

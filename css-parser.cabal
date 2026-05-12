@@ -72,6 +72,7 @@ library
     , bytestring >=0.9
     , Decimal >=0.4.2
     , either < 6
+    , generic-deriving < 2
     , reorder-expression < 1
     , these < 2
     , unordered-containers < 1

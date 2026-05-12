@@ -11,6 +11,7 @@ import Data.Char as X hiding (toLower)
 import Data.Either as X (partitionEithers)
 import Data.Either.Combinators as X
 import Data.Functor.Identity as X
+import Data.HashMap.Strict as X (HashMap)
 import Data.Kind as X
 import Data.List.NonEmpty as X ( NonEmpty ((:|)), (<|), toList, nonEmpty, appendList, prependList)
 import Data.Maybe as X
@@ -19,7 +20,7 @@ import Data.String as X (IsString (..))
 import Data.Text (Text)
 import Data.Text.Lazy as X (concat, intercalate, toStrict, toLower, fromStrict, cons, snoc, unlines, unwords, unpack)
 import Data.Text.Lazy qualified as L
-
+import Generics.Deriving.Enum as X hiding (range)
 import GHC.Generics as X (Generic)
 import Prelude as X hiding (concat, null, unlines, unwords)
 

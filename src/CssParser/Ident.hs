@@ -32,7 +32,12 @@ instance CssShow BrowserPrefix where
     WebKit -> "-webkit-"
     Microsoft -> "-ms-"
 
-newtype Ident = Ident Text deriving newtype (Eq, Ord, Show, Semigroup, Monoid, IsString)
+newtype Ident = Ident Text
+  deriving newtype (Eq, Ord, Show, Semigroup, Monoid, IsString)
+  deriving (Generic)
+
+instance GEnum Ident where
+  genum = [Ident "a"]
 
 data TagName
   = TagName Ident
