@@ -1,69 +1,5 @@
 {
   "nodes": {
-    "beer": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1778169730,
-        "narHash": "sha256-4WFLAxZ5HheT0acj5QJ410MStM9izGFQdoE60Tcc3sI=",
-        "owner": "beercss",
-        "repo": "beercss",
-        "rev": "caed43d62e3ca89e29540d02c879c79da2adbddd",
-        "type": "github"
-      },
-      "original": {
-        "owner": "beercss",
-        "repo": "beercss",
-        "type": "github"
-      }
-    },
-    "bootstrap": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1777997996,
-        "narHash": "sha256-1UzRvgY1glUH8HSTs0lyuM+q8H82NYpvI6KCo4skaCg=",
-        "owner": "twbs",
-        "repo": "bootstrap",
-        "rev": "a583d9a8f3a1027566f3d82f0538d61f6d17f0d3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "twbs",
-        "repo": "bootstrap",
-        "type": "github"
-      }
-    },
-    "bulma": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1772395980,
-        "narHash": "sha256-RNj2nniHTUpg2m5WXCejDy7OyvIxikKV60d3ZCRvwWw=",
-        "owner": "jgthms",
-        "repo": "bulma",
-        "rev": "741da22368cd548111224983a1c3ece8954fe8cc",
-        "type": "github"
-      },
-      "original": {
-        "owner": "jgthms",
-        "repo": "bulma",
-        "type": "github"
-      }
-    },
-    "cirrus": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1775630340,
-        "narHash": "sha256-fYb1a5pduul7vUyLcxtpp/WAnQK4KE/8tIklHb8HlE8=",
-        "owner": "Spiderpig86",
-        "repo": "Cirrus",
-        "rev": "d09a1002a22edda2aa01460459ba329a4718f307",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Spiderpig86",
-        "repo": "Cirrus",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -82,7 +18,71 @@
         "type": "github"
       }
     },
-    "foundation": {
+    "nf-test-beer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778497407,
+        "narHash": "sha256-4WFLAxZ5HheT0acj5QJ410MStM9izGFQdoE60Tcc3sI=",
+        "owner": "beercss",
+        "repo": "beercss",
+        "rev": "9358eced698c924ef309c0746a18f0bd9062811a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "beercss",
+        "repo": "beercss",
+        "type": "github"
+      }
+    },
+    "nf-test-bootstrap": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777997996,
+        "narHash": "sha256-1UzRvgY1glUH8HSTs0lyuM+q8H82NYpvI6KCo4skaCg=",
+        "owner": "twbs",
+        "repo": "bootstrap",
+        "rev": "a583d9a8f3a1027566f3d82f0538d61f6d17f0d3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "twbs",
+        "repo": "bootstrap",
+        "type": "github"
+      }
+    },
+    "nf-test-bulma": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772395980,
+        "narHash": "sha256-RNj2nniHTUpg2m5WXCejDy7OyvIxikKV60d3ZCRvwWw=",
+        "owner": "jgthms",
+        "repo": "bulma",
+        "rev": "741da22368cd548111224983a1c3ece8954fe8cc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jgthms",
+        "repo": "bulma",
+        "type": "github"
+      }
+    },
+    "nf-test-cirrus": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775630340,
+        "narHash": "sha256-fYb1a5pduul7vUyLcxtpp/WAnQK4KE/8tIklHb8HlE8=",
+        "owner": "Spiderpig86",
+        "repo": "Cirrus",
+        "rev": "d09a1002a22edda2aa01460459ba329a4718f307",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Spiderpig86",
+        "repo": "Cirrus",
+        "type": "github"
+      }
+    },
+    "nf-test-foundation": {
       "flake": false,
       "locked": {
         "lastModified": 1727461563,
@@ -98,7 +98,7 @@
         "type": "github"
       }
     },
-    "materialize": {
+    "nf-test-materialize": {
       "flake": false,
       "locked": {
         "lastModified": 1776004932,
@@ -112,6 +112,80 @@
         "owner": "materializecss",
         "repo": "materialize",
         "type": "github"
+      }
+    },
+    "nf-test-ress": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1686610023,
+        "narHash": "sha256-ljcWz+HS1Mn/UtwfaPikND7G6C4owXfTafVyNSpx21M=",
+        "owner": "filipelinhares",
+        "repo": "ress",
+        "rev": "7092c6033e6db09d8e40a161831e86071012be52",
+        "type": "github"
+      },
+      "original": {
+        "owner": "filipelinhares",
+        "repo": "ress",
+        "type": "github"
+      }
+    },
+    "nf-test-sakura": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772693925,
+        "narHash": "sha256-TmaoYszuaUMxbtCV8upH7NlJj/ILHnV5SS5cL40YpiI=",
+        "owner": "oxalorg",
+        "repo": "sakura",
+        "rev": "1eab9fd871abc74ec74d1a6f18ee56148f5a4b8f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalorg",
+        "repo": "sakura",
+        "type": "github"
+      }
+    },
+    "nf-test-stack-overflow": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1761557615,
+        "narHash": "sha256-zM338ni97M00RAb09wg8oOLpU2+tpSrBiYXZA/SCsMs=",
+        "type": "tarball",
+        "url": "https://github.com/StackExchange/Stacks/archive/refs/tags/@stackoverflow/stacks-svelte@0.6.0.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/StackExchange/Stacks/archive/refs/tags/@stackoverflow/stacks-svelte@0.6.0.tar.gz"
+      }
+    },
+    "nf-test-uikit": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777971384,
+        "narHash": "sha256-MW7x741FoF0bGKa5EJkZRfqVq6n5nWTtZ34zo6h67mQ=",
+        "owner": "uikit",
+        "repo": "uikit",
+        "rev": "6dd3b351dd63e3674188c91d7f8fa55d0ff10fb0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "uikit",
+        "repo": "uikit",
+        "type": "github"
+      }
+    },
+    "nf-test-uswds": {
+      "flake": false,
+      "locked": {
+        "lastModified": 499162500,
+        "narHash": "sha256-NWw/9gHtjJ7PgFBFv7CCWn3b72ZG1SghXkBxmzF5reU=",
+        "type": "tarball",
+        "url": "https://github.com/uswds/uswds/releases/download/v3.13.0/uswds-uswds-3.13.0.tgz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/uswds/uswds/releases/download/v3.13.0/uswds-uswds-3.13.0.tgz"
       }
     },
     "nixpkgs": {
@@ -130,67 +204,38 @@
         "type": "github"
       }
     },
-    "ress": {
+    "primer": {
       "flake": false,
       "locked": {
-        "lastModified": 1686610023,
-        "narHash": "sha256-ljcWz+HS1Mn/UtwfaPikND7G6C4owXfTafVyNSpx21M=",
-        "owner": "filipelinhares",
-        "repo": "ress",
-        "rev": "7092c6033e6db09d8e40a161831e86071012be52",
+        "lastModified": 1778608662,
+        "narHash": "sha256-fqhJYXs51Pf0XgQFqdnTOA/fsTaLgKtCTe/Kn0qaHf8=",
+        "owner": "yaitskov",
+        "repo": "css",
+        "rev": "554c968e13bfd3726dcced15a26481a27e5d7a3d",
         "type": "github"
       },
       "original": {
-        "owner": "filipelinhares",
-        "repo": "ress",
+        "owner": "yaitskov",
+        "repo": "css",
         "type": "github"
       }
     },
     "root": {
       "inputs": {
-        "beer": "beer",
-        "bootstrap": "bootstrap",
-        "bulma": "bulma",
-        "cirrus": "cirrus",
         "flake-utils": "flake-utils",
-        "foundation": "foundation",
-        "materialize": "materialize",
+        "nf-test-beer": "nf-test-beer",
+        "nf-test-bootstrap": "nf-test-bootstrap",
+        "nf-test-bulma": "nf-test-bulma",
+        "nf-test-cirrus": "nf-test-cirrus",
+        "nf-test-foundation": "nf-test-foundation",
+        "nf-test-materialize": "nf-test-materialize",
+        "nf-test-ress": "nf-test-ress",
+        "nf-test-sakura": "nf-test-sakura",
+        "nf-test-stack-overflow": "nf-test-stack-overflow",
+        "nf-test-uikit": "nf-test-uikit",
+        "nf-test-uswds": "nf-test-uswds",
         "nixpkgs": "nixpkgs",
-        "ress": "ress",
-        "sakura": "sakura",
-        "stack-overflow": "stack-overflow",
-        "uikit": "uikit",
-        "uphack": "uphack",
-        "uswds": "uswds"
-      }
-    },
-    "sakura": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1772693925,
-        "narHash": "sha256-TmaoYszuaUMxbtCV8upH7NlJj/ILHnV5SS5cL40YpiI=",
-        "owner": "oxalorg",
-        "repo": "sakura",
-        "rev": "1eab9fd871abc74ec74d1a6f18ee56148f5a4b8f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "oxalorg",
-        "repo": "sakura",
-        "type": "github"
-      }
-    },
-    "stack-overflow": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1761557615,
-        "narHash": "sha256-zM338ni97M00RAb09wg8oOLpU2+tpSrBiYXZA/SCsMs=",
-        "type": "tarball",
-        "url": "https://github.com/StackExchange/Stacks/archive/refs/tags/@stackoverflow/stacks-svelte@0.6.0.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://github.com/StackExchange/Stacks/archive/refs/tags/@stackoverflow/stacks-svelte@0.6.0.tar.gz"
+        "primer": "primer"
       }
     },
     "systems": {
@@ -206,51 +251,6 @@
         "owner": "nix-systems",
         "repo": "default",
         "type": "github"
-      }
-    },
-    "uikit": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1777971384,
-        "narHash": "sha256-MW7x741FoF0bGKa5EJkZRfqVq6n5nWTtZ34zo6h67mQ=",
-        "owner": "uikit",
-        "repo": "uikit",
-        "rev": "6dd3b351dd63e3674188c91d7f8fa55d0ff10fb0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "uikit",
-        "repo": "uikit",
-        "type": "github"
-      }
-    },
-    "uphack": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1757595711,
-        "narHash": "sha256-9vOuWhJhPKnHBPZj/+6AJ7E0K2qezec7d8zW42n9j9o=",
-        "owner": "yaitskov",
-        "repo": "upload-doc-to-hackage",
-        "rev": "29d4066f4f8a5a1a194d9b701f9b272dda85c3aa",
-        "type": "github"
-      },
-      "original": {
-        "owner": "yaitskov",
-        "repo": "upload-doc-to-hackage",
-        "type": "github"
-      }
-    },
-    "uswds": {
-      "flake": false,
-      "locked": {
-        "lastModified": 499162500,
-        "narHash": "sha256-NWw/9gHtjJ7PgFBFv7CCWn3b72ZG1SghXkBxmzF5reU=",
-        "type": "tarball",
-        "url": "https://github.com/uswds/uswds/releases/download/v3.13.0/uswds-uswds-3.13.0.tgz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://github.com/uswds/uswds/releases/download/v3.13.0/uswds-uswds-3.13.0.tgz"
       }
     }
   },
