@@ -7,11 +7,6 @@ import CssParser.Fun ( TpmF, NthF )
 import CssParser.Ident ( BrowserPrefix, Ident(Ident), bpLength )
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
-    ( AtomicPseudoClass(UnknownPc),
-      BrowserSpecificIdent(BrowserSpecificIdent),
-      PseudoElement(UnknownPe),
-      Nth,
-      pseudoClassMap )
 import CssParser.Rule.Type ( AtomicCssType )
 import CssParser.Rule.TypedNum ( NumberStr )
 import CssParser.Rule.Value (Ratio)
@@ -131,12 +126,28 @@ data Token
   | DescriptorT Descriptor
   deriving (Show, Eq)
 
+pseudoClassMap :: HashMap Text Token
+pseudoClassMap = auto <> hand
+  where
+    auto = fmap AtomicPseudoClassT . mkDecodingMap' $ drop 1 genum
+    hand =
+      HM.fromList
+      [ (":after", PseudoElementT After)
+      , (":before", PseudoElementT Before)
+      , (":global", GlobalT)
+      , (":not", TNot)
+      , (":where", TWhere)
+      , (":has", THas)
+      , (":is", TIs)
+      , (":active-view-transition-type", TActiveViewTransitionType)
+      , (":dir", TDir)
+      , (":state", TState)
+      ]
 
 tokenizePseudoClass :: String -> Token
 tokenizePseudoClass s =
   case smartLookup (pack s) pseudoClassMap of
-    Just pc ->
-      AtomicPseudoClassT pc
+    Just pc -> pc
     Nothing ->
       AtomicPseudoClassT . UnknownPc . BrowserSpecificIdent . Ident . pack $ drop 1 s
 

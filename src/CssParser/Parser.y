@@ -169,16 +169,16 @@ import Prelude
     typedNum    { TokenLoc (L.TypedNum $$) _ _ }
     var         { TokenLoc (Var $$) _ _ }
     nth         { TokenLoc (TNth $$) _ _ }
-    'not('      { TokenLoc TNot _ _ }
-    'global('   { TokenLoc GlobalT _ _ }
-    'where('    { TokenLoc TWhere _ _ }
-    'is('       { TokenLoc TIs _ _ }
-    'has('      { TokenLoc THas _ _ }
-    'lang('     { TokenLoc TLang _ _ }
-    'dir('      { TokenLoc TDir _ _ }
+    ':not'      { TokenLoc TNot _ _ }
+    ':global'   { TokenLoc GlobalT _ _ }
+    ':where'    { TokenLoc TWhere _ _ }
+    ':is'       { TokenLoc TIs _ _ }
+    ':has'      { TokenLoc THas _ _ }
+    ':lang('    { TokenLoc TLang _ _ }
+    ':dir'      { TokenLoc TDir _ _ }
     heading     { TokenLoc THeading _ _ }
     host        { TokenLoc THost _ _ }
-    'state('    { TokenLoc TState _ _ }
+    ':state('   { TokenLoc TState _ _ }
     activeViewTransitionType
                 { TokenLoc TActiveViewTransitionType _ _ }
     '('         { TokenLoc TOpen _ _ }
@@ -583,20 +583,20 @@ TagClasses :: { [ TagSubSelector ] }
 TagClass :: { TagSubSelector }
     : Class                                       { AtomicClass $1 }
     | pseudc                                      { AtomicPseudoClass $1 }
-    | 'not(' SL                                   { NotClass $2 }
-    | 'lang(' Str ')'                             { Lang (Language $2) }
+    | ':not' '(' SL                               { NotClass $3 }
+    | ':lang(' Str ')'                            { Lang (Language $2) }
     | activeViewTransitionType Op CslOfIdents Os ')'
                                                   { ActiveViewTransitionType (Embraced $3) }
-    | 'dir(' Os IdKwd Os ')'                      { Dir (Embraced $3) }
+    | ':dir' Op IdKwd Os ')'                      { Dir (Embraced $3) }
     | heading Op CslOfInts Os ')'                 { Heading (Embraced $3) }
     | heading                                     { AtomicPseudoClass P.Heading }
     | host ESL                                    { Host (Embraced $2) }
     | host                                        { AtomicPseudoClass P.Host }
-    | 'state(' Os IdKwd Os ')'                    { State (Embraced $3) }
-    | 'global(' SL                                { Global $2 }
-    | 'where(' SL                                 { Where $2 }
-    | 'is(' SL                                    { Is $2 }
-    | 'has(' SL                                   { Has $2 }
+    | ':state(' Os IdKwd Os ')'                   { State (Embraced $3) }
+    | ':global' Op SL                             { Global $3 }
+    | ':where' Op SL                              { Where $3 }
+    | ':is' Op SL                                 { Is $3 }
+    | ':has' Op SL                                { Has $3 }
     | pseudf Os Nth                               { call $1 $3 }
     | '[' Attr ']'                                { $2 }
     | Hash                                        { $1 }

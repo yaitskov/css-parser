@@ -3,6 +3,7 @@ module CssParser.Rule.Pseudo where
 import CssParser.Ident ( Ident(..) )
 import CssParser.Prelude hiding (Left, Right)
 import CssParser.Show
+
 newtype Language = Language Text deriving newtype (Eq, Ord, Show, IsString)
 
 data Nth = Nth { linear :: Int, constant :: Int } deriving (Eq, Ord, Show, Generic)
@@ -109,9 +110,6 @@ data AtomicPseudoClass
   deriving (Eq, Ord, Show, Generic)
 
 instance GEnum AtomicPseudoClass
-
-pseudoClassMap :: HashMap Text AtomicPseudoClass
-pseudoClassMap = mkDecodingMap' $ drop 1 genum
 
 pattern Even :: Nth
 pattern Even = Nth 2 0

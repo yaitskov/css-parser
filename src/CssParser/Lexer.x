@@ -189,22 +189,11 @@ tokens :-
 
   @pse [a-zA-Z0-9_\-]+                                 { tokenize (tokenizePseudoElement) }
 
-  @psc @a@f@t@e@r                                      { constoken (PseudoElementT After) }
-  @psc @b@e@f@o@r@e                                    { constoken (PseudoElementT Before) }
-
   @psc @l@a@n@g "("                                    { constAndBegin TLang lang_state }
   @psc @nthh@child "("                                 { constAndBegin (PseudoFunction NthFChild) nth_state }
   @psc @nthh@lasth@child "("                           { constAndBegin (PseudoFunction NthFLastChild) nth_state }
   @psc @nthh@lasth@oftype "("                          { constAndBegin (PseudoFunction NthFLastOfType) nth_state }
   @psc @nthh@oftype "("                                { constAndBegin (PseudoFunction NthFOfType) nth_state }
-  @psc @g@l@o@b@a@l "("                                { constoken GlobalT }
-  @psc @not "("                                        { constoken TNot }
-  @psc @where "("                                      { constoken TWhere }
-  @psc @has "("                                        { constoken THas }
-  @psc @is "("                                         { constoken TIs }
-  @psc @a@c@t@i@v@e "-" @v@i@e@w "-" @t@r@a@n@s@i@t@i@o@n "-" @t@y@p@e
-                                                       { constoken TActiveViewTransitionType }
-  @psc @d@i@r "("                                      { constoken TDir }
   @psc @h@e@a@d@i@n@g                                  { constoken THeading }
   @psc @h@o@s@t                                        { constoken THost }
   @psc @s@t@a@t@e "("                                  { constoken TState }
