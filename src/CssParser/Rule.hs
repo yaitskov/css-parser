@@ -12,12 +12,17 @@ import CssParser.At.Supports qualified as S
 import CssParser.Descriptor (Descriptor)
 import CssParser.Ident
 import CssParser.MonoPair ( MonoPair )
+import CssParser.Parser.Monad ( P(Failed) )
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
-    ( AtomicPseudoClass, PseudoElement, Nth, Language )
+    ( AtomicPseudoClass(UnknownPc),
+      BrowserSpecificIdent(BrowserSpecificIdent),
+      PseudoElement,
+      Nth,
+      Language )
 import CssParser.Rule.Value
     ( PropValsList, PropVals, Source, Unsigned, CommaSeparatedList )
-import CssParser.Show ( CslNe, Embraced, SslNe )
+import CssParser.Show ( toCssStr, CslNe, Embraced, SslNe )
 
 
 type SelectorList = NonEmpty Selector
@@ -62,6 +67,9 @@ data Selector
   | PeSelectorOnly PseudeTagSelector
   deriving (Eq, Ord, Show, Generic)
 
+instance GEnum Selector where
+  genum = []
+
 data PseudeTagSelector
   = PseudeTagSelector
   { ptagName :: CompositePe
@@ -95,9 +103,17 @@ data TagSelector
   , tagSubSelectors :: [ TagSubSelector ]
   } deriving (Show, Ord, Eq, Generic)
 
+mkUnknownPseudoF :: AtomicPseudoClass -> SelectorList -> P TagSubSelector
+mkUnknownPseudoF pc sel =
+  case pc of
+    UnknownPc (BrowserSpecificIdent i) ->
+      pure $ UnknownPseudoF i sel
+    o -> Failed $ "Expected unknown pseudo class but got " <> toCssStr o
+
 data TagSubSelector
   = AtomicClass { unClass :: Ident }
   | AtomicPseudoClass AtomicPseudoClass
+  | UnknownPseudoF Ident SelectorList
   | NotClass SelectorList
   | Lang Language
   | Global SelectorList

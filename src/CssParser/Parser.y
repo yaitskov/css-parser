@@ -583,6 +583,7 @@ TagClasses :: { [ TagSubSelector ] }
 TagClass :: { TagSubSelector }
     : Class                                       { AtomicClass $1 }
     | pseudc                                      { AtomicPseudoClass $1 }
+    | pseudc ESL                                  {% mkUnknownPseudoF $1 $2 }
     | ':not' '(' SL                               { NotClass $3 }
     | ':lang(' Str ')'                            { Lang (Language $2) }
     | activeViewTransitionType Op CslOfIdents Os ')'

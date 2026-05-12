@@ -352,6 +352,7 @@ validSelectors =
   [ "body > p"
   , "div ol>li p"
   , ":global(.x)"
+  , ":-webkit-any(input,select,textarea)"
   , "i:heading(0)"
   , "i:host(p)"
   , "i:state(p)"

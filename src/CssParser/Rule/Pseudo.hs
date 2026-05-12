@@ -6,6 +6,9 @@ import CssParser.Show
 
 newtype Language = Language Text deriving newtype (Eq, Ord, Show, IsString)
 
+instance CssShow Language where
+  toCssText (Language l)  = fromStrict l
+
 data Nth = Nth { linear :: Int, constant :: Int } deriving (Eq, Ord, Show, Generic)
 
 data PseudoElement

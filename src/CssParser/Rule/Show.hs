@@ -5,7 +5,6 @@ import CssParser.Ident ( Ident(Ident) )
 import CssParser.MonoPair ( MonoPair )
 import CssParser.Prelude
 import CssParser.Rule
-import CssParser.Rule.Pseudo ( Language(Language) )
 import CssParser.Show
     ( encodeStringLiteral,
       CssShow(..),
@@ -108,8 +107,9 @@ instance CssShow TagSubSelector where
   toCssText = \case
     AtomicClass (Ident uc) -> cons '.' $ encodeIdentifier uc
     AtomicPseudoClass apc -> toCssText apc
+    UnknownPseudoF i sel -> cons ':' $ toCssText i <> "(" <> toCssText sel <> ")"
     NotClass nes -> ":not(" <> toCssText nes <> ")"
-    Lang (Language l) -> ":lang(" <> fromStrict l <> ")"
+    Lang l -> ":lang(" <> toCssText l <> ")"
     Global nes -> ":global(" <> toCssText nes <> ")"
     Where nes -> ":where(" <> toCssText nes <> ")"
     Is nes -> ":is(" <> toCssText nes <> ")"
