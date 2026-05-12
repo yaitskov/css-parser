@@ -342,7 +342,7 @@ CQ :: { ContainerQuery }
                                                       $8
                                                   }
     | DescAsPropName Os PropVals                  { CqFeature (AsIs (CqOpFeature (PlainMf $1 $3))) }
-    | PropN ':' PropVals                          { CqFeature (AsIs (CqOpFeature (PlainMf $1 $3))) }
+    | PropN Os ':' PropVals                       { CqFeature (AsIs (CqOpFeature (PlainMf $1 $4))) }
     | 'not' Op MediaFeature ')' Os BOP CQ         { CqBin $6 (Not (CqOpFeature $3)) $7 }
     | 'not' Op MediaFeature ')'                   { CqFeature (Not (CqOpFeature $3)) }
     | 'not' Os Ident Os Op CQ ')'                 { CqFeature (Not (CqApp $3 $6)) }
@@ -364,7 +364,7 @@ FontFeatureEntries :: { [ FontFeatureEntry ] }
     | FontFeatureEntry ';'                        { [$1] }
     | FontFeatureEntry ';' FontFeatureEntries     { $1 : $3 }
 FontFeatureEntry :: { FontFeatureEntry }
-    : IdKwd ':' Os NonEmpty(' ', Unsigned)        { FontFeatureEntry $1 (SslNe $4) }
+    : IdKwd Os ':' Os NonEmpty(' ', Unsigned)     { FontFeatureEntry $1 (SslNe $5) }
     | Desc Os NonEmpty(' ', Unsigned)             {% identOnly
                                                        (toPropertyName $1)
                                                        (`FontFeatureEntry` (SslNe $3))
@@ -441,7 +441,7 @@ MediaCondition :: { MediaBoolExpr }
     | Op MediaFeature ')'                         { MediaFeature (AsIs $2) }
 MediaFeature :: { MediaFeature }
     : DescAsPropName Os PropVals                  { PlainMf $1 $3 }
-    | PropN ':' Os PropVals                       { PlainMf $1 $4 }
+    | PropN Os ':' Os PropVals                    { PlainMf $1 $5 }
     | PropN MfRel PropVal                         { OpenRangeFeature $1 $2 $3 }
     | PropN MfRel PropN MfRel PropVal             { MfClosedRange (propRef $1) $2 $3 $4 $5 }
     | PropN Op PropVals ')' MfRel PropN           { OpenRangeFeatureFlipped

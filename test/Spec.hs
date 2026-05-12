@@ -343,6 +343,7 @@ media =
   , "@media not (x > f( 1) / y) {}"
   , "@media not (f( 1) / y < x < f( 1) / y) {}"
   , "@media all and (-ms-high-contrast:active),(-ms-high-contrast:active) {}"
+  , "@media only screen and (max-width : 600.99px) {}"
   ]
 
 -- Based on the w3c testkit: https://test.csswg.org/harness/suite/selectors-3_dev/
