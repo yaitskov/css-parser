@@ -35,7 +35,7 @@ keywords :: HashSet Text
 keywords = fromList $! initL <> fmap toTxt (enumDomain @MediaType)
   where
     toTxt = toStrict . toCssText
-    initL = T.words "not or and only src false true from to url x y d r cx cy rx ry is dir"
+    initL = T.words "not or and only src false true from to url x y d r cx cy rx ry is dir open"
 
 arbitraryIdent :: Gen Text
 arbitraryIdent = do

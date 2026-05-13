@@ -1,9 +1,11 @@
 module CssParser.At.MediaQuery where
 
-import CssParser.Ident
+import CssParser.Ident ( PropertyName )
 import CssParser.Prelude
 import CssParser.Rule.Value
 import CssParser.Show
+    ( CssShow(..), ShowParenthesis(..), ShowSpaceBetween(..) )
+import Expression.Reorder
 
 data MediaType
   = AllMt
@@ -37,8 +39,8 @@ data MtModifier = MtNot | MtOnly deriving (Show, Eq, Ord, Enum, Bounded, Generic
 
 instance CssShow MtModifier where
   toCssText = \case
-    MtNot -> "not"
-    MtOnly -> "only"
+    MtNot -> "not "
+    MtOnly -> "only "
 
 newtype MediaQueryList = MediaQueryList [MediaQuery] deriving (Show, Eq, Ord, Generic)
 
@@ -49,21 +51,21 @@ instance CssShow MediaQueryList where
   toCssText (MediaQueryList mqs) = toCssText mqs
 
 data MediaQuery
-  = MediaQueryConditionOnly MediaBoolExpr
-  | MediaQueryWithMt (Maybe MtModifier) MediaType (Maybe MediaBoolExpr)
+  = MediaQueryConditionOnly MediaCondition
+  | MediaQueryWithMt (Maybe MtModifier) MediaType (Maybe MediaCondition)
   deriving (Show, Eq, Ord, Generic)
 
 instance CssShow MediaQuery where
   toCssText = \case
     MediaQueryConditionOnly mbe -> toCssText mbe
     MediaQueryWithMt mtMod mt mbe ->
-      maybe "" ((<> " ") . toCssText) mtMod <>
+      toCssText mtMod <>
       toCssText mt <>
       maybe "" ((" and " <>) . toCssText) mbe
 
-data AndOr = And | Or deriving (Show, Eq, Ord, Generic)
+data BinOp = Or | And deriving (Show, Eq, Ord, Generic)
 
-instance CssShow AndOr where
+instance CssShow BinOp where
   toCssText = \case
     And -> " and "
     Or -> " or "
@@ -75,20 +77,66 @@ instance (ShowParenthesis p a, CssShow a) => CssShow (Not p a) where
     Not x -> "not " <> left p a <> toCssText x <> right p a
     AsIs x -> left p a <> toCssText x <> right p a
 
-instance ShowParenthesis MediaBoolExpr MediaFeature where
-  left _ _ = "("
-  right _ _ = ")"
-
-data MediaBoolExpr
-  = MediaBin AndOr (Not MediaBoolExpr MediaFeature) MediaBoolExpr
-  | MediaFeature (Not MediaBoolExpr MediaFeature)
+data MediaCondition where
+  NotMc :: MediaCondition -> MediaCondition
+  BopMc :: MediaCondition ->
+             BinOp ->
+             MediaCondition ->
+             MediaCondition
+  ParenMc :: MediaCondition -> MediaCondition
+  FeatureMc :: MediaFeature -> MediaCondition
   deriving (Show, Eq, Ord, Generic)
 
-instance CssShow MediaBoolExpr where
+mkBopMcTree :: BinOp -> NonEmpty MediaCondition -> MediaCondition
+mkBopMcTree bop = \case
+  x :| [] -> x
+  x :| [y] -> BopMc x bop y
+  x :| y : l -> BopMc x bop (mkBopMcTree bop $ y :| l)
+
+instance HasFixity BinOp where
+  fixityOf = \case
+    Or -> Fixity AssocLeft 1
+    And -> Fixity AssocLeft 2
+
+instance SyntaxTree MediaCondition String where
+  reorderChildren = \case
+    BopMc l op r -> BopMc <$> reorder l <*> pure op <*> reorder r
+    ParenMc x -> ParenMc <$> reorder x
+    NotMc x -> NotMc <$> reorder x
+    o -> pure o
+  structureOf = \case
+    BopMc l op r -> NodeInfix (fixityOf op) l r (`BopMc` op)
+    NotMc x -> NodePrefix 3 x NotMc
+    _ -> NodeLeaf
+  makeError err _ = show err
+
+instance CssShow MediaCondition where
   toCssText = \case
-    MediaBin bop x l ->
-      toCssText (MediaFeature x) <> toCssText bop  <> toCssText l
-    MediaFeature mf -> toCssText mf
+    NotMc mc@FeatureMc {} -> "not " <> toCssText mc
+    NotMc mc@ParenMc {} -> "not " <> toCssText mc
+    NotMc mc -> "not (" <> toCssText mc <> ")"
+    BopMc l op r -> showBopOperand op l <> toCssText op <> showBopOperandR r
+    ParenMc mc -> "(" <> toCssText mc <> ")"
+    FeatureMc mf -> "(" <> toCssText mf <> ")"
+
+showBopOperand :: BinOp -> MediaCondition -> LText
+showBopOperand pop = \case
+  BopMc l cop r
+    | cop /= pop -> "(" <> showBopOperand cop l <> toCssText cop <> showBopOperandR r <> ")"
+    | otherwise -> showBopOperand cop l <> toCssText cop <> showBopOperandR r
+  o -> toCssText o
+
+showBopOperandR :: MediaCondition -> LText
+showBopOperandR = \case
+  BopMc l cop r -> "(" <> showBopOperand cop l <> toCssText cop <> showBopOperandR r <> ")"
+  o -> toCssText o
+
+instance HasParens MediaCondition where
+  stripParens = \case
+    x@FeatureMc {} -> x
+    ParenMc x -> stripParens x
+    BopMc l op r -> BopMc (stripParens l) op (stripParens r)
+    NotMc x -> NotMc $ stripParens x
 
 data MediaFeature
   = PlainMf PropertyName PropVals

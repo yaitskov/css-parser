@@ -54,7 +54,7 @@ tests = testGroup "CssParser"
     ]
   ]
   where
-    throttle x = withMaxSize 60 (withMaxSuccess 64 x)
+    throttle x = withMaxSize 66 (withMaxSuccess 74 x)
     cpt m x = testCase m (True @=? checkParse (x <> " {}"))
 
 encodeDecode :: Char -> String -> Bool
@@ -355,6 +355,7 @@ customMedia =
   , "@custom-media --screen-or-print-1 screen, print or tty;"
   , "@custom-media --screen-or-print-2 screen or print;"
   , "@custom-media --medium-screen (min-width: 40em) and (max-width: 60em);"
+  , "@custom-media --medium-screen ((min-width: 40em) and (max-width: 60em) and (max-height: calc(34rem - 0.02px)));"
   , "@custom-media --no-script not (script);"
   , "@custom-media --enabled true;"
   , "@custom-media --disabled false;"

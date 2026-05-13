@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.Media where
 
-import CssParser.At.CustomMedia
+import CssParser.At.CustomMedia ( CustomMediaQuery(..) )
 import CssParser.At.MediaQuery
 import CssParser.Norm ( Norm(..) )
 import CssParser.Rule.Value
@@ -29,15 +29,21 @@ flipRel = \case
   MfGe -> MfLe
   MfLe -> MfGe
 
-deriving via (GenericArbitrary AndOr) instance Arbitrary AndOr
-
-deriving via (GenericArbitrary MediaBoolExpr) instance Arbitrary MediaBoolExpr
+deriving via (GenericArbitrary BinOp) instance Arbitrary BinOp
+deriving via (GenericArbitrary MediaCondition) instance Arbitrary MediaCondition
 deriving via (GenericArbitrary MfRelation) instance Arbitrary MfRelation
 deriving via (GenericArbitrary MtModifier) instance Arbitrary MtModifier
 deriving via (GenericArbitrary MediaType) instance Arbitrary MediaType
-deriving via (GenericArbitrary (Not MediaBoolExpr MediaFeature)) instance Arbitrary (Not MediaBoolExpr MediaFeature)
 
-deriving via (GenericArbitrary MediaQuery) instance Arbitrary MediaQuery
+instance Norm MediaQuery where
+  normalize = \case
+    MediaQueryConditionOnly mc -> MediaQueryConditionOnly $ stripParens mc
+    MediaQueryWithMt md mt mc -> MediaQueryWithMt md mt (stripParens <$> mc)
+
+instance Arbitrary MediaQuery where
+  arbitrary = normalize <$> genericArbitrary
+  shrink x = normalize <$> genericShrink x
+
 deriving via (GenericArbitrary MediaQueryList) instance Arbitrary MediaQueryList
 
 instance Norm CustomMediaQuery where

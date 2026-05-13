@@ -84,12 +84,18 @@ data CalcExpr
   | CalcCe CalcExpr
   deriving (Eq, Ord, Show, Generic)
 
-fixityOf :: CalcOp -> Fixity
-fixityOf = \case
-  PlusCe -> Fixity AssocLeft 1
-  MinusCe -> Fixity AssocLeft 2
-  ProdCe -> Fixity AssocLeft 3
-  DivCe -> Fixity AssocLeft 4
+class HasParens a where
+  stripParens :: a -> a
+
+class HasFixity x where
+  fixityOf :: x -> Fixity
+
+instance HasFixity CalcOp where
+  fixityOf = \case
+    PlusCe -> Fixity AssocLeft 1
+    MinusCe -> Fixity AssocLeft 2
+    ProdCe -> Fixity AssocLeft 3
+    DivCe -> Fixity AssocLeft 4
 
 -- happy builtin capabilites for operator priority is pretty limited
 -- %left and %right are just ignored for the gramma

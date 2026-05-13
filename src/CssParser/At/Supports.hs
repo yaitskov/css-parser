@@ -1,6 +1,6 @@
 module CssParser.At.Supports where
 
-import CssParser.At.MediaQuery ( MediaFeature, AndOr, toPlainMf )
+import CssParser.At.MediaQuery ( MediaFeature, BinOp, toPlainMf )
 import CssParser.Ident ( Ident )
 import CssParser.Norm ( Norm(..) )
 import CssParser.Prelude
@@ -22,7 +22,7 @@ instance CssShow s => CssShow (FqFun s) where
 data FeatureQuery s
   = FqMediaFeature MediaFeature
   | FqParen (FeatureQuery s)
-  | FqBop AndOr (FeatureQuery s) (FeatureQuery s)
+  | FqBop BinOp (FeatureQuery s) (FeatureQuery s)
   | FqNot (FeatureQuery s)
   | FqApp (FqFun s)
   deriving (Show, Eq, Ord, Generic)

@@ -362,7 +362,7 @@ CQ :: { ContainerQuery }
     | 'not' Os Ident Os Op CQ ')' Os BOP CQ       { CqBin $9 (Not (CqApp $3 $6)) $10 }
     | Op MediaFeature ')' Os BOP CQ               { CqBin $5 (AsIs (CqOpFeature $2)) $6 }
     | Op MediaFeature ')'                         { CqFeature (AsIs (CqOpFeature $2)) }
-BOP :: { AndOr }
+BOP :: { BinOp }
     : 'and'                                       { And }
     | 'or'                                        { Or }
 FontFeatureValBlocks :: { [ Either PropEntry FontFeatureValuesSubBlock ] }
@@ -432,27 +432,48 @@ MediaQueryList :: { [ MediaQuery ] }
     | MediaQuery ',' MediaQueryList               { $1 : $3 }
     | MediaQuery 'or' MediaQueryList              { $1 : $3 }
 MediaQuery :: { MediaQuery }
-    : 'not' Os Op MediaFeature ')'                { MediaQueryConditionOnly (MediaFeature (Not $4)) }
-    | MtModifier MediaType Os 'and' Os MediaCondition
-                                                  { MediaQueryWithMt
-                                                      $1
-                                                      $2
-                                                      (Just $6)
-                                                  }
-    | MtModifier MediaType Os                     { MediaQueryWithMt $1 $2 Nothing }
-    | MediaCondition                              { MediaQueryConditionOnly $1 }
+    : 'not' Os MediaCondition                     {% fmap (MediaQueryConditionOnly . stripParens)
+                                                          (reorderInP (NotMc $3)) }
+    | 'not' Os MediaCondition Os MediaAnds        {% fmap (MediaQueryConditionOnly . stripParens)
+                                                          (reorderInP (mkBopMcTree And (NotMc $3 :| $5))) }
+    | 'not' Os MediaCondition Os MediaOrs         {% fmap (MediaQueryConditionOnly . stripParens)
+                                                          (reorderInP (mkBopMcTree Or  (NotMc $3 :| $5))) }
+
+    | MtModifier Os MediaType Os 'and' Os MediaCondition
+                                                  {% fmap (MediaQueryWithMt $1 $3 . Just . stripParens)
+                                                          (reorderInP $7) }
+    | MtModifier Os MediaType Os                  { MediaQueryWithMt $1 $3 Nothing }
+    | MediaCondition                              {% fmap (MediaQueryConditionOnly . stripParens) (reorderInP $1) }
 MediaType :: { MediaType }
     : mediaType                                   { $1 }
 MtModifier :: { Maybe MtModifier }
     :                                             { Nothing }
     | 'not'                                       { Just MtNot }
     | 'only'                                      { Just MtOnly }
-MediaCondition :: { MediaBoolExpr }
-    : 'not' Op MediaFeature ')' Os BOP MediaCondition
-                                                  { MediaBin $6 (Not $3) $7 }
-    | 'not' Op MediaFeature ')'                   { MediaFeature (Not $3) }
-    | Op MediaFeature ')' Os BOP MediaCondition   { MediaBin $5 (AsIs $2) $6 }
-    | Op MediaFeature ')'                         { MediaFeature (AsIs $2) }
+MediaCondition :: { MediaCondition }
+    : MediaNot                                    { $1 }
+    | MediaNot Os MediaAnds                       { mkBopMcTree And ($1 :| $3) }
+    | MediaNot Os MediaOrs                        { mkBopMcTree Or ($1 :| $3) }
+    | MediaInParens                               { $1 }
+    | MediaInParens Os MediaAnds                  { mkBopMcTree And ($1 :| $3) }
+    | MediaInParens Os MediaOrs                   { mkBopMcTree Or ($1 :| $3) }
+MediaNot :: { MediaCondition }
+    : 'not' Os MediaInParens                      { NotMc $3 }
+MediaAnds :: { [MediaCondition] }
+    : MediaAnd                                    { [$1] }
+    | MediaAnd Os MediaAnds                       { $1 : $3 }
+MediaAnd :: { MediaCondition }
+    : 'and' MediaInParens                         { $2 }
+    | 'and' MediaNot                              { $2 }
+MediaOrs :: { [MediaCondition] }
+    : MediaOr                                     { [$1] }
+    | MediaOr Os MediaOrs                         { $1 : $3 }
+MediaOr :: { MediaCondition }
+    : 'or' MediaInParens                          { $2 }
+    | 'or' MediaNot                               { $2 }
+MediaInParens
+    : Op MediaCondition ')'                       { ParenMc $2 }
+    | Op MediaFeature ')'                         { FeatureMc $2 }
 MediaFeature :: { MediaFeature }
     : DescAsPropName Os PropVals                  { PlainMf $1 $3 }
     | PropN Os ':' Os PropVals                    { PlainMf $1 $5 }
@@ -703,8 +724,7 @@ AtId :: { R.Ident }
     | supports                                    { R.Ident "supports" }
     | viewTransition                              { R.Ident "view-transition" }
 MediaKeywordAsIdent
-    : 'not'                                       { R.Ident "not" }
-    | 'or'                                        { R.Ident "or" }
+    : 'or'                                        { R.Ident "or" }
     | 'and'                                       { R.Ident "and" }
     | 'only'                                      { R.Ident "only" }
 Ident :: { R.Ident }

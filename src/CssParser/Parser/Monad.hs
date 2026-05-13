@@ -1,10 +1,23 @@
-module CssParser.Parser.Monad where
+module CssParser.Parser.Monad
+ ( module CssParser.Parser.Monad
+ , module X
+ ) where
 
 import CssParser.Prelude
 import Data.List qualified as L
-import Expression.Reorder
+import Expression.Reorder as X ( reorder, Validation(..), SyntaxTree )
+import GHC.Stack (HasCallStack)
 
 data P a = Ok a | Failed String deriving (Functor)
+
+reorderErr :: (HasCallStack, Show a, SyntaxTree a String) => a -> a
+reorderErr x =
+  case reorderInP x of
+    Failed x' -> error x'
+    Ok x' -> x'
+
+reorderInP :: (Show a, SyntaxTree a String) => a -> P a
+reorderInP a = validationToP a (reorder a)
 
 validationToP :: Show a => a -> Validation (NonEmpty String) a -> P a
 validationToP x = \case

@@ -39,7 +39,7 @@ instance ShowParenthesis ContainerQuery CqOp where
   right _ _ = ""
 
 data ContainerQuery
-  = CqBin AndOr (Not ContainerQuery CqOp) ContainerQuery
+  = CqBin BinOp (Not ContainerQuery CqOp) ContainerQuery
   | CqFeature (Not ContainerQuery CqOp)
   deriving (Show, Eq, Ord, Generic)
 
