@@ -114,7 +114,7 @@
                 echo -n "primer SHA: "
                 # prefetch-npm-deps "${inputs.primer}/package-lock.json"
                 echo "commented - skipped"
-                export CSS_FRAMEWORKS=( ${dirsWithCss} )
+                export CSS_FRAMEWORKS=( . ${dirsWithCss} )
                 function err() { echo "Error: $@" ; exit 1; }
                 function findcss() {
                   for CSS_FR in $CSS_FRAMEWORKS ; do
