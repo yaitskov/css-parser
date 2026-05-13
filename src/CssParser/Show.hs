@@ -82,6 +82,11 @@ instance CssShow a => CssShow (Encurled a) where
 instance CssShow Integer where
   toCssText = numToText
 
+instance CssShow Bool where
+  toCssText = \case
+    False -> "false"
+    True -> "true"
+
 mayCss :: CssShow a => (LText -> LText) -> Maybe a -> LText
 mayCss f = maybe "" (f . toCssText)
 

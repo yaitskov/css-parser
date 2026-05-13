@@ -99,7 +99,7 @@ at :: [String]
 at =
   colorProfile <> fontFace <> fontFeatureValues <> fontPaletteValues <>
   container <> misc <> supports <> unknown <> media <> page <> layer <>
-  atImport <> atFunction <> keyframe <> atProperty
+  atImport <> atFunction <> keyframe <> atProperty <> customMedia
 
 colorProfile :: [String]
 colorProfile =
@@ -336,6 +336,7 @@ media =
   [ "@media screen and (width >= 900px) {}"
   , "@media not all and (hover: hover) {}"
   , "@media screen, print {}"
+  , "@media screen or print {}"
   , "@media all {}"
   , "@media {} "
   , "@media (max-width: 320px){}"
@@ -346,6 +347,17 @@ media =
   , "@media not (f( 1) / y < x < f( 1) / y) {}"
   , "@media all and (-ms-high-contrast:active),(-ms-high-contrast:active) {}"
   , "@media only screen and (max-width : 600.99px) {}"
+  ]
+
+customMedia :: [String]
+customMedia =
+  [ "@custom-media --mobile-screen (width < 480px);"
+  , "@custom-media --screen-or-print-1 screen, print or tty;"
+  , "@custom-media --screen-or-print-2 screen or print;"
+  , "@custom-media --medium-screen (min-width: 40em) and (max-width: 60em);"
+  , "@custom-media --no-script not (script);"
+  , "@custom-media --enabled true;"
+  , "@custom-media --disabled false;"
   ]
 
 -- Based on the w3c testkit: https://test.csswg.org/harness/suite/selectors-3_dev/

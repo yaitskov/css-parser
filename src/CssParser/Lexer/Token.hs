@@ -34,11 +34,13 @@ data Token
   | ColorProfileT
   | Comma
   | ContainerT
+  | CustomMediaT
   | COpen
   | CounterStyleT
   | DescriptorT Descriptor
   | DivT
   | Dot
+  | FalseT
   | FontFaceT
   | FontFeatureValuesT
   | FontPaletteValuesT
@@ -106,6 +108,7 @@ data Token
   | TPicker
   | TPM TpmF
   | TPrefixMatch
+  | TrueT
   | TScrollButton
   | TSlotted
   | TState
@@ -185,49 +188,52 @@ readBpDescriptor bp =
 descriptorKeywords :: HashMap Text Token
 descriptorKeywords =
   HM.fromList
-  [ ("container"                                      , ContainerT)
-  , ("position-try"                                   , PositionTryT)
-  , ("page"                                           , PageT)
-  , ("all"                                            , MediaTypeT AllMt)
+  [ ("all"                                            , MediaTypeT AllMt)
   , ("alpha"                                          , AlphaT)
-  , ("function"                                       , FunctionT)
-  , ("font-face"                                      , FontFaceT)
-  , ("top-left-corner"                                , PageMarginT TopLeftCorner)
-  , ("bottom-right-corner"                            , PageMarginT BottomRightCorner)
-  , ("top-right-corner"                               , PageMarginT TopRightCorner)
-  , ("bottom-left-corner"                             , PageMarginT BottomLeftCorner)
-  , ("top-left"                                       , PageMarginT TopLeft)
-  , ("top-center"                                     , PageMarginT TopCenter)
-  , ("top-right"                                      , PageMarginT TopRight)
-  , ("bottom-left"                                    , PageMarginT BottomLeft)
+  , ("aural"                                          , MediaTypeT Aural     )
   , ("bottom-center"                                  , PageMarginT BottomCenter)
+  , ("bottom-left"                                    , PageMarginT BottomLeft)
+  , ("bottom-left-corner"                             , PageMarginT BottomLeftCorner)
   , ("bottom-right"                                   , PageMarginT BottomRight)
-  , ("left-top"                                       , PageMarginT LeftTop)
-  , ("left-middle"                                    , PageMarginT LeftMiddle)
-  , ("left-bottom"                                    , PageMarginT LeftBottom)
-  , ("right-top"                                      , PageMarginT RightTop)
-  , ("right-middle"                                   , PageMarginT RightMiddle)
-  , ("right-bottom"                                   , PageMarginT RightBottom)
-  , ("scope"                                          , ScopeT)
-  , ("view-transition"                                , ViewTransitionT)
-  , ("starting-style"                                 , StartingStyleT)
-  , ("font-palette-values"                            , FontPaletteValuesT)
-  , ("font-feature-values"                            , FontFeatureValuesT)
+  , ("bottom-right-corner"                            , PageMarginT BottomRightCorner)
+  , ("braille"                                        , MediaTypeT Braille   )
   , ("color-profile"                                  , ColorProfileT)
-  , ("media"                                          , MediaT)
-  , ("layer"                                          , LayerT)
-  , ("returns"                                        , ReturnsT)
+  , ("container"                                      , ContainerT)
+  , ("custom-media"                                   , CustomMediaT)
+  , ("embossed"                                       , MediaTypeT Embossed  )
+  , ("false"                                          , FalseT)
+  , ("font-face"                                      , FontFaceT)
+  , ("font-feature-values"                            , FontFeatureValuesT)
+  , ("font-palette-values"                            , FontPaletteValuesT)
   , ("from"                                           , FromT)
-  , ("to"                                             , ToT)
+  , ("function"                                       , FunctionT)
+  , ("handheld"                                       , MediaTypeT Handheld  )
+  , ("layer"                                          , LayerT)
+  , ("left-bottom"                                    , PageMarginT LeftBottom)
+  , ("left-middle"                                    , PageMarginT LeftMiddle)
+  , ("left-top"                                       , PageMarginT LeftTop)
+  , ("media"                                          , MediaT)
+  , ("page"                                           , PageT)
+  , ("position-try"                                   , PositionTryT)
   , ("print"                                          , MediaTypeT Print)
+  , ("projection"                                     , MediaTypeT Projection)
+  , ("returns"                                        , ReturnsT)
+  , ("right-bottom"                                   , PageMarginT RightBottom)
+  , ("right-middle"                                   , PageMarginT RightMiddle)
+  , ("right-top"                                      , PageMarginT RightTop)
+  , ("scope"                                          , ScopeT)
   , ("screen"                                         , MediaTypeT Screen)
+  , ("speech"                                         , MediaTypeT Speech    )
+  , ("starting-style"                                 , StartingStyleT)
+  , ("supports"                                       , SupportsT)
+  , ("to"                                             , ToT)
+  , ("top-center"                                     , PageMarginT TopCenter)
+  , ("top-left"                                       , PageMarginT TopLeft)
+  , ("top-left-corner"                                , PageMarginT TopLeftCorner)
+  , ("top-right"                                      , PageMarginT TopRight)
+  , ("top-right-corner"                               , PageMarginT TopRightCorner)
+  , ("true"                                           , TrueT)
   , ("tty"                                            , MediaTypeT Tty)
   , ("tv"                                             , MediaTypeT Tv)
-  , ("projection"                                     , MediaTypeT Projection)
-  , ("handheld"                                       , MediaTypeT Handheld  )
-  , ("braille"                                        , MediaTypeT Braille   )
-  , ("embossed"                                       , MediaTypeT Embossed  )
-  , ("aural"                                          , MediaTypeT Aural     )
-  , ("speech"                                         , MediaTypeT Speech    )
-  , ("supports"                                       , SupportsT)
+  , ("view-transition"                                , ViewTransitionT)
   ]

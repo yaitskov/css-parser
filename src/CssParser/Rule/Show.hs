@@ -26,6 +26,8 @@ instance CssShow AtRule where
   toCssText = \case
     MediaRule mql body ->
       "media " <> toCssText mql <> " {" <> toCssText body <> "}"
+    CustomMedia v body ->
+      "custom-media " <> toCssText v <> " " <> toCssText body <> ";"
     LayerBlock mbn body ->
       "layer " <> maybe "" ((<> " ") . toCssText) mbn <> "{" <> toCssText body <> "}"
     ImportStmt i ->

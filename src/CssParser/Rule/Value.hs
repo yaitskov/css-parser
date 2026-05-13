@@ -135,6 +135,7 @@ data PropVal
   | UrlVal Url
   | StrVal Text
   | DotVal
+  | BoolVal Bool
   | AlphaF Unsigned
   | AppFun PropertyName PropVals
   | AppFunEnum PropertyName PropValsList
@@ -153,15 +154,13 @@ instance CssShow LiteralString where
 instance CssShow PropVal where
   toCssText = \case
     IntVal i -> toCssText i
-    RatioVal rv -> toCssText rv
-    UnicodeRangeVal ur -> toCssText ur
     VarRef v -> toCssText v
     IdentRef i -> toCssText i
-    UrlVal u -> toCssText u
-    StrVal s -> encodeStringLiteral s
-    DotVal -> "."
-    AlphaF o -> "alpha(opacity=" <> toCssText o <> ")"
     HexColor c -> toCssText c
+    StrVal s -> encodeStringLiteral s
+    UrlVal u -> toCssText u
+    BoolVal bv -> toCssText bv
+    RatioVal rv -> toCssText rv
     CalcFun ce -> "calc(" <> toCssText ce <> ")"
     AttrFun an at dv ->
       "attr(" <> toCssText an <> toCssText at <> mayCss (", " <>) dv <> ")"
@@ -169,6 +168,10 @@ instance CssShow PropVal where
     AppFun fn args -> toCssText fn <> "(" <> toCssText args <> ")"
     AppFunEnum fn args -> toCssText fn <> "(" <> toCssText args <> ")"
     AppConst fn -> toCssText fn <> "()"
+    UnicodeRangeVal ur -> toCssText ur
+    AlphaF o -> "alpha(opacity=" <> toCssText o <> ")"
+    DotVal -> "."
+
 
 data Important = Important deriving (Show, Eq, Ord, Generic)
 instance CssShow Important where

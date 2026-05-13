@@ -2,8 +2,9 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.Media where
 
+import CssParser.At.CustomMedia
 import CssParser.At.MediaQuery
-import CssParser.Norm
+import CssParser.Norm ( Norm(..) )
 import CssParser.Rule.Value
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
@@ -38,3 +39,12 @@ deriving via (GenericArbitrary (Not MediaBoolExpr MediaFeature)) instance Arbitr
 
 deriving via (GenericArbitrary MediaQuery) instance Arbitrary MediaQuery
 deriving via (GenericArbitrary MediaQueryList) instance Arbitrary MediaQueryList
+
+instance Norm CustomMediaQuery where
+  normalize = \case
+    CustomMediaQuery (MediaQueryList []) -> CustomMediaFlag False
+    o -> o
+
+instance Arbitrary CustomMediaQuery where
+  arbitrary = normalize <$> genericArbitrary
+  shrink x = normalize <$> genericShrink x

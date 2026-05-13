@@ -1,6 +1,7 @@
 module CssParser.Rule where
 
 import CssParser.At.Container ( ContainerQueryMap )
+import CssParser.At.CustomMedia
 import CssParser.At.FontFeatureValues ( FontFeatureValues )
 import CssParser.At.FontPaletteValues ( FontPaletteValues )
 import CssParser.At.Function ( Function )
@@ -34,29 +35,30 @@ data CssRule
   deriving (Show, Ord, Eq, Generic)
 
 data AtRule
-  = MediaRule MediaQueryList [CssRuleBodyItem]
-  | LayerBlock (Maybe LayerName) [CssRuleBodyItem]
-  | LayerStmt (NonEmpty LayerName)
-  | ImportStmt (Import SelectorList)
-  | Namespace (Maybe Ident) Source
-  | CharsetStmt Charset
-  | Page PageSelectorList [CssRuleBodyItem]
-  | PageMarginBlock PageMargin [CssRuleBodyItem]
-  | CounterStyle Ident [CssRuleBodyItem]
-  | Property Var [CssRuleBodyItem]
-  | Keyframes KeyframeSet
+  = CharsetStmt Charset
   | ColorProfile PropertyName [CssRuleBodyItem]
+  | Container ContainerQueryMap [CssRuleBodyItem]
+  | CounterStyle Ident [CssRuleBodyItem]
+  | CustomMedia Var CustomMediaQuery
   | FontFaceBlock [CssRuleBodyItem]
   | FontFeatureValuesBlock FontFeatureValues
   | FontPaletteValuesBlock FontPaletteValues
-  | Container ContainerQueryMap [CssRuleBodyItem]
-  | PositionTry Var [PropEntry]
-  | StartingStyle [CssRuleBodyItem]
-  | ViewTransition [CssRuleBodyItem]
-  | ScopeBlock (MonoPair SelectorList) [CssRuleBodyItem]
-  | Supports FeatureQuery [CssRuleBodyItem]
   | FunctionBlock CssFunction
+  | ImportStmt (Import SelectorList)
+  | Keyframes KeyframeSet
+  | LayerBlock (Maybe LayerName) [CssRuleBodyItem]
+  | LayerStmt (NonEmpty LayerName)
+  | MediaRule MediaQueryList [CssRuleBodyItem]
+  | Namespace (Maybe Ident) Source
+  | Page PageSelectorList [CssRuleBodyItem]
+  | PageMarginBlock PageMargin [CssRuleBodyItem]
+  | PositionTry Var [PropEntry]
+  | Property Var [CssRuleBodyItem]
+  | ScopeBlock (MonoPair SelectorList) [CssRuleBodyItem]
+  | StartingStyle [CssRuleBodyItem]
+  | Supports FeatureQuery [CssRuleBodyItem]
   | UnknownGramma Ident (Maybe CommaSeparatedList) [CssRuleBodyItem]
+  | ViewTransition [CssRuleBodyItem]
   deriving (Show, Ord, Eq, Generic)
 
 type CssFunction = Function CssRule

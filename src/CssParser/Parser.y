@@ -2,6 +2,7 @@
 module CssParser.Parser where
 
 import CssParser.At.Container
+import CssParser.At.CustomMedia
 import CssParser.At.FontFeatureValues
 import CssParser.At.FontPaletteValues
 import CssParser.At.Function qualified as F
@@ -37,7 +38,7 @@ import CssParser.Lexer.Token
     , Greater, Less, LessEqual, GreaterEqual, AttrFunT, AlphaT
     , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
-    , KeyframesT, ColorProfileT, FontFaceT, UnicodeRangeVal
+    , KeyframesT, ColorProfileT, FontFaceT, UnicodeRangeVal, CustomMediaT, TrueT, FalseT
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
     , StartingStyleT, ViewTransitionT, ScopeT, ToT, FromT, SupportsT, SelectorFunT
     , TActiveViewTransitionType, TDir, THeading, THost, TState
@@ -121,6 +122,9 @@ import Prelude
     page        { TokenLoc PageT _ _ }
     pageMargin  { TokenLoc (PageMarginT $$) _ _ }
     media       { TokenLoc MediaT _ _ }
+    true        { TokenLoc TrueT _ _ }
+    false       { TokenLoc FalseT _ _ }
+    customMedia { TokenLoc CustomMediaT _ _ }
     'only'      { TokenLoc OnlyT _ _ }
     'not'       { TokenLoc NotT _ _ }
     'or'        { TokenLoc OrT _ _ }
@@ -224,6 +228,7 @@ CssRule :: { CssRule }
 AtRule :: { AtRule }
     : media Os '{' OsCssRuleBody '}'              { MediaRule (MediaQueryList []) $4 }
     | media Os MediaQueryList ERB                 { MediaRule (MediaQueryList $3) $4 }
+    | customMedia Os Var Os CustomMediaQuery ';'  { CustomMedia $3 $5 }
     | namespace IdKwdMb Os Source ';'             { Namespace $2 $4 }
     | import Import ';'                           { ImportStmt $2 }
     | charset Str ';'                             { CharsetStmt (Charset $2) }
@@ -259,6 +264,12 @@ AtRule :: { AtRule }
     | supports Os FeatureQuery ERB                { Supports (normalize $3) $4 }
     | Ident Os CommaSeparatedList Os ERB          { UnknownGramma $1 (Just (CommaSeparatedList $3)) $5 }
     | Ident Os ERB                                { UnknownGramma $1 Nothing $3 }
+Bool :: { Bool }
+    : true                                        { True }
+    | false                                       { False }
+CustomMediaQuery :: { CustomMediaQuery }
+    : Bool                                        { CustomMediaFlag $1 }
+    | MediaQueryList                              { CustomMediaQuery (MediaQueryList $1) }
 Function :: { CssFunction }
     : Var Op FunArgs Os ')' Os RetType Os Ocb FunEntries CssFileBody '}'
                                                   { F.Function $1 $3 $7 (snd $10) (fst $10) $11 }
@@ -419,6 +430,7 @@ IdKwdMb
 MediaQueryList :: { [ MediaQuery ] }
     : MediaQuery                                  { [ $1 ] }
     | MediaQuery ',' MediaQueryList               { $1 : $3 }
+    | MediaQuery 'or' MediaQueryList              { $1 : $3 }
 MediaQuery :: { MediaQuery }
     : 'not' Os Op MediaFeature ')'                { MediaQueryConditionOnly (MediaFeature (Not $4)) }
     | MtModifier MediaType Os 'and' Os MediaCondition
@@ -496,6 +508,7 @@ PropVal :: { PropVal }
     | Str                                         { StrVal $1 }
     | '.'                                         { DotVal }
     | Url                                         { UrlVal $1 }
+    | Bool                                        { BoolVal $1 }
     | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
                                                   { AttrFun $3 $5 $6 }
     | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (validationToP $3 (reorder $3)) }
