@@ -22,7 +22,7 @@ import Data.Text (pack)
 
 %wrapper "monadUserState"
 
-$nonascii = [^\0-\xff]
+$nonascii = [^\0-\x9f]
 $w        = [\ \t\r\n\f]
 $tl       = [\~]
 $pm       = [\-\+]

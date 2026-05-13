@@ -366,6 +366,7 @@ validSelectors :: [String]
 validSelectors =
   [ "body > p"
   , "div ol>li p"
+  , ".decoratorß-row"
   , ":global(.x)"
   , ":-webkit-any(input,select,textarea)"
   , "i:heading(0)"
@@ -374,7 +375,7 @@ validSelectors =
   , ".progress::-webkit-progress-bar"
   , "input.is-skeleton:-moz-placeholder"
   , "*.pastoral"
-  , ".pastoral"
+  , ".pastoral¡"
   , ".media:not(:last-child)"
   , "h1.pastoral"
   , "p.pastoral.marine"
