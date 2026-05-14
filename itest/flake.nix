@@ -47,17 +47,19 @@
       url = "github:uikit/uikit?shallow=1";
       flake = false;
     };
-    # open-props = {
-    #   url = "github:argyleink/open-props";
-    #   flake = false;
-    # };
-
+    nf-test-pico = {
+      url = "github:picocss/pico?shallow=1";
+      flake = false;
+    };
+    nf-test-fufte = {
+      url = "github:edwardtufte/tufte-css?shallow=1";
+      flake = false;
+    };
     primer = {
       url = "github:yaitskov/css?shallow=1";
       # package lock is out of sync in the origin repo
       flake = false;
     };
-
     # = {
     #   url = "github:";
     #   flake = false;
@@ -91,19 +93,33 @@
                 mkdir -p "$out/lib"
                 cp -rv dist "$out/lib"
               '';
-
             };
+        uberPkg =
+            pkgs.buildNpmPackage {
+              pname = "uber-css";
+              version = "v1.0.0";
+              src = ./.;
+              npmDepsHash = "sha256-pcUIQPWiIWJbPLRFsNC30mSjnH8m9N8vd8Whve4sCLY=";
+              npmBuildScript = "test";
+              npmFlags = [ "--legacy-peer-deps" ];
+              postPatch = ''
+                patchShebangs .
+              '';
+              installPhase = ''
+                mkdir -p "$out/lib"
+                cp -rv node_modules "$out/lib"
+              '';
+            };
+
         builtLibs =
           [
+            uberPkg
             (npmPkg (inputs.primer) "sha256-KfNF6DgS6L7X5y3pEbZtbuYPfPBfRjdQdilvsJa67B4=")
           ];
         nonFlakes = builtins.attrValues (filterAttrs (n: _: hasPrefix "nf-test-" n) inputs);
         dirsWithCss = lib.concatStringsSep " " (builtLibs ++ nonFlakes);
       in
         {
-          # packages.default =
-          #   npmPkg inputs.open-props "sha256-sasT+YFg+5P5sOkiEywTELT4govwE+JQv8H6SU2n6jw=";
-
           devShells = {
             default = pkgs.mkShell {
               buildInputs = [
@@ -111,9 +127,10 @@
                 pkgs.prefetch-npm-deps
               ];
               shellHook = ''
-                echo -n "primer SHA: "
+                echo "Uber Pkg: ${uberPkg}"
+                # echo -n "primer SHA: "
                 # prefetch-npm-deps "${inputs.primer}/package-lock.json"
-                echo "commented - skipped"
+                # echo "commented - skipped"
                 export CSS_FRAMEWORKS=( . ${dirsWithCss} )
                 function err() { echo "Error: $@" ; exit 1; }
                 function findcss() {
@@ -130,8 +147,8 @@
                       CSS_FILE_HASH=$(md5sum <<< $CSS_FILE | while read A B ; do echo $A ; done)
                       if [ "$CSS_PARSER" -nt .css-hashes/$CSS_FILE_HASH ] ; then
                         echo "$CSS_FILE"
-                        if $CSS_PARSER $CSS_FILE > /dev/null ; then
-                          echo $CSS_FILE > .css-hashes/$CSS_FILE_HASH
+                        if $CSS_PARSER "$CSS_FILE" > /dev/null ; then
+                          echo "$CSS_FILE" > .css-hashes/$CSS_FILE_HASH
                         else
                           : # echo " Failed"
                         fi

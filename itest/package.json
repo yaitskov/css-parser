@@ -1,0 +1,20 @@
+{
+  "name": "uber-css",
+  "version": "1.0.0",
+  "description": "collect samples of css files",
+  "license": "ISC",
+  "author": "Daniil Iaitskov",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo OK"
+  },
+  "dependencies": {
+    "@carbon/styles": "^1.106.0",
+    "@patternfly/patternfly": "^6.4.0",
+    "@zumer/orbit": "^1.4.8",
+    "gutenberg-css": "^0.7.0",
+    "hiq": "^4.2.11",
+    "open-props": "^1.7.23"
+  }
+}

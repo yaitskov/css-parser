@@ -4,3 +4,4 @@
 .direnv
 .css-hashes
 /itest/result
+/itest/node_modules/
