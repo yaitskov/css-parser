@@ -271,10 +271,12 @@ data KnownDescriptor
   | GridAutoFlowT
   | GridAutoRowsT
   | GridColumnEndT
+  | GridColumnGapT
   | GridColumnStartT
   | GridColumnT
   | GridGapT
   | GridRowEndT
+  | GridRowGapT
   | GridRowStartT
   | GridRowT
   | GridT
@@ -850,10 +852,12 @@ instance CssShow KnownDescriptor where
     GridAutoFlowT                   -> "grid-auto-flow"
     GridAutoRowsT                   -> "grid-auto-rows"
     GridColumnEndT                  -> "grid-column-end"
+    GridColumnGapT                  -> "grid-column-gap"
     GridColumnStartT                -> "grid-column-start"
     GridColumnT                     -> "grid-column"
     GridGapT                        -> "grid-gap"
     GridRowEndT                     -> "grid-row-end"
+    GridRowGapT                     -> "grid-row-gap"
     GridRowStartT                   -> "grid-row-start"
     GridRowT                        -> "grid-row"
     GridT                           -> "grid"
