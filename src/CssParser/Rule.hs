@@ -49,6 +49,7 @@ data AtRule
   | LayerBlock (Maybe LayerName) [CssRuleBodyItem]
   | LayerStmt (NonEmpty LayerName)
   | MediaRule MediaQueryList [CssRuleBodyItem]
+  | Mixin Ident
   | Namespace (Maybe Ident) Source
   | Page PageSelectorList [CssRuleBodyItem]
   | PageMarginBlock PageMargin [CssRuleBodyItem]

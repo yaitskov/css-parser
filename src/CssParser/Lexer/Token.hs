@@ -58,6 +58,7 @@ data Token
   | LessEqual
   | MediaT
   | MediaTypeT MediaType
+  | MixinT
   | Minus
   | NamespaceT
   | NotT
@@ -213,6 +214,7 @@ descriptorKeywords =
   , ("left-middle"                                    , PageMarginT LeftMiddle)
   , ("left-top"                                       , PageMarginT LeftTop)
   , ("media"                                          , MediaT)
+  , ("mixin"                                          , MixinT)
   , ("page"                                           , PageT)
   , ("position-try"                                   , PositionTryT)
   , ("print"                                          , MediaTypeT Print)

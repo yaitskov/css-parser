@@ -34,7 +34,7 @@ import CssParser.Lexer.Token
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
     , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
     , NotT, OrT, AndT, OnlyT, ReturnsT, GlobalT, RawStringT
-    , TOpen, TClose, DescriptorT, ClassT, AttrPatT, PercentT
+    , TOpen, TClose, DescriptorT, ClassT, AttrPatT, PercentT, MixinT
     , Greater, Less, LessEqual, GreaterEqual, AttrFunT, AlphaT
     , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
     , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
@@ -122,6 +122,7 @@ import Prelude
     page        { TokenLoc PageT _ _ }
     pageMargin  { TokenLoc (PageMarginT $$) _ _ }
     media       { TokenLoc MediaT _ _ }
+    mixin       { TokenLoc MixinT _ _ }
     true        { TokenLoc TrueT _ _ }
     false       { TokenLoc FalseT _ _ }
     customMedia { TokenLoc CustomMediaT _ _ }
@@ -231,6 +232,7 @@ AtRule :: { AtRule }
     | customMedia Os Var Os CustomMediaQuery ';'  { CustomMedia $3 $5 }
     | namespace IdKwdMb Os Source ';'             { Namespace $2 $4 }
     | import Import ';'                           { ImportStmt $2 }
+    | mixin Os IdKwd ';'                          { Mixin $3 }
     | charset Str ';'                             { CharsetStmt (Charset $2) }
     | layer ' ' LayerName ';'                     { LayerStmt (pure $3) }
     | layer ' ' LayerName ',' LayerNames Os ';'   { LayerStmt ($3 :| $5) }
