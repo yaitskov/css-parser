@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Rule.Value
   ( module CssParser.Rule.Value
   , reorder
@@ -11,11 +12,6 @@ import CssParser.Rule.TypedNum
 import CssParser.Show
     ( CssShow(..), ShowSpaceBetween(..), encodeStringLiteral, mayCss )
 import Expression.Reorder
-    ( Fixity(Fixity),
-      Assoc(AssocLeft),
-      Node(NodeLeaf, NodeInfix),
-      SyntaxTree(..),
-      reorder )
 
 newtype Unsigned = Unsigned RawNum
   deriving newtype (Eq, Show, Ord, CssShow)
@@ -75,14 +71,36 @@ instance CssShow CalcOp where
     DivCe -> " / "
     ProdCe -> " * "
 
+data CalcFns
+  = CalcFn
+  | MinFn
+  | NoFn
+  | MaxFn
+  | ClampFn
+  deriving (Eq, Ord, Show, Bounded, Enum, Generic)
+
+instance CssShow CalcFns where
+  toCssText = \case
+    CalcFn -> "calc"
+    MinFn -> "min"
+    NoFn -> ""
+    MaxFn -> "max"
+    ClampFn -> "clamp"
+
 data CalcExpr
-  = ParCe CalcExpr
-  | BinOpCe CalcExpr CalcOp CalcExpr
+  = BinOpCe CalcExpr CalcOp CalcExpr
   | ValCe TypedNum
   | VarCe PropertyName
   | AppCe PropertyName PropValsList
-  | CalcCe CalcExpr
+  | CalcCe CalcFns CalcExprList
   deriving (Eq, Ord, Show, Generic)
+
+newtype CalcExprList = CalcExprList (NonEmpty CalcExpr)
+  deriving newtype (Eq, Ord, Show)
+  deriving (Generic)
+
+instance CssShow CalcExprList where
+  toCssText (CalcExprList cs) = intercalate ", " (toCssText <$> toList cs)
 
 class HasParens a where
   stripParens :: a -> a
@@ -97,14 +115,17 @@ instance HasFixity CalcOp where
     ProdCe -> Fixity AssocLeft 3
     DivCe -> Fixity AssocLeft 4
 
+instance Semigroup a => Monad (Validation a) where
+  Failure f >>= _ = Failure f
+  Success a >>= f = f a
+
 -- happy builtin capabilites for operator priority is pretty limited
 -- %left and %right are just ignored for the gramma
 -- AST tree is alway represented as a list always spanning to the right
 instance SyntaxTree CalcExpr String where
   reorderChildren = \case
     BinOpCe l op r -> BinOpCe <$> reorder l <*> pure op <*> reorder r
-    ParCe x -> ParCe <$> reorder x
-    CalcCe x -> CalcCe <$> reorder x
+    CalcCe x (CalcExprList args) -> CalcCe x . CalcExprList <$> mapM reorder args
     o -> pure o
   structureOf = \case
     BinOpCe l op r -> NodeInfix (fixityOf op) l r (`BinOpCe` op)
@@ -113,12 +134,11 @@ instance SyntaxTree CalcExpr String where
 
 instance CssShow CalcExpr where
   toCssText = \case
-    ParCe e -> "(" <> toCssText e <> ")"
     BinOpCe a op b -> toCssText a <> toCssText op <> toCssText b
     ValCe v -> toCssText v
     VarCe v -> toCssText v
     AppCe f a -> toCssText f <> "(" <> toCssText a <> ")"
-    CalcCe a -> "calc(" <> toCssText a <> ")"
+    CalcCe f a -> toCssText f <> "(" <> toCssText a <> ")"
 
 data AttrType
   = CssTypeAt CssType
@@ -145,7 +165,6 @@ data PropVal
   | HexColor HexColor
   | IdentRef Ident
   | IntVal TypedNum
-  | ParVal CalcExpr
   | RatioVal Ratio
   | StrVal Text
   | UnicodeRangeVal UnicodeRange
@@ -168,8 +187,7 @@ instance CssShow PropVal where
     UrlVal u -> toCssText u
     BoolVal bv -> toCssText bv
     RatioVal rv -> toCssText rv
-    CalcFun ce -> "calc(" <> toCssText ce <> ")"
-    ParVal ce -> "(" <> toCssText ce <> ")"
+    CalcFun ce -> toCssText ce
     AttrFun an at dv ->
       "attr(" <> toCssText an <> toCssText at <> mayCss (", " <>) dv <> ")"
     Div a b -> toCssText a <> " / " <> toCssText b

@@ -87,20 +87,11 @@ $pm       = [\-\+]
 @hyphen  = [\-]|\\0{0,4}2d
 @var     = [\-][\-]
 @selector = @s@e@l@e@c@t@o@r
-@view    = @v@i@e@w
-@try     = @t@r@y
 @nthh    = @n@t@h@hyphen
 @onlyh   = @o@n@l@y@hyphen
 @child   = @c@h@i@l@d
 @oftype  = @o@f@hyphen@t@y@p@e
 @lasth   = @l@a@s@t@hyphen
-@palette = @p@a@l@e@t@t@e
-@values  = @v@a@l@u@e@s
-@feature = @f@e@a@t@u@r@e
-@unicode = @u@n@i@c@o@d@e
-@range   = @r@a@n@g@e
-@font    = @f@o@n@t
-@face    = @f@a@c@e
 @keyframes = @k@e@y@f@r@a@m@e@s
 @charset = @c@h@a@r@s@e@t
 @import  = @i@m@p@o@r@t
@@ -108,13 +99,7 @@ $pm       = [\-\+]
 @counter = @c@o@u@n@t@e@r
 @namespace = @n@a@m@e@s@p@a@c@e
 @property = @p@r@o@p@e@r@t@y
-@to      = @t@o
-@from    = @f@r@o@m
-@is      = @i@s
-@has     = @h@a@s
-@all     = @a@l@l
 @not     = @n@o@t
-@where   = @w@h@e@r@e
 @and     = @a@n@d
 @or      = @o@r
 @only    = @o@n@l@y
@@ -152,7 +137,6 @@ tokens :-
   @or @wo                                              { constoken OrT }
   @and @wo                                             { constoken AndT }
   @selector "("                                        { constoken SelectorFunT }
-  @c@a@l@c "("                                         { constoken CalcFunT }
   @t@y@p@e "("                                         { constoken TypeFunT }
   @a@t@t@r "("                                         { constAndBegin AttrFunT attr_fun_st }
   @url "("                                             { constoken UrlT }

@@ -12,7 +12,7 @@ import CssParser.Test.Arbitrary.Value ()
 
 stripTopPar :: PropVal -> PropVal
 stripTopPar = \case
-  ParVal x -> CalcFun x
+  CalcFun (CalcCe NoFn x) -> CalcFun (CalcCe CalcFn x)
   o -> o
 
 instance Norm MediaFeature where

@@ -132,7 +132,7 @@ import Prelude
     'url('      { TokenLoc UrlT _ _ }
     'uqUrl'     { TokenLoc (UnquotedUrlT $$) _ _ }
     'selector(' { TokenLoc SelectorFunT _ _ }
-    'calc('     { TokenLoc CalcFunT _ _ }
+    calcFns     { TokenLoc (CalcFunT $$) _ _ }
     'attr('     { TokenLoc AttrFunT _ _ }
     rawString   { TokenLoc RawStringT _ _ }
     'type('     { TokenLoc TypeFunT _ _ }
@@ -532,8 +532,8 @@ PropVal :: { PropVal }
     | Bool                                        { BoolVal $1 }
     | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
                                                   { AttrFun $3 $5 $6 }
-    | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (reorderInP $3) }
-    | Op Os CalcExpr Os ')'                       {% fmap ParVal (reorderInP $3) }
+    | calcFns Op CalcExprList Os ')'              {% fmap CalcFun (reorderInP (CalcCe $1 $3)) }
+    | Op Os CalcExprList Os ')'                   {% fmap CalcFun (reorderInP (CalcCe NoFn $3)) }
     | 'ratio'                                     { RatioVal $1 }
     | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
     | alpha Op Ident Os '=' Os Unsigned Os ')'    { AlphaF $7 }
@@ -550,8 +550,8 @@ PropParVal :: { PropVal }
     | Bool                                        { BoolVal $1 }
     | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
                                                   { AttrFun $3 $5 $6 }
-    | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (reorderInP $3) }
-    | Op Os CalcExpr Os ')'                       {% fmap ParVal (reorderInP $3) }
+    | calcFns Op CalcExprList Os ')'              {% fmap CalcFun (reorderInP (CalcCe $1 $3)) }
+    | Op Os CalcExprList Os ')'                   {% fmap CalcFun (reorderInP (CalcCe NoFn $3)) }
     | 'ratio'                                     { RatioVal $1 }
     | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
     | alpha Op Ident Os '=' Os Unsigned Os ')'    { AlphaF $7 }
@@ -572,13 +572,15 @@ CalcOp :: { CalcOp }
     | '/'                                         { DivCe   }
     | '*'                                         { ProdCe  }
 CalcExpr :: { CalcExpr }
-    : '(' CalcExpr  ')'                           { ParCe $2 }
+    : '(' CalcExprList ')'                        { CalcCe NoFn $2 }
     | CalcExpr Os CalcOp Os CalcExpr              { BinOpCe $1 $3 $5 }
     | CalcExpr CalcExpr                           {% recoverCalcBinOp $1 $2 }
     | PropN Op PropParValsList Os ')'             { AppCe $1 (PropValsList $3) }
     | PropN                                       { VarCe $1 }
     | Os TypedNum Os                              { ValCe $2 }
-    | 'calc(' Os CalcExpr Os ')'                  { CalcCe $3 }
+    | calcFns Op CalcExprList Os ')'              { CalcCe $1 $3 }
+CalcExprList :: { CalcExprList }
+    : NonEmpty(',', CalcExpr)                     { CalcExprList $1 }
 Unsigned :: { Unsigned }
     : TypedNum                                    {% fmap Unsigned (tryGet K $1) }
 ContinueRule :: { CssRule }

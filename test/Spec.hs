@@ -195,6 +195,9 @@ properties :: [String]
 properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
+  , "font-size: clamp(1mm / 2, 2mm * 2mm, 3mm + 1cm);"
+  , "padding-block: max(2 / 2 - 0.06rem);"
+  , "padding-block: min((var(--c) - var(--t)) / 2 - 0.06rem, var(--t));"
   , "--uk: .;"
   , "--xx: ( var(--v, 1.28572) * 1em );"
   , "filter:alpha(opacity=0)"

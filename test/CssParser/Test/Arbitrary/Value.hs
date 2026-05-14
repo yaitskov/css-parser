@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module CssParser.Test.Arbitrary.Value where
 
-import CssParser.Ident ( Ident(..) )
+import CssParser.Ident
 import CssParser.Norm ( Norm(..) )
 import CssParser.Parser.Monad ( P(Ok, Failed), validationToP )
 import CssParser.Rule.Value
@@ -67,9 +67,11 @@ deriving via (GenericArbitrary PropVals) instance Arbitrary PropVals
 deriving via (GenericArbitrary PropValsList) instance Arbitrary PropValsList
 deriving via (GenericArbitrary PropValType) instance Arbitrary PropValType
 
+deriving via (GenericArbitrary CalcFns) instance Arbitrary CalcFns
 deriving via (GenericArbitrary CalcOp) instance Arbitrary CalcOp
 deriving via (GenericArbitrary CalcExpr) instance Arbitrary CalcExpr
 deriving via (GenericArbitrary TypedNum) instance Arbitrary TypedNum
+deriving via (GenericArbitrary CalcExprList) instance Arbitrary CalcExprList
 
 rightMost :: PropVal -> PropVal
 rightMost = \case
@@ -86,8 +88,8 @@ instance Norm PropVal where
   normalize = \case
     Div x y -> Div (rightMost y) (normalize x)
     AppFunEnum f (PropValsList (a :| [])) -> AppFun f a
-    CalcFun ce -> CalcFun $ normalize ce
-    ParVal ce -> ParVal $ normalize ce
+    CalcFun ce@CalcCe {} -> CalcFun $ normalize ce
+    CalcFun ce -> CalcFun . CalcCe CalcFn . CalcExprList . (:| []) $ normalize ce
     o -> o
 
 instance Arbitrary PropVal where

@@ -9,7 +9,7 @@ import CssParser.Prelude
 import CssParser.Rule.Pseudo
 import CssParser.Rule.Type ( AtomicCssType )
 import CssParser.Rule.TypedNum ( NumberStr )
-import CssParser.Rule.Value (Ratio)
+import CssParser.Rule.Value
 import CssParser.Show ( mkDecodingMap', smartLookup )
 import CssParser.Utils ( readIdentifier )
 import Data.Text (pack)
@@ -26,7 +26,7 @@ data Token
   | AttrPatT Text
   | BClose
   | BOpen
-  | CalcFunT
+  | CalcFunT CalcFns
   | CClose
   | CharsetT
   | ClassT String
@@ -226,6 +226,10 @@ descriptorKeywords =
   , ("speech"                                         , MediaTypeT Speech    )
   , ("starting-style"                                 , StartingStyleT)
   , ("supports"                                       , SupportsT)
+  , ("min"                                            , CalcFunT MinFn)
+  , ("max"                                            , CalcFunT MaxFn)
+  , ("clamp"                                          , CalcFunT ClampFn)
+  , ("calc"                                           , CalcFunT CalcFn)
   , ("to"                                             , ToT)
   , ("top-center"                                     , PageMarginT TopCenter)
   , ("top-left"                                       , PageMarginT TopLeft)
