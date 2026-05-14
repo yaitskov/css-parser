@@ -133,23 +133,24 @@ instance CssShow AttrType where
     UnitAt x -> " " <> toCssText x
 
 data PropVal
-  = IntVal TypedNum
-  | RatioVal Ratio
-  | IdentRef Ident
-  | UnicodeRangeVal UnicodeRange
-  | VarRef Var
-  | UrlVal Url
-  | StrVal Text
-  | DotVal
-  | BoolVal Bool
-  | AlphaF Unsigned
+  = AlphaF Unsigned
+  | AppConst PropertyName
   | AppFun PropertyName PropVals
   | AppFunEnum PropertyName PropValsList
-  | AppConst PropertyName
-  | CalcFun CalcExpr
   | AttrFun AttrName (Maybe AttrType) (Maybe PropVal)
+  | BoolVal Bool
+  | CalcFun CalcExpr
   | Div PropVal PropVal
+  | DotVal
   | HexColor HexColor
+  | IdentRef Ident
+  | IntVal TypedNum
+  | ParVal CalcExpr
+  | RatioVal Ratio
+  | StrVal Text
+  | UnicodeRangeVal UnicodeRange
+  | UrlVal Url
+  | VarRef Var
   deriving (Eq, Ord, Show, Generic)
 
 newtype LiteralString = LiteralString Text deriving newtype (Eq, Ord, Show, IsString) deriving (Generic)
@@ -168,6 +169,7 @@ instance CssShow PropVal where
     BoolVal bv -> toCssText bv
     RatioVal rv -> toCssText rv
     CalcFun ce -> "calc(" <> toCssText ce <> ")"
+    ParVal ce -> "(" <> toCssText ce <> ")"
     AttrFun an at dv ->
       "attr(" <> toCssText an <> toCssText at <> mayCss (", " <>) dv <> ")"
     Div a b -> toCssText a <> " / " <> toCssText b

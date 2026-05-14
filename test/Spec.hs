@@ -54,7 +54,9 @@ tests = testGroup "CssParser"
     ]
   ]
   where
-    throttle x = withMaxSize 66 (withMaxSuccess 74 x)
+    throttle x =
+      let l = 66 in
+        withMaxSize l (withMaxSuccess l x)
     cpt m x = testCase m (True @=? checkParse (x <> " {}"))
 
 encodeDecode :: Char -> String -> Bool
@@ -194,6 +196,7 @@ properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
   , "--uk: .;"
+  , "--xx: ( var(--v, 1.28572) * 1em );"
   , "filter:alpha(opacity=0)"
   , "grid-gap: 2;"
   , "fill:attr(data-x);"

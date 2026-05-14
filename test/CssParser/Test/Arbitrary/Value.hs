@@ -87,6 +87,7 @@ instance Norm PropVal where
     Div x y -> Div (rightMost y) (normalize x)
     AppFunEnum f (PropValsList (a :| [])) -> AppFun f a
     CalcFun ce -> CalcFun $ normalize ce
+    ParVal ce -> ParVal $ normalize ce
     o -> o
 
 instance Arbitrary PropVal where

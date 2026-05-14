@@ -10,11 +10,18 @@ import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
 import CssParser.Test.Arbitrary.Value ()
 
+stripTopPar :: PropVal -> PropVal
+stripTopPar = \case
+  ParVal x -> CalcFun x
+  o -> o
+
 instance Norm MediaFeature where
   normalize = \case
     OpenRangeFeatureFlipped v@IdentRef {} r i -> OpenRangeFeature i (flipRel r) v
     OpenRangeFeatureFlipped v@VarRef {} r i -> OpenRangeFeature i (flipRel r) v
+    OpenRangeFeatureFlipped x r i -> OpenRangeFeatureFlipped (stripTopPar x) r i
     MfClosedRange lv MfEq i _ _ -> PlainMf i $ PropVals (pure lv) Nothing
+    MfClosedRange lv l i r rv -> MfClosedRange (stripTopPar lv) l i r rv
     o -> o
 
 instance Arbitrary MediaFeature where

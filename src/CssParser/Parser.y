@@ -286,8 +286,9 @@ FunEntries :: { (NonEmpty PropVals, [ F.ConstEntry ]) }
     : LocalConst                                  {% findResult $1 }
 LocalConst :: { [Either F.ConstEntry (NonEmpty PropVals)] }
     :                                             {% pure [] }
-    | descriptor Os PropValsList                  {% fmap (:[]) (varOrResult $1 $3) }
-    | descriptor Os PropValsList ';' LocalConst   {% fmap (:$5) (varOrResult $1 $3) }
+    | descriptor Os PropParValsList               {% fmap (:[]) (varOrResult $1 $3) }
+    | descriptor Os PropParValsList ';' LocalConst
+                                                  {% fmap (:$5) (varOrResult $1 $3) }
 RetType :: { Maybe T.CssType }
     :                                             { Nothing }
     | returns Os TypeFun                          { Just $3 }
@@ -354,8 +355,8 @@ CQ :: { ContainerQuery }
                                                       (AsIs (CqApp $1 $4))
                                                       $8
                                                   }
-    | DescAsPropName Os PropVals                  { CqFeature (AsIs (CqOpFeature (PlainMf $1 $3))) }
-    | PropN Os ':' PropVals                       { CqFeature (AsIs (CqOpFeature (PlainMf $1 $4))) }
+    | DescAsPropName Os PropParVals               { CqFeature (AsIs (CqOpFeature (PlainMf $1 $3))) }
+    | PropN Os ':' PropParVals                    { CqFeature (AsIs (CqOpFeature (PlainMf $1 $4))) }
     | 'not' Op MediaFeature ')' Os BOP CQ         { CqBin $6 (Not (CqOpFeature $3)) $7 }
     | 'not' Op MediaFeature ')'                   { CqFeature (Not (CqOpFeature $3)) }
     | 'not' Os Ident Os Op CQ ')'                 { CqFeature (Not (CqApp $3 $6)) }
@@ -408,8 +409,8 @@ PropN :: { PropertyName }
     : IdKwd                                       { PropertyName $1 }
     | Var                                         { VarProp $1 }
 PropEntry :: { PropEntry }
-    : descriptor Os PropVals ';'                  { PropEntry $1 $3 }
-    | descriptor Os PropVals                      { PropEntry $1 $3 }
+    : descriptor Os PropParVals ';'               { PropEntry $1 $3 }
+    | descriptor Os PropParVals                   { PropEntry $1 $3 }
 PageSelectorList
     : PageSelector                                { [ $1 ] }
     | PageSelector Os PageSelectorList            { $1 : $3 }
@@ -475,30 +476,30 @@ MediaInParens
     : Op MediaCondition ')'                       { ParenMc $2 }
     | Op MediaFeature ')'                         { FeatureMc $2 }
 MediaFeature :: { MediaFeature }
-    : DescAsPropName Os PropVals                  { PlainMf $1 $3 }
-    | PropN Os ':' Os PropVals                    { PlainMf $1 $5 }
-    | PropN MfRel PropVal                         { OpenRangeFeature $1 $2 $3 }
-    | PropN MfRel PropN MfRel PropVal             { MfClosedRange (propRef $1) $2 $3 $4 $5 }
-    | PropN Op PropVals ')' MfRel PropN           { OpenRangeFeatureFlipped
+    : DescAsPropName Os PropParVals               { PlainMf $1 $3 }
+    | PropN Os ':' Os PropParVals                 { PlainMf $1 $5 }
+    | PropN MfRel PropParVal                      { OpenRangeFeature $1 $2 $3 }
+    | PropN MfRel PropN MfRel PropParVal          { MfClosedRange (propRef $1) $2 $3 $4 $5 }
+    | PropN Op PropParVals ')' MfRel PropN        { OpenRangeFeatureFlipped
                                                       (AppFun $1 $3)
                                                       $5
                                                       $6
                                                   }
-    | PropN Op PropVals ')' '/' Os PropVal MfRel PropN
+    | PropN Op PropParVals ')' '/' Os PropParVal MfRel PropN
                                                   { OpenRangeFeatureFlipped
                                                       (Div
                                                         (AppFun $1 $3)
                                                         $7)
                                                       $8 $9
                                                   }
-    | PropN Op PropVals ')' '/' Os PropVal MfRel PropN MfRel PropVal
+    | PropN Op PropParVals ')' '/' Os PropParVal MfRel PropN MfRel PropParVal
                                                   { MfClosedRange
                                                       (Div
                                                         (AppFun $1 $3)
                                                         $7)
                                                       $8 $9 $10 $11
                                                   }
-    | PropN Op PropVals ')' MfRel PropN MfRel PropVal
+    | PropN Op PropParVals ')' MfRel PropN MfRel PropParVal
                                                   { MfClosedRange
                                                       (AppFun $1 $3)
                                                       $5
@@ -508,7 +509,7 @@ MediaFeature :: { MediaFeature }
                                                   }
     | PropN                                       { BooleanMf $1 }
     | PropVal MfRel PropN                         { OpenRangeFeatureFlipped $1 $2 $3 }
-    | PropVal MfRel PropN MfRel PropVal           { MfClosedRange $1 $2 $3 $4 $5 }
+    | PropVal MfRel PropN MfRel PropParVal        { MfClosedRange $1 $2 $3 $4 $5 }
 MfRel :: { MfRelation }
     : '<'                                         { MfLt }
     | '>'                                         { MfGt }
@@ -520,21 +521,41 @@ Url :: { Url }
     | 'uqUrl'                                     { UnquotedUrl (pack $1) }
 PropVal :: { PropVal }
     : TypedNum                                    { IntVal $1 }
-    | 'ratio'                                     { RatioVal $1 }
-    | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
+    | hash                                        { HexColor (HC (pack $1)) }
     | PropN                                       { propRef $1 }
-    | PropVal '/' Os PropVal                      { Div $1 $4 }
-    | PropN Op PropValsList ')'                   { mkAppFun $1 $3 }
-    | PropN Op ')'                                { AppConst $1 }
     | Str                                         { StrVal $1 }
+    | PropVal '/' Os PropVal                      { Div $1 $4 }
+    | PropN Op PropParValsList ')'                { mkAppFun $1 $3 }
+    | PropN Op ')'                                { AppConst $1 }
     | '.'                                         { DotVal }
     | Url                                         { UrlVal $1 }
     | Bool                                        { BoolVal $1 }
     | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
                                                   { AttrFun $3 $5 $6 }
-    | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (validationToP $3 (reorder $3)) }
-    | hash                                        { HexColor (HC (pack $1)) }
+    | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (reorderInP $3) }
+    | Op Os CalcExpr Os ')'                       {% fmap ParVal (reorderInP $3) }
+    | 'ratio'                                     { RatioVal $1 }
+    | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
     | alpha Op Ident Os '=' Os Unsigned Os ')'    { AlphaF $7 }
+PropParVal :: { PropVal }
+    : TypedNum                                    { IntVal $1 }
+    | hash                                        { HexColor (HC (pack $1)) }
+    | PropN                                       { propRef $1 }
+    | Str                                         { StrVal $1 }
+    | PropVal '/' Os PropVal                      { Div $1 $4 }
+    | PropN Op PropParValsList ')'                { mkAppFun $1 $3 }
+    | PropN Op ')'                                { AppConst $1 }
+    | '.'                                         { DotVal }
+    | Url                                         { UrlVal $1 }
+    | Bool                                        { BoolVal $1 }
+    | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
+                                                  { AttrFun $3 $5 $6 }
+    | 'calc(' Os CalcExpr Os ')'                  {% fmap CalcFun (reorderInP $3) }
+    | Op Os CalcExpr Os ')'                       {% fmap ParVal (reorderInP $3) }
+    | 'ratio'                                     { RatioVal $1 }
+    | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
+    | alpha Op Ident Os '=' Os Unsigned Os ')'    { AlphaF $7 }
+
 AttrType :: { AttrType }
     : TypeFun                                     { CssTypeAt $1 }
     | UnitType                                    { UnitAt $1 }
@@ -544,7 +565,7 @@ UnitType :: { PropValType }
     | '%'                                         { Percent }
 AttrDefVal :: { Maybe PropVal }
     :                                             { Nothing }
-    | ',' Os PropVal                              { Just $3 }
+    | ',' Os PropParVal                           { Just $3 }
 CalcOp :: { CalcOp }
     : '+'                                         { PlusCe  }
     | '-'                                         { MinusCe }
@@ -554,7 +575,7 @@ CalcExpr :: { CalcExpr }
     : '(' CalcExpr  ')'                           { ParCe $2 }
     | CalcExpr Os CalcOp Os CalcExpr              { BinOpCe $1 $3 $5 }
     | CalcExpr CalcExpr                           {% recoverCalcBinOp $1 $2 }
-    | PropN Op PropValsList Os ')'                { AppCe $1 (PropValsList $3) }
+    | PropN Op PropParValsList Os ')'             { AppCe $1 (PropValsList $3) }
     | PropN                                       { VarCe $1 }
     | Os TypedNum Os                              { ValCe $2 }
     | 'calc(' Os CalcExpr Os ')'                  { CalcCe $3 }
@@ -564,18 +585,25 @@ ContinueRule :: { CssRule }
     : SelectorList '{' Os CssRuleBody '}'         { CssRule $1 $4 }
 CssRuleBody :: { [ CssRuleBodyItem ] }
     :                                             { [] }
-    | Desc Os PropValsList ';' OsCssRuleBody      { mkLeaf $1 $3 : $5 }
-    | Desc Os PropValsList                        { [ mkLeaf $1 $3 ] }
+    | Desc Os PropParValsList ';' OsCssRuleBody   { mkLeaf $1 $3 : $5 }
+    | Desc Os PropParValsList                     { [ mkLeaf $1 $3 ] }
     | Desc Os ';' OsCssRuleBody                   { $4 }
     | Desc Os                                     { [] }
     | CssRule OsCssRuleBody                       { CssNestedRule $1 : $2 }
+PropParValsList :: { NonEmpty PropVals }
+    : NonEmpty(',', PropParVals)                     { $1 }
 PropValsList :: { NonEmpty PropVals }
     : NonEmpty(',', PropVals)                     { $1 }
+PropParVals :: { PropVals }
+    : CssPropertyParVals Important                { PropVals $1 $2 }
 PropVals :: { PropVals }
     : CssPropertyVals Important                   { PropVals $1 $2 }
 Important :: { Maybe Important }
     : important                                   { Just Important }
     |                                             { Nothing }
+CssPropertyParVals :: { NonEmpty PropVal }
+    : PropParVal Os                               { $1 :| [] }
+    | PropParVal Os CssPropertyParVals            { $1 <| $3 }
 CssPropertyVals :: { NonEmpty PropVal }
     : PropVal Os                                  { $1 :| [] }
     | PropVal Os CssPropertyVals                  { $1 <| $3 }
