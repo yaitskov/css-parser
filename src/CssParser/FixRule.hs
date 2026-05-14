@@ -8,7 +8,6 @@ import CssParser.Ident
 import CssParser.Prelude
 import CssParser.Parser.Monad ( P(Failed) )
 import CssParser.Rule
-    ( CssRuleBodyItem(CssEnumLeaf, CssLeafRule), TagSelector(TagSelector) )
 import CssParser.Show ( CssShow(toCssText), toCssStr )
 import CssParser.Rule.TypedNum
     ( TypedNum(TypedNum), RawNum(RawNum) )
@@ -19,10 +18,11 @@ import CssParser.Rule.Value
       PropVal(IdentRef),
       PropVals(..),
       PropValsList(PropValsList) )
+import CssParser.Rule.Pseudo (AtomicPseudoClass (UnknownPc), BrowserSpecificIdent (..))
 import CssParser.Rule.Show ()
 import Data.Text qualified as T
 import Data.Text.Lazy qualified as L
-import CssParser.Rule.Pseudo (AtomicPseudoClass)
+
 
 nullTagSelector :: TagSelector
 nullTagSelector = TagSelector NoBar NoTag []
@@ -75,6 +75,12 @@ pclassToPropVal pc = IdentRef (pclassToIdent pc)
 
 pclassToPropVals :: Maybe Important-> AtomicPseudoClass -> PropVals
 pclassToPropVals mi pc = PropVals (pclassToPropVal pc :| []) mi
+
+mkCustomSelector :: AtomicPseudoClass -> NonEmpty Selector -> P AtRule
+mkCustomSelector pc sel =
+  case pc of
+    UnknownPc (BrowserSpecificIdent i) -> pure $ CustomSelector (CustomSelectorName i) sel
+    o -> Failed $ "Expected custom pseudo class but got: " <> toCssStr o
 
 mkLeaf :: Descriptor -> NonEmpty PropVals -> CssRuleBodyItem
 mkLeaf pn = \case

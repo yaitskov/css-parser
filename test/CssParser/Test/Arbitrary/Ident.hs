@@ -24,6 +24,7 @@ deriving via (GenericArbitrary PropertyName) instance Arbitrary PropertyName
 
 deriving via (GenericArbitrary Namespace) instance Arbitrary Namespace
 deriving via (GenericArbitrary AttrName) instance Arbitrary AttrName
+deriving via (GenericArbitrary CustomSelectorName) instance Arbitrary CustomSelectorName
 
 instance Arbitrary TagName where
   arbitrary = frequency

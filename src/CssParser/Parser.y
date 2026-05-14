@@ -37,7 +37,7 @@ import CssParser.Lexer.Token
     , TOpen, TClose, DescriptorT, ClassT, AttrPatT, PercentT, MixinT
     , Greater, Less, LessEqual, GreaterEqual, AttrFunT, AlphaT
     , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
-    , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT
+    , UrlT, UnquotedUrlT, TWhere, THas, TIs, PageT, PageMarginT, CustomSelectorT
     , KeyframesT, ColorProfileT, FontFaceT, UnicodeRangeVal, CustomMediaT, TrueT, FalseT
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
     , StartingStyleT, ViewTransitionT, ScopeT, ToT, FromT, SupportsT, SelectorFunT
@@ -127,6 +127,8 @@ import Prelude
     true        { TokenLoc TrueT _ _ }
     false       { TokenLoc FalseT _ _ }
     customMedia { TokenLoc CustomMediaT _ _ }
+    customSelector
+                { TokenLoc CustomSelectorT _ _ }
     'only'      { TokenLoc OnlyT _ _ }
     'not'       { TokenLoc NotT _ _ }
     'or'        { TokenLoc OrT _ _ }
@@ -235,6 +237,8 @@ AtRule :: { AtRule }
     | import Import ';'                           { ImportStmt $2 }
     | mixin Os IdKwd ';'                          { Mixin $3 }
     | defineMixin Os IdKwd ERB                    { DefineMixin $3 $4 }
+    | customSelector Os pseudc Os SelectorList ';'
+                                                  {% mkCustomSelector $3 $5 }
     | charset Str ';'                             { CharsetStmt (Charset $2) }
     | layer ' ' LayerName ';'                     { LayerStmt (pure $3) }
     | layer ' ' LayerName ',' LayerNames Os ';'   { LayerStmt ($3 :| $5) }

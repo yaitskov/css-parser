@@ -148,6 +148,7 @@ misc =
   , "@starting-style {}"
   , "@mixin input;"
   , "@define-mixin m1 { @mixin input; display: block; }"
+  , "@custom-selector :--ti input[type='dt'], input[type='tm'];"
   , "[data-bs-theme=light]{--bs-btn-close-filter: }"
   , "a{a:muted, |*{}}"
   , "a{a:muted, a #f{}}"

@@ -117,3 +117,9 @@ newtype Charset = Charset Text deriving newtype (Show, Eq, Ord, IsString) derivi
 
 instance CssShow Charset where
   toCssText (Charset cs) = encodeStringLiteral cs
+
+newtype CustomSelectorName = CustomSelectorName Ident
+  deriving (Show, Ord, Eq, Generic)
+
+instance CssShow CustomSelectorName where
+  toCssText (CustomSelectorName i) = ":" <> toCssText i

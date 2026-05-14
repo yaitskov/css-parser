@@ -35,6 +35,7 @@ data Token
   | Comma
   | ContainerT
   | CustomMediaT
+  | CustomSelectorT
   | COpen
   | CounterStyleT
   | DescriptorT Descriptor
@@ -192,24 +193,25 @@ descriptorKeywords =
   HM.fromList
   [ ("all"                                            , MediaTypeT AllMt)
   , ("alpha"                                          , AlphaT)
-  , ("aural"                                          , MediaTypeT Aural     )
+  , ("aural"                                          , MediaTypeT Aural)
   , ("bottom-center"                                  , PageMarginT BottomCenter)
   , ("bottom-left"                                    , PageMarginT BottomLeft)
   , ("bottom-left-corner"                             , PageMarginT BottomLeftCorner)
   , ("bottom-right"                                   , PageMarginT BottomRight)
   , ("bottom-right-corner"                            , PageMarginT BottomRightCorner)
-  , ("braille"                                        , MediaTypeT Braille   )
+  , ("braille"                                        , MediaTypeT Braille)
   , ("color-profile"                                  , ColorProfileT)
   , ("container"                                      , ContainerT)
   , ("custom-media"                                   , CustomMediaT)
-  , ("embossed"                                       , MediaTypeT Embossed  )
+  , ("custom-selector"                                , CustomSelectorT)
+  , ("embossed"                                       , MediaTypeT Embossed)
   , ("false"                                          , FalseT)
   , ("font-face"                                      , FontFaceT)
   , ("font-feature-values"                            , FontFeatureValuesT)
   , ("font-palette-values"                            , FontPaletteValuesT)
   , ("from"                                           , FromT)
   , ("function"                                       , FunctionT)
-  , ("handheld"                                       , MediaTypeT Handheld  )
+  , ("handheld"                                       , MediaTypeT Handheld)
   , ("layer"                                          , LayerT)
   , ("left-bottom"                                    , PageMarginT LeftBottom)
   , ("left-middle"                                    , PageMarginT LeftMiddle)
@@ -227,7 +229,7 @@ descriptorKeywords =
   , ("right-top"                                      , PageMarginT RightTop)
   , ("scope"                                          , ScopeT)
   , ("screen"                                         , MediaTypeT Screen)
-  , ("speech"                                         , MediaTypeT Speech    )
+  , ("speech"                                         , MediaTypeT Speech)
   , ("starting-style"                                 , StartingStyleT)
   , ("supports"                                       , SupportsT)
   , ("min"                                            , CalcFunT MinFn)
