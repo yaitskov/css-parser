@@ -170,6 +170,7 @@ data PropVal
   | UnicodeRangeVal UnicodeRange
   | UrlVal Url
   | VarRef Var
+  | BracketVal Ident
   deriving (Eq, Ord, Show, Generic)
 
 newtype LiteralString = LiteralString Text deriving newtype (Eq, Ord, Show, IsString) deriving (Generic)
@@ -188,6 +189,7 @@ instance CssShow PropVal where
     BoolVal bv -> toCssText bv
     RatioVal rv -> toCssText rv
     CalcFun ce -> toCssText ce
+    BracketVal ce -> "[" <> toCssText ce <> "]"
     AttrFun an at dv ->
       "attr(" <> toCssText an <> toCssText at <> mayCss (", " <>) dv <> ")"
     Div a b -> toCssText a <> " / " <> toCssText b

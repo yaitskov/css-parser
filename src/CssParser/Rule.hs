@@ -1,7 +1,7 @@
 module CssParser.Rule where
 
 import CssParser.At.Container ( ContainerQueryMap )
-import CssParser.At.CustomMedia
+import CssParser.At.CustomMedia ( CustomMediaQuery )
 import CssParser.At.FontFeatureValues ( FontFeatureValues )
 import CssParser.At.FontPaletteValues ( FontPaletteValues )
 import CssParser.At.Function ( Function )

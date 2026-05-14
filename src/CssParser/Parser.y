@@ -537,6 +537,7 @@ PropVal :: { PropVal }
     | 'ratio'                                     { RatioVal $1 }
     | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
     | alpha Op Ident Os '=' Os Unsigned Os ')'    { AlphaF $7 }
+    | '[' Ident ']'                               { BracketVal $2 }
 PropParVal :: { PropVal }
     : TypedNum                                    { IntVal $1 }
     | hash                                        { HexColor (HC (pack $1)) }
@@ -555,6 +556,7 @@ PropParVal :: { PropVal }
     | 'ratio'                                     { RatioVal $1 }
     | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
     | alpha Op Ident Os '=' Os Unsigned Os ')'    { AlphaF $7 }
+    | '[' Ident ']'                               { BracketVal $2 }
 
 AttrType :: { AttrType }
     : TypeFun                                     { CssTypeAt $1 }
