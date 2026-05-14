@@ -27,6 +27,8 @@ instance CssShow AtRule where
     MediaRule mql body ->
       "media " <> toCssText mql <> " {" <> toCssText body <> "}"
     Mixin l -> "mixin " <> toCssText l <> ";"
+    DefineMixin m body ->
+      "define-mixin " <> toCssText m <> " {" <> toCssText body <> "}"
     CustomMedia v body ->
       "custom-media " <> toCssText v <> " " <> toCssText body <> ";"
     LayerBlock mbn body ->
