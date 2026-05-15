@@ -117,10 +117,6 @@ tokens :-
   "@" @opera                                           { constoken (AtT I.Opera) }
   "@" @webkit                                          { constoken (AtT I.WebKit) }
 
-  @only @wo                                            { constoken OnlyT }
-  @not @wo                                             { constoken NotT }
-  @or @wo                                              { constoken OrT }
-  @and @wo                                             { constoken AndT }
   @selector "("                                        { constoken SelectorFunT }
   @t@y@p@e "("                                         { constoken TypeFunT }
   @a@t@t@r "("                                         { constAndBegin AttrFunT attr_fun_st }
@@ -228,7 +224,6 @@ tokens :-
  }
 
 {
-
 data TokenLoc = TokenLoc Token String (Maybe AlexPosn) deriving (Show, Eq)
 
 getToken :: TokenLoc -> Token

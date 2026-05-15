@@ -319,9 +319,9 @@ CssLeaf :: { T.CssLeafType }
 FeatureQuery :: { FeatureQuery }
     : Op MediaFeature ')'                         { FqMediaFeature $2 }
     | Op FeatureQuery ')'                         { FqParen $2 }
-    | FeatureQuery Os BOP Os FeatureQuery         { FqBop $3 $1 $5 }
-    | 'not' FeatureQuery                          { FqNot $2 }
-    | 'not' FeatureQuery Os BOP Os FeatureQuery   { FqBop $4 (FqNot $2) $6 }
+    | FeatureQuery Os BOP FeatureQuery            { FqBop $3 $1 $4 }
+    | 'not' Os FeatureQuery                       { FqNot $3 }
+    | 'not' Os FeatureQuery Os BOP FeatureQuery   { FqBop $5 (FqNot $3) $6 }
     | 'selector(' SelectorList ')'                { FqApp (FqSelectorFun $2) }
     | Ident Op PropVals ')'                       { FqApp (FqSomeFun $1 $3) }
 SL :: { SelectorList }
@@ -369,15 +369,15 @@ CQ :: { ContainerQuery }
                                                   }
     | DescAsPropName Os PropParVals               { CqFeature (AsIs (CqOpFeature (PlainMf $1 $3))) }
     | PropN Os ':' PropParVals                    { CqFeature (AsIs (CqOpFeature (PlainMf $1 $4))) }
-    | 'not' Op MediaFeature ')' Os BOP CQ         { CqBin $6 (Not (CqOpFeature $3)) $7 }
-    | 'not' Op MediaFeature ')'                   { CqFeature (Not (CqOpFeature $3)) }
+    | 'not' Os Op MediaFeature ')' Os BOP CQ      { CqBin $7 (Not (CqOpFeature $4)) $8 }
+    | 'not' Os Op MediaFeature ')'                { CqFeature (Not (CqOpFeature $4)) }
     | 'not' Os Ident Os Op CQ ')'                 { CqFeature (Not (CqApp $3 $6)) }
     | 'not' Os Ident Os Op CQ ')' Os BOP CQ       { CqBin $9 (Not (CqApp $3 $6)) $10 }
     | Op MediaFeature ')' Os BOP CQ               { CqBin $5 (AsIs (CqOpFeature $2)) $6 }
     | Op MediaFeature ')'                         { CqFeature (AsIs (CqOpFeature $2)) }
 BOP :: { BinOp }
-    : and                                         { And }
-    | or                                          { Or }
+    : and Os                                      { And }
+    | or Os                                       { Or }
 FontFeatureValBlocks :: { [ Either PropEntry FontFeatureValuesSubBlock ] }
     :                                             { [] }
     | FontFeatureValBlock FontFeatureValBlocks    { Right $1 : $2 }
@@ -443,24 +443,22 @@ IdKwdMb
 MediaQueryList :: { [ MediaQuery ] }
     : MediaQuery                                  { [ $1 ] }
     | MediaQuery ',' MediaQueryList               { $1 : $3 }
-    | MediaQuery or   MediaQueryList              { $1 : $3 }
+    | MediaQuery or Os MediaQueryList             { $1 : $4 }
 MediaQuery :: { MediaQuery }
     : 'not' Os MediaCondition                     {% massageExpr MediaQueryConditionOnly (NotMc $3) }
     | 'not' Os MediaCondition Os MediaAnds        {% massageExpr MediaQueryConditionOnly
                                                                  (mkBopMcTree And (NotMc $3 :| $5)) }
     | 'not' Os MediaCondition Os MediaOrs         {% massageExpr MediaQueryConditionOnly
                                                                  (mkBopMcTree Or  (NotMc $3 :| $5)) }
-
-    | MtModifier Os MediaType Os and Os MediaCondition
-                                                  {% massageExpr (MediaQueryWithMt $1 $3 . Just) $7 }
-    | MtModifier Os MediaType Os                  { MediaQueryWithMt $1 $3 Nothing }
+    | 'not' Os MediaType Os and Os MediaCondition {% massageExpr (MediaQueryWithMt (Just MtNot) $3 . Just) $7 }
+    | 'not' Os MediaType Os                       { MediaQueryWithMt (Just MtNot) $3 Nothing }
+    | only Os MediaType Os                        { MediaQueryWithMt (Just MtOnly) $3 Nothing }
+    | only Os MediaType Os and Os MediaCondition  {% massageExpr (MediaQueryWithMt (Just MtOnly) $3 . Just) $7 }
+    | MediaType Os                                { MediaQueryWithMt Nothing $1 Nothing }
+    | MediaType Os and Os MediaCondition          {% massageExpr (MediaQueryWithMt Nothing $1 . Just) $5 }
     | MediaCondition                              {% massageExpr MediaQueryConditionOnly $1 }
 MediaType :: { MediaType }
     : mediaType                                   { $1 }
-MtModifier :: { Maybe MtModifier }
-    :                                             { Nothing }
-    | 'not'                                       { Just MtNot }
-    | only                                        { Just MtOnly }
 MediaCondition :: { MediaCondition }
     : MediaNot                                    { $1 }
     | MediaNot Os MediaAnds                       { mkBopMcTree And ($1 :| $3) }
@@ -474,14 +472,14 @@ MediaAnds :: { [MediaCondition] }
     : MediaAnd                                    { [$1] }
     | MediaAnd Os MediaAnds                       { $1 : $3 }
 MediaAnd :: { MediaCondition }
-    : and   MediaInParens                         { $2 }
-    | and   MediaNot                              { $2 }
+    : and Os MediaInParens                        { $3 }
+    | and Os MediaNot                             { $3 }
 MediaOrs :: { [MediaCondition] }
     : MediaOr                                     { [$1] }
     | MediaOr Os MediaOrs                         { $1 : $3 }
 MediaOr :: { MediaCondition }
-    : or   MediaInParens                          { $2 }
-    | or   MediaNot                               { $2 }
+    : or Os MediaInParens                         { $3 }
+    | or Os MediaNot                              { $3 }
 MediaInParens
     : Op MediaCondition ')'                       { ParenMc $2 }
     | Op MediaFeature ')'                         { FeatureMc $2 }

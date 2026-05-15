@@ -165,8 +165,8 @@ instance CssShow CalcExpr where
     CalcCe f a -> toCssText f <> "(" <> toCssText a <> ")"
     CalcNeg x@CalcNeg {} -> "-(" <> toCssText x <> ")"
     CalcNeg x@BinOpCe {} -> "-(" <> toCssText x <> ")"
-    CalcNeg x@(VarCe (VarProp _)) -> "- " <> toCssText x
-    CalcNeg x@(AppCe (VarProp _) _) -> "- " <> toCssText x
+    CalcNeg x@(VarCe _) -> "- " <> toCssText x
+    CalcNeg x@(AppCe _ _) -> "- " <> toCssText x
     CalcNeg x -> "-" <> toCssText x
 
 data AttrType
