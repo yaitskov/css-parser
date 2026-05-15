@@ -42,6 +42,7 @@ data PropValType
   | Lvmin
   | Mm
   | Ms
+  | N  -- virtual unit used for pasing nth-child(-2n + 1)
   | Pc
   | Pt
   | Percent
@@ -104,6 +105,7 @@ instance CssShow PropValType where
     Lvmin -> "lvmin"
     Mm -> "mm"
     Ms -> "ms"
+    N  -> "n"
     Pc -> "pc"
     Pt -> "pt"
     Percent -> "%"

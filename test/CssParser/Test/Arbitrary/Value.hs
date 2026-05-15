@@ -4,13 +4,22 @@ module CssParser.Test.Arbitrary.Value where
 
 import CssParser.Ident
 import CssParser.Norm ( Norm(..) )
-import CssParser.Parser.Monad ( P(Ok, Failed), validationToP )
+import CssParser.Parser.Monad ( reorderErr )
 import CssParser.Rule.Value
 import CssParser.Rule.Type ( CssType, CssLeafType, AtomicCssType )
-import CssParser.Rule.TypedNum ( TypedNum, RawNum(..), PropValType (Mm, K), mkRawNum )
+import CssParser.Rule.TypedNum ( TypedNum(..), RawNum(..), PropValType (Mm, K), mkRawNum )
 import CssParser.Test.Arbitrary
 import CssParser.Test.Arbitrary.Ident ()
 import Data.Text qualified as T
+
+instance Norm NthFormula where
+  normalize = \case
+    NthExpr e -> NthExpr . normNeg . stripParens $ reorderErr e
+    o -> o
+
+instance Arbitrary NthFormula where
+  arbitrary = normalize <$> genericArbitrary
+  shrink x = normalize <$> genericShrink x
 
 deriving via (GenericArbitrary CssType) instance Arbitrary CssType
 deriving via (GenericArbitrary CssLeafType) instance Arbitrary CssLeafType
@@ -69,6 +78,31 @@ deriving via (GenericArbitrary PropValType) instance Arbitrary PropValType
 
 deriving via (GenericArbitrary CalcFns) instance Arbitrary CalcFns
 deriving via (GenericArbitrary CalcOp) instance Arbitrary CalcOp
+
+isD :: Char -> Bool
+isD x = isDigit x || x == '.'
+
+normNeg :: CalcExpr -> CalcExpr
+normNeg = \case
+  o@(CalcNeg (ValCe (TypedNum (RawNum rn) pt))) ->
+     case T.uncons rn of
+      Just ('-', absRn) -> ValCe (TypedNum (RawNum absRn) pt)
+      Just ('+', absRn) ->
+        case T.uncons absRn of
+          Just (fc, _)
+            | isD fc -> ValCe (TypedNum (RawNum (T.cons '-' absRn)) pt)
+            | otherwise -> ValCe (TypedNum (RawNum absRn) pt)
+          Nothing -> o
+      Just (fc, _)
+        | isD fc -> ValCe (TypedNum (RawNum (T.cons '-' rn)) pt)
+        | otherwise -> o
+      _ -> o
+  CalcNeg (CalcNeg x) -> normNeg x
+  CalcNeg x -> CalcNeg $ normNeg x
+  BinOpCe l op r -> BinOpCe (normNeg l) op (normNeg r)
+  CalcCe f (CalcExprList l) -> CalcCe f . CalcExprList $ fmap normNeg l
+  o -> o
+
 deriving via (GenericArbitrary CalcExpr) instance Arbitrary CalcExpr
 deriving via (GenericArbitrary TypedNum) instance Arbitrary TypedNum
 deriving via (GenericArbitrary CalcExprList) instance Arbitrary CalcExprList
@@ -79,17 +113,15 @@ rightMost = \case
   o -> o
 
 instance Norm CalcExpr where
-  normalize x =
-    case validationToP x (reorder x) of
-      Failed er -> error er
-      Ok x' -> x'
+  normalize = normNeg
 
 instance Norm PropVal where
   normalize = \case
     Div x y -> Div (rightMost y) (normalize x)
     AppFunEnum f (PropValsList (a :| [])) -> AppFun f a
-    CalcFun ce@CalcCe {} -> CalcFun $ normalize ce
-    CalcFun ce -> CalcFun . CalcCe CalcFn . CalcExprList . (:| []) $ normalize ce
+    CalcFun ce@CalcCe {} -> CalcFun . normNeg . stripParens $ reorderErr ce
+    CalcFun ce ->
+      CalcFun . CalcCe CalcFn . CalcExprList . (:| []) . normNeg . stripParens $ reorderErr ce
     o -> o
 
 instance Arbitrary PropVal where

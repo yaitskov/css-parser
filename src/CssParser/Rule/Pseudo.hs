@@ -2,14 +2,12 @@ module CssParser.Rule.Pseudo where
 
 import CssParser.Ident ( Ident(..) )
 import CssParser.Prelude hiding (Left, Right)
-import CssParser.Show
+import CssParser.Show ( CssShow(..), ShowSpaceBetween(..) )
 
 newtype Language = Language Text deriving newtype (Eq, Ord, Show, IsString)
 
 instance CssShow Language where
   toCssText (Language l)  = fromStrict l
-
-data Nth = Nth { linear :: Int, constant :: Int } deriving (Eq, Ord, Show, Generic)
 
 data PseudoElement
   = UnknownPe Ident
@@ -114,25 +112,6 @@ data AtomicPseudoClass
 
 instance GEnum AtomicPseudoClass
 
-pattern Even :: Nth
-pattern Even = Nth 2 0
-
-pattern Odd :: Nth
-pattern Odd = Nth 2 1
-
-pattern One :: Nth
-pattern One = Nth 0 1
-
-instance CssShow Nth where
-  toCssText = \case
-    Even -> "even"
-    Odd -> "odd"
-    (Nth n 0) -> snoc (numToText n) 'n'
-    (Nth 0 b) -> numToText b
-    (Nth n b)
-      | b <= 0 -> numToText n <> "n" <> numToText b
-      | otherwise -> numToText n <> "n+" <> numToText b
-
 instance ShowSpaceBetween AtomicPseudoClass AtomicPseudoClass where
   cssSpace _ _ = ""
 
@@ -208,7 +187,6 @@ instance CssShow AtomicPseudoClass where
         Visited -> "visited"
         VolumeLocked -> "volume-locked"
         XrOverlay -> "xr-overlay"
-
 
 instance CssShow PseudoElement where
   toCssText = ("::" <>) . go

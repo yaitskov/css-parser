@@ -12,14 +12,6 @@ import CssParser.At.MediaQuery
 import CssParser.At.Page
 import CssParser.At.Supports hiding (FeatureQuery)
 import CssParser.Descriptor (Descriptor, toPropertyName)
-import CssParser.Norm
-import CssParser.Rule.Pseudo qualified as P
-import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition, Heading, Host)
-import CssParser.Rule.Type qualified as T
-import CssParser.Rule.TypedNum
-import CssParser.Rule.Value hiding (UnicodeRangeVal)
-import CssParser.Rule.Value qualified as Vl
-import CssParser.Fun
 import CssParser.File
 import CssParser.FixRule
 import CssParser.Ident hiding (Ident, Namespace, Var)
@@ -29,11 +21,11 @@ import CssParser.Lexer.Token qualified as L
 import CssParser.Lexer.Token
   ( Token
     ( TIncludes, TEqual, TDashMatch, TPrefixMatch, TSuffixMatch, TSubstringMatch, IdentT
-    , Comma, Plus, SharpT, Minus, Tilde, Dot, Asterisk, Space, BOpen, BClose, PseudoFunction
-    , PseudoElementT, TN, TNth, TPM, TInt, TNot, TLang, String, THash
+    , Comma, Plus, SharpT, Minus, Tilde, Dot, Asterisk, Space, BOpen, BClose
+    , PseudoElementT, TInt, TNot, TLang, String, THash
     , COpen, CClose, Colon, Semicolon, Var, Pipe, AtomicPseudoClassT, Ampersand
     , CharsetT, ImportT, MediaT, LayerT, NamespaceT, CounterStyleT, PropertyT
-    , NotT, OrT, AndT, OnlyT, ReturnsT, GlobalT, RawStringT, DefineMixinT
+    , NotT, OfT, OrT, AndT, OnlyT, ReturnsT, GlobalT, RawStringT, DefineMixinT
     , TOpen, TClose, DescriptorT, ClassT, AttrPatT, PercentT, MixinT
     , Greater, Less, LessEqual, GreaterEqual, AttrFunT, AlphaT
     , RatioT, ImportantT, MediaTypeT, CalcFunT, TypeFunT, FunctionT, SyntaxTypeT
@@ -41,18 +33,26 @@ import CssParser.Lexer.Token
     , KeyframesT, ColorProfileT, FontFaceT, UnicodeRangeVal, CustomMediaT, TrueT, FalseT
     , FontFeatureValuesT, AtT, FontPaletteValuesT, ContainerT, DivT, PositionTryT
     , StartingStyleT, ViewTransitionT, ScopeT, ToT, FromT, SupportsT, SelectorFunT
-    , TActiveViewTransitionType, TDir, THeading, THost, TState
+    , TActiveViewTransitionType, TDir, THeading, THost, TState, EvenT, OddT
     , THighlight, TPart, TPicker, TScrollButton, TSlotted, TViewTransitionGroup
     , TViewTransitionImagePair, TViewTransitionNew, TViewTransitionOld
+    , NthChildT, NthOfTypeT, NthLastChildT, NthLastOfTypeT
     )
   )
 import CssParser.MonoPair
+import CssParser.Norm
 import CssParser.Parser.Monad
 import CssParser.Prelude
   ( mapMaybe, prependList, NonEmpty((:|)), (<|), leftToMaybe
   , rightToMaybe, These(..), fromMaybe
   )
 import CssParser.Rule
+import CssParser.Rule.Pseudo qualified as P
+import CssParser.Rule.Pseudo hiding (Left, Right, ViewTransition, Heading, Host)
+import CssParser.Rule.Type qualified as T
+import CssParser.Rule.TypedNum
+import CssParser.Rule.Value hiding (UnicodeRangeVal)
+import CssParser.Rule.Value qualified as Vl
 import CssParser.Show
 import Data.Text (Text, pack)
 import Data.Text.Lazy (toStrict)
@@ -129,10 +129,11 @@ import Prelude
     customMedia { TokenLoc CustomMediaT _ _ }
     customSelector
                 { TokenLoc CustomSelectorT _ _ }
-    'only'      { TokenLoc OnlyT _ _ }
+    only        { TokenLoc OnlyT _ _ }
     'not'       { TokenLoc NotT _ _ }
-    'or'        { TokenLoc OrT _ _ }
-    'and'       { TokenLoc AndT _ _ }
+    or          { TokenLoc OrT _ _ }
+    of          { TokenLoc OfT _ _ }
+    and         { TokenLoc AndT _ _ }
     'url('      { TokenLoc UrlT _ _ }
     'uqUrl'     { TokenLoc (UnquotedUrlT $$) _ _ }
     'selector(' { TokenLoc SelectorFunT _ _ }
@@ -168,16 +169,19 @@ import Prelude
                 { TokenLoc TViewTransitionNew _ _ }
     viewTransitionOld
                 { TokenLoc TViewTransitionOld _ _ }
-
+    even        { TokenLoc EvenT _ _ }
+    odd         { TokenLoc OddT _ _ }
+    nthChild    { TokenLoc NthChildT _ _ }
+    nthLastChild
+                { TokenLoc NthLastChildT _ _ }
+    nthOfType   { TokenLoc NthOfTypeT _ _ }
+    nthLastOfType
+                { TokenLoc NthLastOfTypeT _ _ }
     pseudc      { TokenLoc (AtomicPseudoClassT $$) _ _ }
-    pseudf      { TokenLoc (PseudoFunction $$) _ _ }
-    pm          { TokenLoc (TPM $$) _ _ }
-    'n'         { TokenLoc TN _ _ }
     int         { TokenLoc (TInt $$) _ _ }
     'ratio'     { TokenLoc (RatioT $$) _ _ }
     typedNum    { TokenLoc (L.TypedNum $$) _ _ }
     var         { TokenLoc (Var $$) _ _ }
-    nth         { TokenLoc (TNth $$) _ _ }
     ':not'      { TokenLoc TNot _ _ }
     ':global'   { TokenLoc GlobalT _ _ }
     ':where'    { TokenLoc TWhere _ _ }
@@ -372,8 +376,8 @@ CQ :: { ContainerQuery }
     | Op MediaFeature ')' Os BOP CQ               { CqBin $5 (AsIs (CqOpFeature $2)) $6 }
     | Op MediaFeature ')'                         { CqFeature (AsIs (CqOpFeature $2)) }
 BOP :: { BinOp }
-    : 'and'                                       { And }
-    | 'or'                                        { Or }
+    : and                                         { And }
+    | or                                          { Or }
 FontFeatureValBlocks :: { [ Either PropEntry FontFeatureValuesSubBlock ] }
     :                                             { [] }
     | FontFeatureValBlock FontFeatureValBlocks    { Right $1 : $2 }
@@ -439,26 +443,24 @@ IdKwdMb
 MediaQueryList :: { [ MediaQuery ] }
     : MediaQuery                                  { [ $1 ] }
     | MediaQuery ',' MediaQueryList               { $1 : $3 }
-    | MediaQuery 'or' MediaQueryList              { $1 : $3 }
+    | MediaQuery or   MediaQueryList              { $1 : $3 }
 MediaQuery :: { MediaQuery }
-    : 'not' Os MediaCondition                     {% fmap (MediaQueryConditionOnly . stripParens)
-                                                          (reorderInP (NotMc $3)) }
-    | 'not' Os MediaCondition Os MediaAnds        {% fmap (MediaQueryConditionOnly . stripParens)
-                                                          (reorderInP (mkBopMcTree And (NotMc $3 :| $5))) }
-    | 'not' Os MediaCondition Os MediaOrs         {% fmap (MediaQueryConditionOnly . stripParens)
-                                                          (reorderInP (mkBopMcTree Or  (NotMc $3 :| $5))) }
+    : 'not' Os MediaCondition                     {% massageExpr MediaQueryConditionOnly (NotMc $3) }
+    | 'not' Os MediaCondition Os MediaAnds        {% massageExpr MediaQueryConditionOnly
+                                                                 (mkBopMcTree And (NotMc $3 :| $5)) }
+    | 'not' Os MediaCondition Os MediaOrs         {% massageExpr MediaQueryConditionOnly
+                                                                 (mkBopMcTree Or  (NotMc $3 :| $5)) }
 
-    | MtModifier Os MediaType Os 'and' Os MediaCondition
-                                                  {% fmap (MediaQueryWithMt $1 $3 . Just . stripParens)
-                                                          (reorderInP $7) }
+    | MtModifier Os MediaType Os and Os MediaCondition
+                                                  {% massageExpr (MediaQueryWithMt $1 $3 . Just) $7 }
     | MtModifier Os MediaType Os                  { MediaQueryWithMt $1 $3 Nothing }
-    | MediaCondition                              {% fmap (MediaQueryConditionOnly . stripParens) (reorderInP $1) }
+    | MediaCondition                              {% massageExpr MediaQueryConditionOnly $1 }
 MediaType :: { MediaType }
     : mediaType                                   { $1 }
 MtModifier :: { Maybe MtModifier }
     :                                             { Nothing }
     | 'not'                                       { Just MtNot }
-    | 'only'                                      { Just MtOnly }
+    | only                                        { Just MtOnly }
 MediaCondition :: { MediaCondition }
     : MediaNot                                    { $1 }
     | MediaNot Os MediaAnds                       { mkBopMcTree And ($1 :| $3) }
@@ -472,14 +474,14 @@ MediaAnds :: { [MediaCondition] }
     : MediaAnd                                    { [$1] }
     | MediaAnd Os MediaAnds                       { $1 : $3 }
 MediaAnd :: { MediaCondition }
-    : 'and' MediaInParens                         { $2 }
-    | 'and' MediaNot                              { $2 }
+    : and   MediaInParens                         { $2 }
+    | and   MediaNot                              { $2 }
 MediaOrs :: { [MediaCondition] }
     : MediaOr                                     { [$1] }
     | MediaOr Os MediaOrs                         { $1 : $3 }
 MediaOr :: { MediaCondition }
-    : 'or' MediaInParens                          { $2 }
-    | 'or' MediaNot                               { $2 }
+    : or   MediaInParens                          { $2 }
+    | or   MediaNot                               { $2 }
 MediaInParens
     : Op MediaCondition ')'                       { ParenMc $2 }
     | Op MediaFeature ')'                         { FeatureMc $2 }
@@ -540,8 +542,8 @@ PropVal :: { PropVal }
     | Bool                                        { BoolVal $1 }
     | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
                                                   { AttrFun $3 $5 $6 }
-    | calcFns Op CalcExprList Os ')'              {% fmap CalcFun (reorderInP (CalcCe $1 $3)) }
-    | Op Os CalcExprList Os ')'                   {% fmap CalcFun (reorderInP (CalcCe NoFn $3)) }
+    | calcFns Op CalcExprList Os ')'              {% massageExpr CalcFun (CalcCe $1 $3) }
+    | Op Os CalcExprList Os ')'                   {% massageExpr CalcFun (CalcCe NoFn $3) }
     | 'ratio'                                     { RatioVal $1 }
     | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
     | alpha Op Ident Os '=' Os Unsigned Os ')'    { AlphaF $7 }
@@ -559,8 +561,8 @@ PropParVal :: { PropVal }
     | Bool                                        { BoolVal $1 }
     | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
                                                   { AttrFun $3 $5 $6 }
-    | calcFns Op CalcExprList Os ')'              {% fmap CalcFun (reorderInP (CalcCe $1 $3)) }
-    | Op Os CalcExprList Os ')'                   {% fmap CalcFun (reorderInP (CalcCe NoFn $3)) }
+    | calcFns Op CalcExprList Os ')'              {% massageExpr CalcFun (CalcCe $1 $3) }
+    | Op Os CalcExprList Os ')'                   {% massageExpr CalcFun (CalcCe NoFn $3) }
     | 'ratio'                                     { RatioVal $1 }
     | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
     | alpha Op Ident Os '=' Os Unsigned Os ')'    { AlphaF $7 }
@@ -582,13 +584,14 @@ CalcOp :: { CalcOp }
     | '/'                                         { DivCe   }
     | '*'                                         { ProdCe  }
 CalcExpr :: { CalcExpr }
-    : '(' CalcExprList ')'                        { CalcCe NoFn $2 }
-    | CalcExpr Os CalcOp Os CalcExpr              { BinOpCe $1 $3 $5 }
-    | CalcExpr CalcExpr                           {% recoverCalcBinOp $1 $2 }
-    | PropN Op PropParValsList Os ')'             { AppCe $1 (PropValsList $3) }
-    | PropN                                       { VarCe $1 }
-    | Os TypedNum Os                              { ValCe $2 }
-    | calcFns Op CalcExprList Os ')'              { CalcCe $1 $3 }
+   : Op CalcExprList ')' Os                      { CalcCe NoFn $2 }
+   | '-' Os CalcExpr                             { CalcNeg $3 }
+   | CalcExpr CalcOp Os CalcExpr                 { BinOpCe $1 $2 $4 }
+   | CalcExpr CalcExpr                           {% recoverCalcBinOp $1 $2 }
+   | PropN Op PropParValsList Os ')' Os          { AppCe $1 (PropValsList $3) }
+   | PropN Os                                    { VarCe $1 }
+   | TypedNum Os                                 { ValCe $1 }
+   | calcFns Op CalcExprList ')' Os              { CalcCe $1 $3 }
 CalcExprList :: { CalcExprList }
     : NonEmpty(',', CalcExpr)                     { CalcExprList $1 }
 Unsigned :: { Unsigned }
@@ -675,9 +678,19 @@ TagClass :: { TagSubSelector }
     | ':where' Op SL                              { Where $3 }
     | ':is' Op SL                                 { Is $3 }
     | ':has' Op SL                                { Has $3 }
-    | pseudf Os Nth                               { call $1 $3 }
+    | nthChild Op NthFormula OfTagSel Os ')'      { NthChild $3 $4 }
+    | nthLastChild Op NthFormula OfTagSel Os ')'  { NthLastChild $3 $4 }
+    | nthOfType Op NthFormula ')'                 { NthOfType $3 }
+    | nthLastOfType Op NthFormula ')'             { NthLastOfType $3 }
     | '[' Attr ']'                                { $2 }
     | Hash                                        { $1 }
+NthFormula :: { NthFormula }
+    : CalcExpr                                    {% massageExpr NthExpr $1 }
+    | odd Os                                      { NthEven False }
+    | even Os                                     { NthEven True }
+OfTagSel :: { Maybe TagSelector }
+    :                                             { Nothing }
+    | of Os TagSel                                { Just $3 }
 CslOfIdents :: { CslNe R.Ident }
     : NonEmpty(',', IdKwd)                        { CslNe $1 }
 SslNeOfIdents :: { SslNe R.Ident }
@@ -695,16 +708,6 @@ TagRelation :: { TagRelation }
     | '+' Os                                      { NextSibling }
     | '>' Os                                      { Child }
     | '~' Os                                      { GeneralSibling }
-Nth : nth Os ')'                                  { $1 }
-    | PMOpt IntOpt 'n' Os ')'                     { Nth (call $1 $2) 0 }
-    | PMOpt IntOpt 'n' Os pm Os int Os ')'        { Nth (call $1 $2) (call $5 $7) }
-    | PMOpt int Os ')'                            { Nth 0 (call $1 $2) }
-PMOpt
-    :                                             { TpmIdF }
-    | pm                                          { $1 }
-IntOpt
-    :                                             { 1 }
-    | int                                         { $1 }
 Ocb : '{'                                         { () }
 Op  :: { () }
     : '(' Os                                      { () }
@@ -764,9 +767,9 @@ AtId :: { R.Ident }
     | supports                                    { R.Ident "supports" }
     | viewTransition                              { R.Ident "view-transition" }
 MediaKeywordAsIdent
-    : 'or'                                        { R.Ident "or" }
-    | 'and'                                       { R.Ident "and" }
-    | 'only'                                      { R.Ident "only" }
+    : or                                          { R.Ident "or" }
+    | and                                         { R.Ident "and" }
+    | only                                        { R.Ident "only" }
 Ident :: { R.Ident }
     : ident                                       { R.Ident $1 }
 Class :: { R.Ident }

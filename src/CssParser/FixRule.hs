@@ -6,18 +6,19 @@ import CssParser.Descriptor (Descriptor (CustomDescriptor, KnownDescriptor), Kno
 import CssParser.At.Function ( ConstEntry(..) )
 import CssParser.Ident
 import CssParser.Prelude
-import CssParser.Parser.Monad ( P(Failed) )
+import CssParser.Parser.Monad ( P(Failed), reorderInP, SyntaxTree )
 import CssParser.Rule
 import CssParser.Show ( CssShow(toCssText), toCssStr )
 import CssParser.Rule.TypedNum
     ( TypedNum(TypedNum), RawNum(RawNum) )
 import CssParser.Rule.Value
-    ( CalcExpr(BinOpCe, ValCe),
+    ( CalcExpr(BinOpCe, ValCe, CalcNeg),
       CalcOp(PlusCe, MinusCe),
       Important,
+      stripParens,
       PropVal(IdentRef),
       PropVals(..),
-      PropValsList(PropValsList) )
+      PropValsList(PropValsList), HasParens )
 import CssParser.Rule.Pseudo (AtomicPseudoClass (UnknownPc), BrowserSpecificIdent (..))
 import CssParser.Rule.Show ()
 import Data.Text qualified as T
@@ -87,6 +88,9 @@ mkLeaf pn = \case
   (x :| []) -> CssLeafRule pn x
   o -> CssEnumLeaf pn (PropValsList o)
 
+massageExpr :: (Show b, HasParens b, SyntaxTree b String) => (b -> a) -> b -> P a
+massageExpr f e = fmap (f . stripParens) (reorderInP e)
+
 chopOffLeftmostSign :: CalcExpr -> Maybe (CalcOp, CalcExpr)
 chopOffLeftmostSign = \case
   BinOpCe a op b -> do
@@ -101,12 +105,15 @@ chopOffLeftmostSign = \case
   _ -> Nothing
 
 recoverCalcBinOp :: CalcExpr -> CalcExpr -> P CalcExpr
-recoverCalcBinOp fo so =
-  case chopOffLeftmostSign so of
-    Nothing ->
-      fail $ "Expected operator between " <> toCssStr fo <> " and " <> toCssStr so
-    Just (lop, so') ->
-      pure $ BinOpCe fo lop so'
+recoverCalcBinOp fo = \case
+  CalcNeg x ->
+    pure $ BinOpCe fo MinusCe x
+  so ->
+    case chopOffLeftmostSign so of
+      Nothing ->
+        fail $ "Expected operator between " <> toCssStr fo <> " and " <> toCssStr so
+      Just (lop, so') ->
+        pure $ BinOpCe fo lop so'
 
 atrCaseSensetivity :: Ident -> P CaseSensetivity
 atrCaseSensetivity = \case

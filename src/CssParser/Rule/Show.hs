@@ -6,10 +6,6 @@ import CssParser.MonoPair ( MonoPair )
 import CssParser.Prelude
 import CssParser.Rule
 import CssParser.Show
-    ( encodeStringLiteral,
-      CssShow(..),
-      ShowParenthesis(..),
-      ShowSpaceBetween(..) )
 import CssParser.Utils ( encodeIdentifier )
 
 instance ShowSpaceBetween CssRule CssRule where
@@ -121,8 +117,10 @@ instance CssShow TagSubSelector where
     Where nes -> ":where(" <> toCssText nes <> ")"
     Is nes -> ":is(" <> toCssText nes <> ")"
     Has nes -> ":has(" <> toCssText nes <> ")"
-    NthChild nth -> ":nth-child(" <> toCssText nth <> ")"
-    NthLastChild nth -> ":nth-last-child(" <> toCssText nth <> ")"
+    NthChild nth mOf ->
+      ":nth-child(" <> toCssText nth <> mayCss (" of " <> ) mOf <> ")"
+    NthLastChild nth mOf ->
+      ":nth-last-child(" <> toCssText nth <> mayCss (" of " <> ) mOf <> ")"
     NthLastOfType nth -> ":nth-last-of-type(" <> toCssText nth <> ")"
     NthOfType nth -> ":nth-of-type(" <> toCssText nth <> ")"
     ActiveViewTransitionType x -> ":active-view-transition-type" <> toCssText x

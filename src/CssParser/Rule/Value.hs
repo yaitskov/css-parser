@@ -87,17 +87,39 @@ instance CssShow CalcFns where
     MaxFn -> "max"
     ClampFn -> "clamp"
 
+data NthFormula
+  = NthEven Bool
+  | NthExpr CalcExpr
+  deriving (Eq, Ord, Show, Generic)
+
+instance CssShow NthFormula where
+  toCssText = \case
+    NthEven True -> "even"
+    NthEven False -> "odd"
+    NthExpr e -> toCssText e
+
 data CalcExpr
   = BinOpCe CalcExpr CalcOp CalcExpr
   | ValCe TypedNum
   | VarCe PropertyName
   | AppCe PropertyName PropValsList
   | CalcCe CalcFns CalcExprList
+  | CalcNeg CalcExpr
   deriving (Eq, Ord, Show, Generic)
 
+instance HasParens CalcExpr where
+  stripParens = \case
+    BinOpCe l op r -> BinOpCe (stripParens l) op (stripParens r)
+    CalcCe f (CalcExprList l) -> CalcCe f . CalcExprList $ fmap stripParens l
+    CalcNeg (CalcCe NoFn (CalcExprList (x :| []))) -> stripParens $ CalcNeg x
+    CalcNeg o -> CalcNeg $ stripParens o
+    o@VarCe {} -> o
+    o@ValCe {} -> o
+    o@AppCe {} -> o
+
 newtype CalcExprList = CalcExprList (NonEmpty CalcExpr)
-  deriving newtype (Eq, Ord, Show)
-  deriving (Generic)
+  deriving newtype (Eq, Ord)
+  deriving (Show, Generic)
 
 instance CssShow CalcExprList where
   toCssText (CalcExprList cs) = intercalate ", " (toCssText <$> toList cs)
@@ -126,9 +148,11 @@ instance SyntaxTree CalcExpr String where
   reorderChildren = \case
     BinOpCe l op r -> BinOpCe <$> reorder l <*> pure op <*> reorder r
     CalcCe x (CalcExprList args) -> CalcCe x . CalcExprList <$> mapM reorder args
+    CalcNeg x -> CalcNeg <$> reorder x
     o -> pure o
   structureOf = \case
     BinOpCe l op r -> NodeInfix (fixityOf op) l r (`BinOpCe` op)
+    CalcNeg x -> NodePrefix 5 x CalcNeg
     _ -> NodeLeaf
   makeError err _ = show err
 
@@ -139,6 +163,11 @@ instance CssShow CalcExpr where
     VarCe v -> toCssText v
     AppCe f a -> toCssText f <> "(" <> toCssText a <> ")"
     CalcCe f a -> toCssText f <> "(" <> toCssText a <> ")"
+    CalcNeg x@CalcNeg {} -> "-(" <> toCssText x <> ")"
+    CalcNeg x@BinOpCe {} -> "-(" <> toCssText x <> ")"
+    CalcNeg x@(VarCe (VarProp _)) -> "- " <> toCssText x
+    CalcNeg x@(AppCe (VarProp _) _) -> "- " <> toCssText x
+    CalcNeg x -> "-" <> toCssText x
 
 data AttrType
   = CssTypeAt CssType

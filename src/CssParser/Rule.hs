@@ -19,10 +19,14 @@ import CssParser.Rule.Pseudo
     ( AtomicPseudoClass(UnknownPc),
       BrowserSpecificIdent(BrowserSpecificIdent),
       PseudoElement,
-      Nth,
       Language )
 import CssParser.Rule.Value
-    ( PropValsList, PropVals, Source, Unsigned, CommaSeparatedList )
+    ( CommaSeparatedList,
+      PropVals,
+      PropValsList,
+      Source,
+      Unsigned,
+      NthFormula )
 import CssParser.Show ( toCssStr, CslNe, Embraced, SslNe )
 
 
@@ -125,10 +129,10 @@ data TagSubSelector
   | Where SelectorList
   | Has SelectorList
   | Is SelectorList
-  | NthChild Nth
-  | NthLastChild Nth
-  | NthLastOfType Nth
-  | NthOfType Nth -- :nth-of-type(<An+B> | even | odd)
+  | NthChild NthFormula (Maybe TagSelector)
+  | NthLastChild NthFormula (Maybe TagSelector)
+  | NthLastOfType NthFormula
+  | NthOfType NthFormula
   | ActiveViewTransitionType (Embraced (CslNe Ident))
   | Dir (Embraced Ident)
   | Heading (Embraced (CslNe Unsigned))

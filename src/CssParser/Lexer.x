@@ -4,7 +4,6 @@ module CssParser.Lexer where
 import CssParser.At.MediaQuery (MediaType(..))
 import CssParser.At.Page
 import CssParser.Descriptor
-import CssParser.Fun
 import CssParser.Ident qualified as I
 import CssParser.Lexer.Token
 import CssParser.Prelude hiding (Space)
@@ -83,15 +82,8 @@ $pm       = [\-\+]
 @attrName = @nmstart @nmchar*
 
 @anum    = [\-\+]? ( @dec+ ([\.]@dec+)? (@e [\-\+]? @dec+)? | [\.]@dec+ )
-
-@hyphen  = [\-]|\\0{0,4}2d
 @var     = [\-][\-]
 @selector = @s@e@l@e@c@t@o@r
-@nthh    = @n@t@h@hyphen
-@onlyh   = @o@n@l@y@hyphen
-@child   = @c@h@i@l@d
-@oftype  = @o@f@hyphen@t@y@p@e
-@lasth   = @l@a@s@t@hyphen
 @keyframes = @k@e@y@f@r@a@m@e@s
 @charset = @c@h@a@r@s@e@t
 @import  = @i@m@p@o@r@t
@@ -174,10 +166,6 @@ tokens :-
   @pse [a-zA-Z0-9_\-]+                                 { tokenize (tokenizePseudoElement) }
 
   @psc @l@a@n@g "("                                    { constAndBegin TLang lang_state }
-  @psc @nthh@child "("                                 { constAndBegin (PseudoFunction NthFChild) nth_state }
-  @psc @nthh@lasth@child "("                           { constAndBegin (PseudoFunction NthFLastChild) nth_state }
-  @psc @nthh@lasth@oftype "("                          { constAndBegin (PseudoFunction NthFLastOfType) nth_state }
-  @psc @nthh@oftype "("                                { constAndBegin (PseudoFunction NthFOfType) nth_state }
   @psc @h@e@a@d@i@n@g                                  { constoken THeading }
   @psc @h@o@s@t                                        { constoken THost }
   @psc @s@t@a@t@e "("                                  { constoken TState }
@@ -239,16 +227,6 @@ tokens :-
  <htmlComment> {
   [.\n]                                                ;
   "-->"                                                { begin start }
- }
- <nth_state> {
-  $w @wo                                               { constoken Space }
-  @e@v@e@n                                             { constoken (TNth Even) }
-  @o@d@d                                               { constoken (TNth Odd) }
-  @n                                                   { constoken TN }
-  "+"                                                  { constoken (TPM TpmIdF) }
-  "-"                                                  { constoken (TPM TpmNegF) }
-  @int                                                 { tokenize (TInt . read) }
-  ")"                                                  { constAndBegin TClose start }
  }
  <lang_state> {
   @lang                                                { tokenize String }

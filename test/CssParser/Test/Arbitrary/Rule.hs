@@ -10,7 +10,7 @@ import CssParser.Ident
 import CssParser.Norm ( normUntilConst, Norm(..) )
 import CssParser.Prelude
 import CssParser.Rule
-import CssParser.Rule.Pseudo ( Language(..), Nth, PseudoElement )
+import CssParser.Rule.Pseudo ( Language(..), PseudoElement )
 import CssParser.Rule.Value ( PropValsList(PropValsList) )
 import CssParser.At.Import
     ( Import(ImportUrlSupports, ImportUrlLayer) )
@@ -65,7 +65,6 @@ instance Arbitrary CssRuleBodyItem where
   arbitrary = normalize <$> genericArbitrary
   shrink x = normalize <$>  genericShrink x
 
-deriving via (GenericArbitrary Nth) instance Arbitrary Nth
 deriving via (GenericArbitrary AttrOp) instance Arbitrary AttrOp
 deriving via (GenericArbitrary PseudoElement) instance Arbitrary PseudoElement
 deriving via (GenericArbitrary CompositePe) instance Arbitrary CompositePe

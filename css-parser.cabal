@@ -48,7 +48,6 @@ library
     , CssParser.Descriptor
     , CssParser.File
     , CssParser.FixRule
-    , CssParser.Fun
     , CssParser.Ident
     , CssParser.List
     , CssParser.MonoPair

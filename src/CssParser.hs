@@ -18,6 +18,7 @@ import CssParser.Parser.Monad as X
 import CssParser.Parser as X (cssParser)
 import CssParser.Prelude
 import CssParser.Rule as X hiding (Namespace)
+import CssParser.Rule.TypedNum as X
 import CssParser.Show as X
 
 alex :: String -> Either String [TokenLoc]

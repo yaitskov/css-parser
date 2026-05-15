@@ -3,13 +3,16 @@ module CssParser.Lexer.Token where
 import CssParser.At.MediaQuery (MediaType(..))
 import CssParser.At.Page ( PageMargin(..) )
 import CssParser.Descriptor (Descriptor (BrowserSpecificDescriptor, CustomDescriptor))
-import CssParser.Fun ( TpmF, NthF )
 import CssParser.Ident ( BrowserPrefix, Ident(Ident), bpLength )
 import CssParser.Prelude
 import CssParser.Rule.Pseudo
+    ( AtomicPseudoClass(UnknownPc),
+      BrowserSpecificIdent(BrowserSpecificIdent),
+      PseudoElement(UnknownPe, After, Before) )
 import CssParser.Rule.Type ( AtomicCssType )
 import CssParser.Rule.TypedNum ( NumberStr )
 import CssParser.Rule.Value
+    ( CalcFns(CalcFn, MinFn, MaxFn, ClampFn), Ratio )
 import CssParser.Show ( mkDecodingMap', smartLookup )
 import CssParser.Utils ( readIdentifier )
 import Data.Text (pack)
@@ -41,6 +44,7 @@ data Token
   | DescriptorT Descriptor
   | DivT
   | Dot
+  | EvenT
   | FalseT
   | FontFaceT
   | FontFeatureValuesT
@@ -64,6 +68,8 @@ data Token
   | Minus
   | NamespaceT
   | NotT
+  | OddT
+  | OfT
   | OnlyT
   | OrT
   | PageMarginT PageMargin
@@ -74,7 +80,6 @@ data Token
   | PositionTryT
   | PropertyT
   | PseudoElementT PseudoElement
-  | PseudoFunction NthF
   | RatioT Ratio
   | RawStringT
   | ReturnsT
@@ -102,14 +107,11 @@ data Token
   | TInt Int
   | TIs
   | TLang
-  | TN
   | TNot
-  | TNth Nth
   | TOpen
   | ToT
   | TPart
   | TPicker
-  | TPM TpmF
   | TPrefixMatch
   | TrueT
   | TScrollButton
@@ -129,6 +131,12 @@ data Token
   | UrlT
   | Var String
   | ViewTransitionT
+
+  | NthChildT
+  | NthOfTypeT
+  | NthLastChildT
+  | NthLastOfTypeT
+
   deriving (Show, Eq)
 
 pseudoClassMap :: HashMap Text Token
@@ -147,6 +155,10 @@ pseudoClassMap = auto <> hand
       , (":active-view-transition-type", TActiveViewTransitionType)
       , (":dir", TDir)
       , (":state", TState)
+      , (":nth-child",         NthChildT     )
+      , (":nth-of-type",       NthOfTypeT    )
+      , (":nth-last-child",    NthLastChildT )
+      , (":nth-last-of-type",  NthLastOfTypeT)
       ]
 
 tokenizePseudoClass :: String -> Token
@@ -219,6 +231,9 @@ descriptorKeywords =
   , ("media"                                          , MediaT)
   , ("mixin"                                          , MixinT)
   , ("define-mixin"                                   , DefineMixinT)
+  , ("of"                                             , OfT)
+  , ("even"                                           , EvenT)
+  , ("odd"                                            , OddT)
   , ("page"                                           , PageT)
   , ("position-try"                                   , PositionTryT)
   , ("print"                                          , MediaTypeT Print)
