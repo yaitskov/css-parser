@@ -117,13 +117,6 @@ tokens :-
   "@" @opera                                           { constoken (AtT I.Opera) }
   "@" @webkit                                          { constoken (AtT I.WebKit) }
 
-  @property $w @wo                                     { constoken PropertyT }
-  @counter "-" @style $w @wo                           { constoken CounterStyleT }
-  @charset $w @wo                                      { constoken CharsetT }
-  @namespace $w @wo                                    { constoken NamespaceT }
-
-  @import $w @wo                                       { constoken ImportT }
-  @keyframes $w @wo                                    { constoken KeyframesT }
   @only @wo                                            { constoken OnlyT }
   @not @wo                                             { constoken NotT }
   @or @wo                                              { constoken OrT }

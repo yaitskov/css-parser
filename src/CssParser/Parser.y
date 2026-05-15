@@ -237,13 +237,13 @@ AtRule :: { AtRule }
     : media Os '{' OsCssRuleBody '}'              { MediaRule (MediaQueryList []) $4 }
     | media Os MediaQueryList ERB                 { MediaRule (MediaQueryList $3) $4 }
     | customMedia Os Var Os CustomMediaQuery ';'  { CustomMedia $3 $5 }
-    | namespace IdKwdMb Os Source ';'             { Namespace $2 $4 }
-    | import Import ';'                           { ImportStmt $2 }
+    | namespace Os IdKwdMb Os Source ';'          { Namespace $3 $5 }
+    | import Os Import ';'                        { ImportStmt $3 }
     | mixin Os IdKwd ';'                          { Mixin $3 }
     | defineMixin Os IdKwd ERB                    { DefineMixin $3 $4 }
     | customSelector Os pseudc Os SelectorList ';'
                                                   {% mkCustomSelector $3 $5 }
-    | charset Str ';'                             { CharsetStmt (Charset $2) }
+    | charset Os Str ';'                          { CharsetStmt (Charset $3) }
     | layer ' ' LayerName ';'                     { LayerStmt (pure $3) }
     | layer ' ' LayerName ',' LayerNames Os ';'   { LayerStmt ($3 :| $5) }
     | layer ' ' LayerName ERB                     { LayerBlock (Just $3) $4 }
@@ -252,10 +252,10 @@ AtRule :: { AtRule }
     | page Os '{' OsCssRuleBody '}'               { Page (PageSelectorList []) $4 }
     | page Os PageSelectorList ERB                { Page (PageSelectorList $3) $4 }
     | pageMargin ERB                              { PageMarginBlock $1 $2 }
-    | counterStyle IdKwd ERB                      { CounterStyle $2 $3 }
-    | property Var ERB                            { Property $2 $3 }
-    | keyframes IdKwd Ocb SepList(Os, Keyframe) '}'
-                                                  { Keyframes (KeyframeSet (KeyframeSetName $2) $4) }
+    | counterStyle Os IdKwd ERB                   { CounterStyle $3 $4 }
+    | property Os Var ERB                         { Property $3 $4 }
+    | keyframes Os IdKwd Ocb SepList(Os, Keyframe) '}'
+                                                  { Keyframes (KeyframeSet (KeyframeSetName $3) $5) }
     | colorProfile Os PropN Os ERB                { ColorProfile $3 $5 }
     | fontFace Os ERB                             { FontFaceBlock $3 }
     | fontFeatureValues ' ' StrEitherIds Os Ocb FontFeatureValBlocks '}'
