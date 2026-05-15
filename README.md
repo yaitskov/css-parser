@@ -5,7 +5,8 @@ CSS libraries test set includes: bootstrap, carbon, patternfly, uikit, primer, u
 
 css-parser is based on [css-selectors](https://hackage.haskell.org/package/css-selectors).
 
-The work started to provide info about style sheets structure to [miso-css](https://github.com/yaitskov/miso-css).
+The work is started to provide info about style sheets structure to
+[miso-css](https://github.com/yaitskov/miso-css) library.
 
 ## Dev
 
@@ -33,5 +34,5 @@ nix develop
 intest
 ```
 
-Links to successfully parsed CSS files are stored is `.css-hashes`
+Links to successfully parsed CSS files are stored in `.css-hashes`
 folder to exclude them from consequent `intest` reruns.
