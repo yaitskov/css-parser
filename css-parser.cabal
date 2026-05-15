@@ -11,9 +11,9 @@ maintainer:          dyaitskov@gmail.com
 copyright:           2026
 category:            web
 build-type:          Simple
-extra-source-files:
-  , README.md
+extra-doc-files:
   , CHANGELOG.md
+  , README.md
 
 common base
   default-language: GHC2024
@@ -27,8 +27,7 @@ common base
     PatternSynonyms
   build-depends:
     , base >=4.7 && < 5
-    , QuickCheck >=2.8
-    , text >=2
+    , text >=2 && < 3
 
 library
   import: base
@@ -68,9 +67,8 @@ library
     , CssParser.Lexer.Token
     , CssParser.Parser
   build-depends:
-    , array >=0.5.2
-    , bytestring >=0.9
-    , Decimal >=0.4.2
+    , array >=0.5.2 && < 1
+    , bytestring >=0.9 && < 1
     , either < 6
     , generic-deriving < 2
     , reorder-expression < 1
@@ -114,7 +112,7 @@ test-suite test
     , css-parser
     , containers
     , generic-arbitrary             >1 && <2
-    , QuickCheck
+    , QuickCheck                    < 3
     , quickcheck-instances
     , tasty
     , tasty-discover
