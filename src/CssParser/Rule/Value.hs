@@ -83,6 +83,8 @@ data CalcFns
   | MinFn
   | NoFn
   | MaxFn
+  | SinFn
+  | CosFn
   | ClampFn
   deriving (Eq, Ord, Show, Bounded, Enum, Generic)
 
@@ -92,6 +94,8 @@ instance CssShow CalcFns where
     MinFn -> "min"
     NoFn -> ""
     MaxFn -> "max"
+    CosFn -> "cos"
+    SinFn -> "sin"
     ClampFn -> "clamp"
 
 data NthFormula

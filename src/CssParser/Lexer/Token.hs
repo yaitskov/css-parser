@@ -12,7 +12,7 @@ import CssParser.Rule.Pseudo
 import CssParser.Rule.Type ( AtomicCssType )
 import CssParser.Rule.TypedNum ( NumberStr )
 import CssParser.Rule.Value
-    ( CalcFns(CalcFn, MinFn, MaxFn, ClampFn), Ratio )
+    ( CalcFns(CalcFn, MinFn, MaxFn, SinFn, CosFn, ClampFn), Ratio )
 import CssParser.Show ( mkDecodingMap', smartLookup )
 import CssParser.Utils ( readIdentifier )
 import Data.Text (pack)
@@ -259,6 +259,9 @@ descriptorKeywords =
   , ("supports"                                       , SupportsT)
   , ("min"                                            , CalcFunT MinFn)
   , ("max"                                            , CalcFunT MaxFn)
+  , ("max"                                            , CalcFunT MaxFn)
+  , ("sin"                                            , CalcFunT SinFn)
+  , ("cos"                                            , CalcFunT CosFn)
   , ("clamp"                                          , CalcFunT ClampFn)
   , ("calc"                                           , CalcFunT CalcFn)
   , ("to"                                             , ToT)
