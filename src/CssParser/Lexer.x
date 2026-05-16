@@ -24,7 +24,6 @@ import Data.Text (pack)
 $nonascii = [^\0-\x9f]
 $w        = [\ \t\r\n\f]
 $tl       = [\~]
-$pm       = [\-\+]
 @nl       = \r|\n|\r\n|\f
 @unicode  = \\[0-9a-fA-F]{1,6}(\r\n|[ \n\r\t\f])?
 @escape   = @unicode | \\[^\n\r\f0-9a-fA-F]
@@ -35,11 +34,10 @@ $pm       = [\-\+]
 
 @name    = @nmchar+
 @dec     = [0-9]
-@int     = @dec+
 @uint    = @dec+
-@hexdig  = [0-9a-fA-F]
+
 @updig  = [0-9a-fA-F\?]
-@hexdigs = @hexdig+
+
 @string1 = \'([^\n\r\f\\\'] | \\@nl | @nonaesc )*\'   -- strings with single quote
 @string2 = \"([^\n\r\f\\\"] | \\@nl | @nonaesc )*\"   -- strings with double quotes
 @string  = @string1 | @string2
@@ -84,17 +82,6 @@ $pm       = [\-\+]
 @anum    = [\-\+]? ( @dec+ ([\.]@dec+)? (@e [\-\+]? @dec+)? | [\.]@dec+ )
 @var     = [\-][\-]
 @selector = @s@e@l@e@c@t@o@r
-@keyframes = @k@e@y@f@r@a@m@e@s
-@charset = @c@h@a@r@s@e@t
-@import  = @i@m@p@o@r@t
-@style   = @s@t@y@l@e
-@counter = @c@o@u@n@t@e@r
-@namespace = @n@a@m@e@s@p@a@c@e
-@property = @p@r@o@p@e@r@t@y
-@not     = @n@o@t
-@and     = @a@n@d
-@or      = @o@r
-@only    = @o@n@l@y
 @url     = @u@r@l
 @cmo     = \/\*
 @cmc     = \*\/
