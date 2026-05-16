@@ -72,8 +72,39 @@ instance Arbitrary Url where
 
 deriving via Ident instance Arbitrary LiteralString
 deriving via (GenericArbitrary Ratio) instance Arbitrary Ratio
-deriving via (GenericArbitrary PropVals) instance Arbitrary PropVals
-deriving via (GenericArbitrary PropValsList) instance Arbitrary PropValsList
+
+instance Norm PropVals where
+  normalize (PropVals l i) = PropVals (trunkAfterParens l) i
+
+instance Arbitrary PropVals where
+  arbitrary = normalize <$> genericArbitrary
+  shrink x = normalize <$> genericShrink x
+
+trunkAfterParens :: NonEmpty PropVal -> NonEmpty PropVal
+trunkAfterParens (neh :| net)
+  | notParens neh =
+      case span notParens net of
+        (p, []) -> neh :| p
+        (p, h : _) -> neh :| (p <> [h])
+  | otherwise = neh :| []
+
+notParens :: PropVal -> Bool
+notParens = \case
+  CalcFun (CalcCe NoFn _) -> False
+  _ -> True
+
+stripImportant :: PropVals -> PropVals
+stripImportant = \case
+  PropVals l (Just _) -> PropVals l Nothing
+  o -> o
+
+instance Norm PropValsList where
+  normalize (PropValsList l) = PropValsList (stripImportant <$> l)
+
+instance Arbitrary PropValsList where
+  arbitrary = normalize <$> genericArbitrary
+  shrink x = normalize <$> genericShrink x
+
 deriving via (GenericArbitrary PropValType) instance Arbitrary PropValType
 
 deriving via (GenericArbitrary CalcFns) instance Arbitrary CalcFns
@@ -117,7 +148,10 @@ instance Norm CalcExpr where
 
 instance Norm PropVal where
   normalize = \case
-    Div x y -> Div (rightMost y) (normalize x)
+    Div x y
+      | notParens x && notParens y -> Div (rightMost y) (normalize x)
+      | notParens x -> x
+      | otherwise -> y
     AppFunEnum f (PropValsList (a :| [])) -> AppFun f a
     CalcFun ce@CalcCe {} -> CalcFun . normNeg . stripParens $ reorderErr ce
     CalcFun ce ->

@@ -198,6 +198,8 @@ properties :: [String]
 properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
+  , "x: (1px + 2px) * 3mm;"
+  , "x: (1px + 2px) / (3mm + 2);"
   , "font-size: clamp(1mm / 2, 2mm * 2mm, 3mm + 1cm);"
   , "grid-template-columns: repeat(12, [col-start] 1fr);"
   , "padding-block: max(2 / 2 - 0.06rem);"

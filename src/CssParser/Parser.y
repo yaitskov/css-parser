@@ -560,7 +560,12 @@ PropParVal :: { PropVal }
     | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
                                                   { AttrFun $3 $5 $6 }
     | calcFns Op CalcExprList Os ')'              {% massageExpr CalcFun (CalcCe $1 $3) }
-    | Op Os CalcExprList Os ')'                   {% massageExpr CalcFun (CalcCe NoFn $3) }
+    | Op Os CalcExprList Os ')' Os                {% massageExpr CalcFun (CalcCe NoFn $3) }
+    | Op Os CalcExprList Os ')' Os CalcOp Os CalcExpr
+                                                  {% massageExpr
+                                                       CalcFun
+                                                       (BinOpCe (CalcCe NoFn $3) $7 $9)
+                                                  }
     | 'ratio'                                     { RatioVal $1 }
     | UnicodeRange                                { Vl.UnicodeRangeVal $1 }
     | alpha Op Ident Os '=' Os Unsigned Os ')'    { AlphaF $7 }
@@ -604,7 +609,7 @@ CssRuleBody :: { [ CssRuleBodyItem ] }
     | Desc Os                                     { [] }
     | CssRule OsCssRuleBody                       { CssNestedRule $1 : $2 }
 PropParValsList :: { NonEmpty PropVals }
-    : NonEmpty(',', PropParVals)                     { $1 }
+    : NonEmpty(',', PropParVals)                  { $1 }
 PropValsList :: { NonEmpty PropVals }
     : NonEmpty(',', PropVals)                     { $1 }
 PropParVals :: { PropVals }

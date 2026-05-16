@@ -12,6 +12,12 @@ import CssParser.Rule.TypedNum
 import CssParser.Show
     ( CssShow(..), ShowSpaceBetween(..), encodeStringLiteral, mayCss )
 import Expression.Reorder
+    ( reorder,
+      SyntaxTree(..),
+      Validation(..),
+      Assoc(AssocLeft),
+      Fixity(Fixity),
+      Node(NodeLeaf, NodeInfix, NodePrefix) )
 
 newtype Unsigned = Unsigned RawNum
   deriving newtype (Eq, Show, Ord, CssShow)
@@ -62,7 +68,8 @@ propRef = \case
   VarProp v -> VarRef v
 
 
-data CalcOp = PlusCe | MinusCe | DivCe | ProdCe deriving (Eq, Ord, Show, Enum, Bounded, Generic)
+data CalcOp = PlusCe | MinusCe | DivCe | ProdCe
+  deriving (Eq, Ord, Show, Enum, Bounded, Generic)
 
 instance CssShow CalcOp where
   toCssText = \case
