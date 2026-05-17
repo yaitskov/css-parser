@@ -45,12 +45,15 @@ keywords = fromList $! initL <> fmap toTxt (enumDomain @MediaType)
 arbitraryIdent :: Gen Text
 arbitraryIdent = do
   i <- arbitraryText fl nl
-  if i `member` keywords
-    then pure $ i <> "_"
-    else pure i
+  if i == "$"
+    then pure "$a"
+    else
+     if i `member` keywords
+       then pure $ i <> "_"
+       else pure i
   where
-    fl = ['a' .. 'z'] <> "_"
-    nl = fl <> ['-', '0' .. '9']
+    fl = "$_" <> ['a' .. 'z']
+    nl = drop 1 fl <> ['-', '0' .. '9']
 
 arbitraryText :: String -> String -> Gen Text
 arbitraryText fl nl = do

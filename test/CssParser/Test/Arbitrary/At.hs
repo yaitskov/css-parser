@@ -16,7 +16,7 @@ import Data.Text (isPrefixOf)
 import Data.Text qualified as T
 
 browserPrefixes :: [Text]
-browserPrefixes =  T.words "-moz- -ms- -webkit- -apple- -o-"
+browserPrefixes =  T.words "-moz- -ms- -webkit- -apple- -o- $"
 
 instance Arbitrary BrowserSpecificIdent where
   arbitrary =

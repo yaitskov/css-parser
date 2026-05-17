@@ -197,6 +197,7 @@ unknown =
 properties :: [String]
 properties =
   [ "margin: 20px;"
+  , "resize: $direction;"
   , "margin: 2.0px;"
   , "--o: var(--o-a) * var(--o-o) * var(--o-d, 1);"
   , "x: cos(var(--a) + var(--o ))"

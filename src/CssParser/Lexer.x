@@ -29,10 +29,11 @@ $tl       = [\~]
 @escape   = @unicode | \\[^\n\r\f0-9a-fA-F]
 @wo = $w*
 @nonaesc = $nonascii | @escape
-@nmstart = [_a-zA-Z] | @nonaesc
-@nmchar  = [_\-a-zA-Z0-9] | @nonaesc
+@nmstart = [_a-zA-Z\$] | @nonaesc
+@nmaschar = [_\-a-zA-Z0-9]
+@nmchar  = @nmaschar | @nonaesc
 
-@name    = @nmchar+
+@name    = [_\-a-zA-Z0-9\$] [_\-a-zA-Z0-9]*
 @dec     = [0-9]
 @uint    = @dec+
 
@@ -139,14 +140,14 @@ tokens :-
   @wo "{" @wo                                          { constoken COpen }
   @wo "}" @wo                                          { constoken CClose }
 
-  @pse [a-zA-Z0-9_\-]+                                 { tokenize (tokenizePseudoElement) }
+  @pse @name                                           { tokenize (tokenizePseudoElement) }
 
   @psc @l@a@n@g "("                                    { constAndBegin TLang lang_state }
   @psc @h@e@a@d@i@n@g                                  { constoken THeading }
   @psc @h@o@s@t                                        { constoken THost }
   @psc @s@t@a@t@e "("                                  { constoken TState }
 
-  @psc [a-zA-Z0-9_\-]+                                 { tokenize (tokenizePseudoClass) }
+  @psc @name                                           { tokenize (tokenizePseudoClass) }
 
   @wo ")"                                              { constoken TClose }
   "("                                                  { constoken TOpen }

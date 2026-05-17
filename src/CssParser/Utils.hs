@@ -45,7 +45,12 @@ readIdentifier :: String -> String
 readIdentifier = _readCssString '\\'
 
 _notEncode :: Char -> Bool
-_notEncode x = isAsciiLower x || isAsciiUpper x || x == '-' || x == '_' || isDigit x
+_notEncode x =
+  isAsciiLower x ||
+  isAsciiUpper x ||
+  x == '-' ||
+  x == '_' ||
+  isDigit x
 
 -- | Convert a string to a css selector string literal. This is done by putting
 -- quotes around the content, and escaping certain characters.
@@ -68,6 +73,11 @@ encodeCharacter c
   | _notEncode c = LT.singleton c
   | otherwise = LT.cons '\\' (LT.pack (_showHex (ord c) ""))
 
+encodeFirstChar :: Char -> LT.Text
+encodeFirstChar c
+  | c == '$' || _notEncode c = LT.singleton c
+  | otherwise = LT.cons '\\' (LT.pack (_showHex (ord c) ""))
+
 _encodeCharacter :: Char -> Text
 _encodeCharacter c
   | _notEncode c = singleton c
@@ -80,7 +90,11 @@ encodeIdentifier ::
   Text ->
   -- | The encoded identifier.
   LT.Text
-encodeIdentifier = LT.concatMap encodeCharacter . LT.fromStrict
+encodeIdentifier s =
+  case LT.uncons (LT.fromStrict s) of
+    Nothing -> ""
+    Just (fl, ols) ->
+     encodeFirstChar fl <> LT.concatMap encodeCharacter ols
 
 _showHex :: Int -> ShowS
 _showHex = go (6 :: Int)
