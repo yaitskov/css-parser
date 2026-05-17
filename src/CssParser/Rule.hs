@@ -55,7 +55,7 @@ data AtRule
   | MediaRule MediaQueryList [CssRuleBodyItem]
   | Mixin Ident
   | CustomSelector CustomSelectorName SelectorList
-  | DefineMixin Ident [CssRuleBodyItem]
+  | DefineMixin Ident [Ident] [CssRuleBodyItem]
   | Namespace (Maybe Ident) Source
   | Page PageSelectorList [CssRuleBodyItem]
   | PageMarginBlock PageMargin [CssRuleBodyItem]

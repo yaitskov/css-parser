@@ -233,6 +233,10 @@ CssFileBody :: { [ CssRule ] }
 CssRule :: { CssRule }
     : SelectorList ERB                            { CssRule $1 $2 }
     | '@' AtRule                                  { AtRule $1 $2 }
+MixinArgs :: { [ R.Ident ] }
+    :                                             { [] }
+    | IdKwd                                       { [$1] }
+    | IdKwd ' ' MixinArgs                         { $1 : $3 }
 AtRule :: { AtRule }
     : media Os '{' OsCssRuleBody '}'              { MediaRule (MediaQueryList []) $4 }
     | media Os MediaQueryList ERB                 { MediaRule (MediaQueryList $3) $4 }
@@ -240,7 +244,7 @@ AtRule :: { AtRule }
     | namespace Os IdKwdMb Os Source ';'          { Namespace $3 $5 }
     | import Os Import ';'                        { ImportStmt $3 }
     | mixin Os IdKwd ';'                          { Mixin $3 }
-    | defineMixin Os IdKwd ERB                    { DefineMixin $3 $4 }
+    | defineMixin Os IdKwd Os MixinArgs Os ERB    { DefineMixin $3 $5 $7 }
     | customSelector Os pseudc Os SelectorList ';'
                                                   {% mkCustomSelector $3 $5 }
     | charset Os Str ';'                          { CharsetStmt (Charset $3) }

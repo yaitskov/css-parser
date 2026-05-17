@@ -18,6 +18,9 @@ instance CssShow CssRule where
     AtRule pb ar ->
       "@" <> toCssText pb <> toCssText ar
 
+instance ShowSpaceBetween Ident Ident where
+  cssSpace _ _ = " "
+
 instance CssShow AtRule where
   toCssText = \case
     MediaRule mql body ->
@@ -25,8 +28,11 @@ instance CssShow AtRule where
     Mixin l -> "mixin " <> toCssText l <> ";"
     CustomSelector sn sel ->
       "custom-selector " <> toCssText sn <> " " <> toCssText sel <> ";"
-    DefineMixin m body ->
-      "define-mixin " <> toCssText m <> " {" <> toCssText body <> "}"
+    DefineMixin m args body ->
+      "define-mixin "
+       <> toCssText m
+       <> case args of [] -> ""; _ -> " " <> toCssText args
+       <> " {" <> toCssText body <> "}"
     CustomMedia v body ->
       "custom-media " <> toCssText v <> " " <> toCssText body <> ";"
     LayerBlock mbn body ->
