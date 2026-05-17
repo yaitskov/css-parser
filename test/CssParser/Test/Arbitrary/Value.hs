@@ -74,24 +74,31 @@ deriving via Ident instance Arbitrary LiteralString
 deriving via (GenericArbitrary Ratio) instance Arbitrary Ratio
 
 instance Norm PropVals where
-  normalize (PropVals l i) = PropVals (trunkAfterParens l) i
+  normalize (PropVals l i) = PropVals (mapInitNe embraceBinOp embraceDivOp l) i
 
 instance Arbitrary PropVals where
   arbitrary = normalize <$> genericArbitrary
   shrink x = normalize <$> genericShrink x
 
-trunkAfterParens :: NonEmpty PropVal -> NonEmpty PropVal
-trunkAfterParens (neh :| net)
-  | notParens neh =
-      case span notParens net of
-        (p, []) -> neh :| p
-        (p, h : _) -> neh :| (p <> [h])
-  | otherwise = neh :| []
+mapInit :: (a -> a) -> (a -> a) -> [a] -> [a]
+mapInit _ _ [] = []
+mapInit _ g [a] = [g a]
+mapInit f g (h:nh:t) = f h : mapInit f g (nh : t)
 
-notParens :: PropVal -> Bool
-notParens = \case
-  CalcFun (CalcCe NoFn _) -> False
-  _ -> True
+mapInitNe :: (a -> a) -> (a -> a) ->  NonEmpty a -> NonEmpty a
+mapInitNe f g = \case
+  h :| [] -> g h :| []
+  h :| l -> f h :| mapInit f g l
+
+embraceBinOp :: PropVal -> PropVal
+embraceBinOp = \case
+  CalcFun bop@BinOpCe {} -> CalcFun (CalcCe NoFn (CalcExprList $ bop :| []))
+  o -> o
+
+embraceDivOp :: PropVal -> PropVal
+embraceDivOp = \case
+  CalcFun bop@(BinOpCe _ DivCe _) -> CalcFun (CalcCe NoFn (CalcExprList $ bop :| []))
+  o -> o
 
 stripImportant :: PropVals -> PropVals
 stripImportant = \case
@@ -148,10 +155,7 @@ instance Norm CalcExpr where
 
 instance Norm PropVal where
   normalize = \case
-    Div x y
-      | notParens x && notParens y -> Div (rightMost y) (normalize x)
-      | notParens x -> x
-      | otherwise -> y
+    Div x y -> Div (rightMost y) (normalize x)
     AppFunEnum f (PropValsList (a :| [])) -> AppFun f a
     CalcFun ce@CalcCe {} -> CalcFun . normNeg . stripParens $ reorderErr ce
     CalcFun ce ->

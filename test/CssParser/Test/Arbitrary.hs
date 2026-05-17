@@ -39,6 +39,8 @@ keywords = fromList $! initL <> fmap toTxt (enumDomain @MediaType)
       T.words "not of or and only src false true from to url x y d r"
       <>
       T.words "cx cy rx ry is dir odd even open min max clamp calc"
+      <>
+      T.words "sin cos var"
 
 arbitraryIdent :: Gen Text
 arbitraryIdent = do

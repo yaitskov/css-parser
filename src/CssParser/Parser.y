@@ -551,17 +551,29 @@ PropParVal :: { PropVal }
     | hash                                        { HexColor (HC (pack $1)) }
     | PropN                                       { propRef $1 }
     | Str                                         { StrVal $1 }
-    | PropVal '/' Os PropVal                      { Div $1 $4 }
-    | PropN Op PropParValsList ')'                { mkAppFun $1 $3 }
-    | PropN Op ')'                                { AppConst $1 }
+    | PropParVal '/' Os PropParVal                { Div $1 $4 }
+    | PropN Op PropParValsList ')' Os             { mkAppFun $1 $3 }
+    | PropN Op PropParValsList ')' Os CalcASP Os CalcExpr
+                                                  {% massageExpr
+                                                       CalcFun
+                                                       (BinOpCe
+                                                         (AppCe $1 (PropValsList $3))
+                                                         $6
+                                                         $8)
+                                                  }
+    | PropN Op ')' Os                             { AppConst $1 }
+    | PropN Op ')' Os CalcASP Os CalcExpr         {% massageExpr CalcFun (BinOpCe (AppCe0 $1) $5 $7) }
     | '.'                                         { DotVal }
     | Url                                         { UrlVal $1 }
     | Bool                                        { BoolVal $1 }
     | 'attr(' Os AttrName Os Maybe(AttrType) AttrDefVal Os ')'
                                                   { AttrFun $3 $5 $6 }
-    | calcFns Op CalcExprList Os ')'              {% massageExpr CalcFun (CalcCe $1 $3) }
+    | calcFns Op CalcExprList Os ')' Os           {% massageExpr CalcFun (CalcCe $1 $3) }
+    | calcFns Op CalcExprList Os ')' Os CalcASP Os CalcExpr
+                                                  {% massageExpr CalcFun
+                                                                 (BinOpCe (CalcCe $1 $3) $7 $9) }
     | Op Os CalcExprList Os ')' Os                {% massageExpr CalcFun (CalcCe NoFn $3) }
-    | Op Os CalcExprList Os ')' Os CalcOp Os CalcExpr
+    | Op Os CalcExprList Os ')' Os CalcASP Os CalcExpr
                                                   {% massageExpr
                                                        CalcFun
                                                        (BinOpCe (CalcCe NoFn $3) $7 $9)
@@ -581,17 +593,20 @@ UnitType :: { PropValType }
 AttrDefVal :: { Maybe PropVal }
     :                                             { Nothing }
     | ',' Os PropParVal                           { Just $3 }
-CalcOp :: { CalcOp }
+CalcASP :: { CalcOp }
     : '+'                                         { PlusCe  }
     | '-'                                         { MinusCe }
-    | '/'                                         { DivCe   }
     | '*'                                         { ProdCe  }
+CalcOp :: { CalcOp }
+    : CalcASP                                     { $1  }
+    | '/'                                         { DivCe }
 CalcExpr :: { CalcExpr }
    : Op CalcExprList ')' Os                      { CalcCe NoFn $2 }
    | '-' Os CalcExpr                             { CalcNeg $3 }
    | CalcExpr CalcOp Os CalcExpr                 { BinOpCe $1 $2 $4 }
    | CalcExpr CalcExpr                           {% recoverCalcBinOp $1 $2 }
    | PropN Op PropParValsList Os ')' Os          { AppCe $1 (PropValsList $3) }
+   | PropN Op ')' Os                             { AppCe0 $1 }
    | PropN Os                                    { VarCe $1 }
    | TypedNum Os                                 { ValCe $1 }
    | calcFns Op CalcExprList ')' Os              { CalcCe $1 $3 }

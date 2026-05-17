@@ -198,6 +198,7 @@ properties :: [String]
 properties =
   [ "margin: 20px;"
   , "margin: 2.0px;"
+  , "--o: var(--o-a) * var(--o-o) * var(--o-d, 1);"
   , "x: cos(var(--a) + var(--o ))"
   , "x: (1px + 2px) * 3mm;"
   , "x: (1px + 2px) / (3mm + 2);"

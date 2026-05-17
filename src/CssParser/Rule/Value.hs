@@ -114,6 +114,7 @@ data CalcExpr
   | ValCe TypedNum
   | VarCe PropertyName
   | AppCe PropertyName PropValsList
+  | AppCe0 PropertyName
   | CalcCe CalcFns CalcExprList
   | CalcNeg CalcExpr
   deriving (Eq, Ord, Show, Generic)
@@ -127,6 +128,7 @@ instance HasParens CalcExpr where
     o@VarCe {} -> o
     o@ValCe {} -> o
     o@AppCe {} -> o
+    o@AppCe0 {} -> o
 
 newtype CalcExprList = CalcExprList (NonEmpty CalcExpr)
   deriving newtype (Eq, Ord)
@@ -173,11 +175,13 @@ instance CssShow CalcExpr where
     ValCe v -> toCssText v
     VarCe v -> toCssText v
     AppCe f a -> toCssText f <> "(" <> toCssText a <> ")"
+    AppCe0 f -> toCssText f <> "()"
     CalcCe f a -> toCssText f <> "(" <> toCssText a <> ")"
     CalcNeg x@CalcNeg {} -> "-(" <> toCssText x <> ")"
     CalcNeg x@BinOpCe {} -> "-(" <> toCssText x <> ")"
     CalcNeg x@(VarCe _) -> "- " <> toCssText x
     CalcNeg x@(AppCe _ _) -> "- " <> toCssText x
+    CalcNeg x@(AppCe0 _) -> "- " <> toCssText x
     CalcNeg x -> "-" <> toCssText x
 
 data AttrType
