@@ -1,6 +1,6 @@
 cabal-version:       3.0
 name:                css-parser
-version:             0.0.1
+version:             0.0.2
 synopsis:            pure CSS parser/printer
 description:         Modern CSS parser in pure Haskell built on Alex+Happy stack
 homepage:            https://github.com/yaitskov/css-parser
