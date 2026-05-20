@@ -40,7 +40,7 @@ keywords = fromList $! initL <> fmap toTxt (enumDomain @MediaType)
       <>
       T.words "cx cy rx ry is dir odd even open min max clamp calc"
       <>
-      T.words "sin cos var"
+      T.words "sin cos var past part"
 
 arbitraryIdent :: Gen Text
 arbitraryIdent = do
